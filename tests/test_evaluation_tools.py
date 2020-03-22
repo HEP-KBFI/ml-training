@@ -24,7 +24,7 @@ def test_calculate_compactness():
         parameter_dict3
     ]
     result = et.calculate_compactness(parameter_dicts)
-    expected = np.sqrt(2/3)/2
+    expected = np.sqrt(2./3)/2
     np.testing.assert_almost_equal(
         result,
         expected,
@@ -58,7 +58,7 @@ def test_calculate_dict_mean_coeff_of_variation():
         'c': [5, 10, 15]
     }
     result = et.calculate_dict_mean_coeff_of_variation(list_dict)
-    expected = np.sqrt(2/3)/2
+    expected = np.sqrt(2./3)/2
     np.testing.assert_almost_equal(
         result,
         expected,

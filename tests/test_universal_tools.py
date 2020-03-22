@@ -24,8 +24,8 @@ def test_read_parameters():
 
 
 def test_read_settings():
-    pso_settings = ut.read_settings('pso', settings_dir)
-    global_settings = ut.read_settings('global', settings_dir)
+    pso_settings = ut.read_settings(settings_dir, 'pso')
+    global_settings = ut.read_settings(settings_dir, 'global')
     assert len(pso_settings.keys()) == 7
     assert len(global_settings.keys()) == 14
 
