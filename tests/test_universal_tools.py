@@ -2,11 +2,19 @@ from machineLearning.machineLearning import universal_tools as ut
 import os
 import numpy as np
 
+resources_dir = os.path.join(
+    os.path.expandvars('$CMSSW_BASE'),
+    'src/machineLearning/machineLearning/tests/resources'
+)
+
+settings_dir = os.path.join(
+    os.path.expandvars('$CMSSW_BASE'),
+    'src/machineLearning/machineLearning/settings')
 
 
 def test_read_parameters():
     path_to_test_file = os.path.join(
-        dir_path, 'resources', 'best_parameters.json')
+        resources_dir, 'best_parameters.json')
     result = ut.read_parameters(path_to_test_file)
     expected = [
         {'a': 1, 'b': 2, 'c': 3},
@@ -16,8 +24,8 @@ def test_read_parameters():
 
 
 def test_read_settings():
-    pso_settings = ut.read_settings('pso')
-    global_settings = ut.read_settings('global')
+    pso_settings = ut.read_settings('pso', settings_dir)
+    global_settings = ut.read_settings('global', settings_dir)
     assert len(pso_settings.keys()) == 7
     assert len(global_settings.keys()) == 14
 

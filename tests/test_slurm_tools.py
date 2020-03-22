@@ -12,7 +12,6 @@ tmp_folder = os.path.join(resources_dir, 'tmp')
 if not os.path.exists(tmp_folder):
     os.makedirs(tmp_folder)
 
-# def test_get_fitness_score():
 
 def test_parameters_to_file():
     output_dir = os.path.join(tmp_folder, 'slurm')
@@ -34,8 +33,9 @@ def test_prepare_job_file():
     global_settings = {
         'ml_method': 'xgb',
         'output_dir': tmp_folder,
-        'sample_type': 'hh',
-        'nthread': 2
+        'nthread': 2,
+        'process': 'HH',
+        'channel': '2l_2tau'
     }
     nthread = 2
     parameter_file = os.path.join(resources_dir, 'xgb_parameters.json')
@@ -57,7 +57,7 @@ def test_check_parameter_file_sizes():
 
 
 def test_read_fitness():
-    result = st.read_fitness(resources_dir, fitness_key='d_roc1.5')
+    result = st.read_fitness(resources_dir, fitness_key='d_roc')
     expected = [3, 3, 3]
     assert result == expected
 

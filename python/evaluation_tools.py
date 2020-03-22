@@ -451,7 +451,7 @@ def calculate_dict_mean_coeff_of_variation(list_dict):
     coeff_of_variations = []
     for key in list_dict:
         values = list_dict[key]
-        coeff_of_variation = np.std(values)/np.mean(values)
+        coeff_of_variation = float(np.std(values))/np.mean(values)
         coeff_of_variations.append(coeff_of_variation)
     mean_coeff_of_variation = np.mean(coeff_of_variations)
     return mean_coeff_of_variation

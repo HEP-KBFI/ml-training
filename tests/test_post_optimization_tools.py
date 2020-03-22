@@ -1,4 +1,4 @@
-from higgsAnalysis.modelCreation import post_optimization_tools as pot
+from machineLearning.machineLearning import post_optimization_tools as pot
 import os
 import numpy as np
 
