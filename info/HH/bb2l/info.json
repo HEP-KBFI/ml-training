@@ -1,0 +1,8 @@
+{"masses": [250, 270, 280, 320, 350, 400, 450, 500, 600, 650, 750, 800, 850, 900, 1000]}
+{"masses_test": [300, 500, 800]}
+{"masses_low": [250, 270, 280, 320, 350, 400, 450, 500]}
+{"masses_test_low": [350]}
+{"masses_high": [500, 600, 650, 750, 800, 850, 900, 1000]}
+{"masses_test_high": [600, 800, 900]}
+{"channelInTree": "hh_bb2l_OS_Tight"}
+{"default_tauID_application": "dR03mvaMedium"}
