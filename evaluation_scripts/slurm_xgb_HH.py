@@ -51,7 +51,7 @@ def main(hyperparameter_file, output_dir):
         ['gen_mHH'],
         preferences['masses']
     )
-    dlt.normalize_hh_dataframe(data, preferences)
+    normalize_hh_dataframe(data, preferences)
     if bool(global_settings['use_kfold']):
         score = et.kfold_cv(
             xt.model_evaluation_main,
