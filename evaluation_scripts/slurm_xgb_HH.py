@@ -51,7 +51,7 @@ def main(hyperparameter_file, output_dir):
         ['gen_mHH'],
         preferences['masses']
     )
-    normalize_hh_dataframe(data, preferences)
+    normalize_hh_dataframe(data, preferences, global_settings)
     if bool(global_settings['use_kfold']):
         score = et.kfold_cv(
             xt.model_evaluation_main,
@@ -74,7 +74,12 @@ def main(hyperparameter_file, output_dir):
         json.dump({global_settings['fitness_fn']: score}, score_file)
 
 
-def normalize_hh_dataframe(data, preferences, weight='totalWeight'):
+def normalize_hh_dataframe(
+        data,
+        preferences,
+        global_settings,
+        weight='totalWeight'
+):
     '''Normalizes the weights for the HH data dataframe
 
     Parameters:
@@ -83,6 +88,8 @@ def normalize_hh_dataframe(data, preferences, weight='totalWeight'):
         Dataframe containing all the data needed for the training.
     preferences : dict
         Preferences for the data choice and data manipulation
+    global_settings : dict
+        Preferences for the data, model creation and optimization
     [weight='totalWeight'] : str
         Type of weight to be normalized
 
@@ -90,6 +97,7 @@ def normalize_hh_dataframe(data, preferences, weight='totalWeight'):
     -------
     Nothing
     '''
+    bdt_type = global_settings['bdtType']
     ttbar_samples = ['TTToSemiLeptonic', 'TTTo2L2Nu']
     weight = 'totalWeight'
     condition_sig = data['target'] == 1
