@@ -1,0 +1,14 @@
+{"output_dir": "$HOME/foobar"}
+{"optimization_algo": "pso"}
+{"ml_method": "xgb"}
+{"process": "HH"}
+{"bdtType": "evtLevelSUM_HH_2l_2tau_res"}
+{"trainvar": "noHTT"}
+{"tauID_training": "dR03mvaVLoose"}
+{"bkg_mass_rand": "default"}
+{"channel": "2l_2tau"}
+{"fitness_fn": "d_roc"}
+{"use_kfold": 1}
+{"num_classes": 2}
+{"nthread": 8}
+{"trainvar_opt": 0}

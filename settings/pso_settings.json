@@ -1,0 +1,7 @@
+{"iterations": 2}
+{"sample_size": 2}
+{"compactness_threshold": 0.1}
+{"w_init": 0.9}
+{"w_fin": 0.4}
+{"c1": 2}
+{"c2": 2}
