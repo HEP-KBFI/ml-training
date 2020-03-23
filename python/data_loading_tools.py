@@ -390,6 +390,23 @@ def get_all_paths(input_path, folder_name, bdt_type):
 
 
 def advanced_sample_name(bdt_type, folder_name, masses):
+    ''' If easily classified samples are not enough to get 'target' and
+    'sample_name'
+
+    Parameters:
+    ----------
+    bdt_type: str
+        Type of the boosted decision tree (?)
+    folder_name : str
+        Name of the folder in the keys currently loading the data from
+    masses : list
+        list of int. Masses that are used
+
+    Returns:
+    -------
+    sample_dict : dict
+        Dictionary containing 'sampleName' and 'target'
+    '''
     if 'evtLevelSUM_HH_bb2l' in bdt_type or 'evtLevelSUM_HH_bb1l' in bdt_type:
         if 'signal_ggf' in folder_name:
             if 'evtLevelSUM_HH_bb2l_res' in bdt_type:
@@ -456,7 +473,21 @@ def find_sample(folder_name, samplename_info):
 
 
 def signal_background_calc(data, bdt_type, folder_name):
-    '''Calculates the signal and background'''
+    '''Calculates the signal and background
+
+    Parameters:
+    ----------
+    data : pandas DataFrame
+        data that is loaded
+    bdt_type: str
+        Type of the boosted decision tree (?)
+    folder_name : str
+        Name of the folder in the keys currently loading the data from
+
+    Returns:
+    -------
+    Nothing
+    '''
     if len(data) == 0:
         print("Error: No data (!!!)")
     if 'evtLevelSUM_HH_bb2l' in bdt_type and folder_name == 'TTTo2L2Nu':
