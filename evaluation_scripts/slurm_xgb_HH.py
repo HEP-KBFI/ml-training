@@ -98,17 +98,16 @@ def normalize_hh_dataframe(
     Nothing
     '''
     bdt_type = global_settings['bdtType']
-<<<<<<< HEAD
-=======
     bkg_mass_rand = global_settings['bkg_mass_rand']
->>>>>>> master
     ttbar_samples = ['TTToSemiLeptonic', 'TTTo2L2Nu']
     weight = 'totalWeight'
     condition_sig = data['target'] == 1
     condition_bkg = data['target'] == 0
     if 'oversampling' in  bkg_mass_rand:
-         data.loc[(data['target']==1),[weight]] *= 1./float(len(preferences['masses']))
-         data.loc[(data['target']==0),[weight]] *= 1./float(len(preferences['masses']))
+         data.loc[(data['target']==1),[weight]] *= 1./float(
+            len(preferences['masses']))
+         data.loc[(data['target']==0),[weight]] *= 1./float(
+            len(preferences['masses']))
     if 'SUM_HH' in bdt_type:
         ttbar_weights = data.loc[data['key'].isin(ttbar_samples), [weight]]
         ttbar_factor = preferences['TTdatacard']/ttbar_weights.sum()
