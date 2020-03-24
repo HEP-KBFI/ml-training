@@ -606,6 +606,20 @@ def get_hh_parameters(
 
 
 def get_tth_parameters(channel, bdt_type):
+    '''Reads the parameters for the tth channel
+
+    Parameters:
+    ----------
+    channel : str
+        Name of the channel for which the parameters will be loaded
+    bdt_type : str
+        Name of the bdtType
+
+    Returns:
+    -------
+    parameters : dict
+        Necessary info for loading and weighing the data
+    '''
     channel_dir = os.path.join(
         os.path.expandvars('$CMSSW_BASE'),
         'src/machineLearning/machineLearning/info',
@@ -617,7 +631,7 @@ def get_tth_parameters(channel, bdt_type):
     datacard_info_path = os.path.join(channel_dir, 'datacard_info.json')
     trainvar_path = os.path.join(channel_dir, 'trainvars.txt')
     htt_var_path = os.path.join(channel_dir, 'HTT_var.txt')
-    dict_list = ut.read_parameters(param_file)
+    dict_list = ut.read_parameters(datacard_info_path)
     if dict_list != []:
         for dictionary in dict_list:
             if dictionary['bdtType'] == bdt_type:
