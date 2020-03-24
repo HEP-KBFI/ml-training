@@ -1,0 +1,17 @@
+avg_dr_jet
+dr_lep2_tau_ss
+dr_leps
+mT_lep2
+mTauTauVis
+tau_pt
+tau_eta
+mindr_lep1_jet
+mindr_lep2_jet
+mindr_tau_jet
+mbb_loose
+ptmiss
+nJet
+mvaOutput_hadTopTaggerWithKinFit
+unfittedHadTop_pt
+dr_tau_HTfitted
+fitHTptoHTmass
