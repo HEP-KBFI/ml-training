@@ -1,0 +1,8 @@
+{"channelInTree": "0l_2tau_OS_forBDTtraining"}
+{"channelInTreeTight": "0l_2tau_OS_forBDTtraining" }
+{"default_tauID_application": "dR03mvaMedium"}
+{"inputPathTight": "/hdfs/local/acaan/ttHAnalysis/2016/0l_2tau_2018Jan26_forBDT_tightLtightT/histograms/0l_2tau/forBDTtraining_OS/"}
+{"criteria": []}
+{"testtruth": "bWj1Wj2_isGenMatchedWithKinFit"}
+{"FullsimWP": "TightLep_MediumTau"}
+{"hasHTT": 0}

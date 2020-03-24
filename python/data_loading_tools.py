@@ -558,23 +558,17 @@ def reweigh_dataframe(
         tfile.Close()
 
 
-def get_parameters(
-        process,
+def get_hh_parameters(
         channel,
-        bkg_mass_rand,
         tau_id_training,
         tau_id_application='default'
 ):
-    '''Reads the parameters for data loading
+    '''Reads the parameters for HH data loading
 
     Parameters:
     ----------
-    process : str
-        The name of the process (e.g. HH or ttH)
     channel : str
         The name of the channel (e.g. 2l_2tau)
-    bkg_mass_rand : str
-        Background mass randomization
     tau_id_training : str
         Tau ID for training
     [tau_id_application] : str
@@ -589,7 +583,7 @@ def get_parameters(
     channel_dir = os.path.join(
         os.path.expandvars('$CMSSW_BASE'),
         'src/machineLearning/machineLearning/info',
-        process,
+        'HH',
         channel
     )
     info_path = os.path.join(channel_dir, 'info.json')
@@ -608,6 +602,47 @@ def get_parameters(
     parameters['keys'] = read_list(keys_path)
     parameters['trainvars'] = read_list(trainvars_path)
     parameters.update(info_dict)
+    return parameters
+
+
+def get_tth_parameters(channel, bdt_type):
+    '''Reads the parameters for the tth channel
+
+    Parameters:
+    ----------
+    channel : str
+        Name of the channel for which the parameters will be loaded
+    bdt_type : str
+        Name of the bdtType
+
+    Returns:
+    -------
+    parameters : dict
+        Necessary info for loading and weighing the data
+    '''
+    channel_dir = os.path.join(
+        os.path.expandvars('$CMSSW_BASE'),
+        'src/machineLearning/machineLearning/info',
+        'ttH',
+        channel
+    )
+    parameters = {}
+    info_path = os.path.join(channel_dir, 'info.json')
+    datacard_info_path = os.path.join(channel_dir, 'datacard_info.json')
+    trainvar_path = os.path.join(channel_dir, 'trainvars.txt')
+    htt_var_path = os.path.join(channel_dir, 'HTT_var.txt')
+    dict_list = ut.read_parameters(datacard_info_path)
+    if dict_list != []:
+        for dictionary in dict_list:
+            if dictionary['bdtType'] == bdt_type:
+                multidict = dictionary
+    else:
+        multidict = {}
+    parameters['HTT_var'] = read_list(htt_var_path)
+    parameters['trainvars'] = read_list(trainvar_path)
+    info_dict = ut.read_multiline_json_to_dict(info_path)
+    parameters.update(info_dict)
+    parameters.update(multidict)
     return parameters
 
 

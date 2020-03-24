@@ -1,0 +1,7 @@
+{"hasHTT": 0}
+{"channelInTree": "2l_2tau_sumOS_Tight"}
+{"inputPath": "/hdfs/local/acaan/ttHAnalysis/2016/2l_2tau_2018Feb18_BDT_TLepVLTau/histograms/2l_2tau/forBDTtraining_sumOS/"}
+{"criteria": []}
+{"testtruth": "None"}
+{"channelInTreeTight": "2l_2tau_sumOS_Tight"}
+{"inputPathTight": "/hdfs/local/acaan/ttHAnalysis/2016/2l_2tau_2018Feb18_BDT_TLepMTau/histograms/2l_2tau/forBDTtraining_sumOS/"}

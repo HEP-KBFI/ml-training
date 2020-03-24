@@ -1,0 +1,14 @@
+mTauTauVis
+cosThetaS_hadTau
+tau1_pt
+tau2_pt
+lep2_conePt
+mindr_lep1_jet
+mT_lep1
+mindr_tau_jet
+avg_dr_jet
+avr_dr_lep_tau
+dr_taus
+is_OS
+nBJetLoose
+mbb_loose
