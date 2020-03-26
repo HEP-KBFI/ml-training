@@ -57,7 +57,6 @@ def kfold_cv(
     final_score = avg_score - stdev_scores
     return final_score
 
-
 def get_evaluation(
         evaluation,
         prepared_data,
@@ -91,8 +90,12 @@ def get_evaluation(
     pred_test : list of lists
         Predicted labels of the testing dataset
     '''
-    train, test = train_test_split(
-        prepared_data, test_size=0.2, random_state=1)
+    if bool(global_settings['split_Odd_Even']):
+        train = prepared_data.loc[(prepared_data["event"].values % 2 == 0)] 
+        test  = prepared_data.loc[~(prepared_data["event"].values % 2 == 0)]
+    else:    
+        train, test = train_test_split(
+            prepared_data, test_size=0.2, random_state=1)
     data_dict = {
         'trainvars': trainvars,
         'train': train,
