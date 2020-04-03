@@ -544,7 +544,6 @@ def reweigh_dataframe(
     Nothing
     '''
     for trainvar in trainvars:
-        print(trainvar)
         if trainvar in cancelled_trainvars:
             continue
         filename = '_'.join(['TProfile_signal_fit_func', trainvar]) + '.root'
@@ -561,7 +560,6 @@ def reweigh_dataframe(
 def get_hh_parameters(
         channel,
         tau_id_training,
-        tau_id_application='default'
 ):
     '''Reads the parameters for HH data loading
 
@@ -571,8 +569,7 @@ def get_hh_parameters(
         The name of the channel (e.g. 2l_2tau)
     tau_id_training : str
         Tau ID for training
-    [tau_id_application] : str
-        [Default: None] Tau ID application
+
 
 
     Returns:
@@ -596,7 +593,10 @@ def get_hh_parameters(
     tau_id_trainings = ut.read_parameters(tau_id_training_path)
     tau_id_applications = ut.read_parameters(tau_id_application_path)
     parameters = find_correct_dict(
-        'tauID_application', tau_id_application , tau_id_applications)
+        'tauID_application',
+        info_dict['default_tauID_application'],
+        tau_id_applications
+    )
     parameters['inputPath'] = find_correct_dict(
         'tauID_training', tau_id_training , tau_id_trainings)['inputPath']
     parameters['keys'] = read_list(keys_path)
@@ -662,10 +662,18 @@ def find_correct_dict(key, value, list_of_dicts):
     -------
     requested_dict : dict
     '''
+    new_dictionary = {}
     for dictionary in list_of_dicts:
         if dictionary[key] == value:
             new_dictionary = dictionary.copy()
             new_dictionary.pop(key)
+    if new_dictionary == {}:
+        print(
+            'Given parameter for ' + str(key) + ' missing. Using the defaults')
+        for dictionary in list_of_dicts:
+            if dictionary[key] == 'default':
+                new_dictionary = dictionary.copy()
+                new_dictionary.pop(key)
     return new_dictionary
 
 
