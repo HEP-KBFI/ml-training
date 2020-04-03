@@ -28,10 +28,8 @@ def main(hyperparameter_file, output_dir):
     path = Path(hyperparameter_file)
     save_dir = str(path.parent)
     hyperparameters = ut.read_parameters(hyperparameter_file)[0]
-    preferences = dlt.get_parameters(
-        global_settings['process'],
+    preferences = dlt.get_hh_parameters(
         global_settings['channel'],
-        global_settings['bkg_mass_rand'],
         global_settings['tauID_training']
     )
     data = dlt.load_data(
@@ -100,7 +98,6 @@ def normalize_hh_dataframe(
     bdt_type = global_settings['bdtType']
     bkg_mass_rand = global_settings['bkg_mass_rand']
     ttbar_samples = ['TTToSemiLeptonic', 'TTTo2L2Nu']
-    weight = 'totalWeight'
     condition_sig = data['target'] == 1
     condition_bkg = data['target'] == 0
     if 'oversampling' in  bkg_mass_rand:
