@@ -632,17 +632,21 @@ def get_tth_parameters(channel, bdt_type):
     trainvar_path = os.path.join(channel_dir, 'trainvars.txt')
     htt_var_path = os.path.join(channel_dir, 'HTT_var.txt')
     dict_list = ut.read_parameters(datacard_info_path)
+    multidict = {}
     if dict_list != []:
         for dictionary in dict_list:
-            if dictionary['bdtType'] == bdt_type:
-                multidict = dictionary
-    else:
-        multidict = {}
+            if bdt_type in dictionary['bdtType']:
+                if multidict == {}:
+                    multidict = dictionary
+                else:
+                    print(
+'''Warning: Multiple choices with the given bdtType. Using %s as bdtType'''
+                     %(multidict['bdtType']))
+        parameters.update(multidict)
     parameters['HTT_var'] = read_list(htt_var_path)
     parameters['trainvars'] = read_list(trainvar_path)
     info_dict = ut.read_multiline_json_to_dict(info_path)
     parameters.update(info_dict)
-    parameters.update(multidict)
     return parameters
 
 
