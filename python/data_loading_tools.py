@@ -627,6 +627,7 @@ def get_tth_parameters(channel, bdt_type):
         channel
     )
     parameters = {}
+    keys_path = os.path.join(channel_dir, 'keys.txt')
     info_path = os.path.join(channel_dir, 'info.json')
     datacard_info_path = os.path.join(channel_dir, 'datacard_info.json')
     trainvar_path = os.path.join(channel_dir, 'trainvars.txt')
@@ -646,6 +647,10 @@ def get_tth_parameters(channel, bdt_type):
     parameters['HTT_var'] = read_list(htt_var_path)
     parameters['trainvars'] = read_list(trainvar_path)
     info_dict = ut.read_multiline_json_to_dict(info_path)
+    if os.path.exists(keys_path):
+        parameters['keys'] = read_list(keys_path)
+    else:
+        print('Error: File %s does not exist. No keys found' %(keys_path))
     parameters.update(info_dict)
     return parameters
 

@@ -65,8 +65,6 @@ def main(hyperparameter_file, output_dir):
         json.dump({global_settings['fitness_fn']: score}, score_file)
 
 
-
-
 def normalize_tth_dataframe(
         data,
         preferences,
