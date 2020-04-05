@@ -7,5 +7,6 @@
 {"channelInTreeTight": "1l_2tau_OS_forBDTtraining"}
 {"inputPathTight": "/hdfs/local/acaan/ttHAnalysis/2016/1l_2tau_2018Jan26_forBDT_tightLtightT/histograms/1l_2tau/forBDTtraining_OS/"}
 {"criteria": []}
+{"masses": []}
 {"testtruth": "bWj1Wj2_isGenMatchedWithKinFit"}
 {"WP": "TightLep_MediumTau"}
