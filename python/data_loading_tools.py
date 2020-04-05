@@ -450,7 +450,7 @@ def advanced_sample_name(bdt_type, folder_name, masses):
             sample_name = 'TTH'
         else:
             target = 1
-            sample_name = 'signal' # changed from 'ttH'
+            sample_name = 'ttH' # changed from 'signal'
     sample_dict = {
         'sampleName': sample_name,
         'target': target
