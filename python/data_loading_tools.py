@@ -373,11 +373,19 @@ def get_all_paths(input_path, folder_name, bdt_type):
         else:
             if 'ttH' in folder_name:
                 wild_card_path = os.path.join(
-                    input_path, folder_name + '*Nonbb*', folder_name + '*.root')
+                    input_path,
+                    folder_name + '*Nonbb*',
+                    'central',
+                    folder_name + '*.root'
+                )
                 paths = glob.glob(wild_card_path)
             wild_card_path = os.path.join(
                 input_path, folder_name + "*", folder_name + '*.root')
             paths = glob.glob(wild_card_path)
+            if len(paths) == 0:
+                wild_card_path = os.path.join(
+                    input_path, folder_name + '*', '*.root') # old structure
+                paths = glob.glob(wild_card_path)
     else:
         wild_card_path = os.path.join(
             input_path, folder_name + '*', 'central', '*.root') # new structure
