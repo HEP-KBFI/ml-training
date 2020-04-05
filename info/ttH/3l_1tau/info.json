@@ -1,5 +1,5 @@
 {"hasHTT": 1}
-{"channelInTree": "3l_1tau_OS_lepLoose_tauTight"}
+{"channelInTree": "3l_1tau_OS_lepforBDTtraining_hadtauTight"}
 {"inputPath": "/hdfs/local/acaan/ttHAnalysis/2016/DeepTautau_BDT_mll_2019Oct08/histograms/3l_1tau/forBDTtraining_OS/"}
 {"inputPath16" : "/hdfs/local/acaan/ttHAnalysis/2016/DeepTautau_BDT_mll_2019Oct08/histograms/3l_1tau/forBDTtraining_OS/"}
 {"inputPath17" : "/hdfs/local/acaan/ttHAnalysis/2017/DeepTautau_BDT_mll_2019Oct08/histograms/3l_1tau/forBDTtraining_OS/"}
