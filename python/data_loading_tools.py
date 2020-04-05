@@ -368,7 +368,7 @@ def get_all_paths(input_path, folder_name, bdt_type):
             paths = glob.glob(wild_card_path)
         elif ('TTW' in folder_name) or ('TTZ' in folder_name):
             wild_card_path = os.path.join(
-                inputPath, folder_name + '_LO*', folder_name + '*.root')
+                input_path, folder_name + '_LO*', folder_name + '*.root')
             paths = glob.glob(wild_card_path)
         else:
             if 'ttH' in folder_name:
