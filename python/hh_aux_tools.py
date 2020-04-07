@@ -193,12 +193,12 @@ def make_plots(
         # define range for histograms by cutting 1% of data from both ends
         min_value, max_value = np.percentile(data1[feature], [0.0, 99])
         min_value2, max_value2 = np.percentile(data2[feature], [0.0, 99])
-        print("""feature: {} \t
-        min_value {}, max_value {},
-        min_value2 {}, max_value2 {}""".format(
-            feature, min_value,
-            max_value, min_value2,
-            max_value2))
+        print('----------------------')
+        print('Feature: %s' % (feature))
+        print('min_value: %s' % (min_value))
+        print('max_value: %s' % (max_value))
+        print('min_value2: %s' % (min_value2))
+        print('max_value2: %s' % (max_value2))
         if feature == "gen_mHH":
             nbin_local = 10*len(masses_all)
             range_local = [
@@ -212,8 +212,9 @@ def make_plots(
                 max(max_value, max_value2)
             )
         if printmin:
-            print('printing min and max value= ', (min_value,
-                                                   max_value, feature))
+            print('printing min and max value for feature: ', feature)
+            print('min_value: ', min_value)
+            print('max_value: ', max_value)
         values1, bins, _ = plt.hist(
                                     data1[feature].values,
                                     weights=data1[weights].values.astype(
