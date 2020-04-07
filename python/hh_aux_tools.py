@@ -1,21 +1,16 @@
-from ROOT import TCanvas, TFile, TProfile, TNtuple
-from ROOT import TH1F, TH2F, TH1D, TH2D, THStack, TF1
-from ROOT import gBenchmark, gRandom, gSystem
-from ROOT import Double, gPad, TFitResultPtr, TMath
-from matplotlib import cm as cm
+from ROOT import TCanvas, TFile, TProfile
+from ROOT import TH1D, THStack, TF1
+from ROOT import gPad, TFitResultPtr
 from machineLearning.machineLearning import data_loading_tools as dlt
-from sklearn.metrics import roc_curve, auc, accuracy_score
+from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 import numpy as np
 import pandas as pd
 import math
-import matplotlib
-import root_numpy
 import copy
 import os
 import ROOT
-matplotlib.use('agg')
 ROOT.gROOT.SetBatch(True)
 
 
@@ -217,8 +212,8 @@ def make_plots(
                 max(max_value, max_value2)
             )
         if printmin:
-            print ('printing min and max value= ', (min_value,
-                                                    max_value, feature))
+            print('printing min and max value= ', (min_value,
+                                                   max_value, feature))
         values1, bins, _ = plt.hist(
                                     data1[feature].values,
                                     weights=data1[weights].values.astype(
@@ -333,7 +328,7 @@ def make_plots(
             # l = plt.plot(bins, y, 'r--', linewidth=2)
             plt.ylim(ymin=0)
             plt.title(feature + ' ' + r'mu=%.3f, sig=%.3f$' % (mu, sigma))
-            print (feature + ' ' + r'mu=%.3f, sig=%.3f$' % (mu, sigma))
+            print(feature + ' ' + r'mu=%.3f, sig=%.3f$' % (mu, sigma))
         plt.savefig(
             channel + "/" + bdtType + "_" + trainvar +
             "_Variables_Signal_fullsim_residuals.pdf"

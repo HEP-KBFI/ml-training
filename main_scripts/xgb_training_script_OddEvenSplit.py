@@ -144,7 +144,7 @@ def main(best_hyper_paras_file_path, output_dir):
     # ---- REWEIGHING ENTIRE DATAFRAME --- #
     dlt.reweigh_dataframe(
         data,
-        save_dir,
+        preferences['weight_dir'],
         preferences['trainvars'],
         ['gen_mHH'],
         preferences['masses']
@@ -263,18 +263,6 @@ def main(best_hyper_paras_file_path, output_dir):
           BDTvariables,
           label_list=cls_label_list
     )
-
-
-def run_cmd(command):
-    print("executing command = '%s'" % command)
-    p = subprocess.Popen(
-        command,
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-    stdout, stderr = p.communicate()
-    return stdout
 
 
 def PlotInputVar(
