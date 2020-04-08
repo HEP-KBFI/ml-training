@@ -6,4 +6,4 @@
 {"masses_test_high": [500, 800]}
 {"channelInTree": "hh_2l_2tau_sumOS_forBDTtraining"}
 {"default_tauID_application": "dR03mvaMedium"}
-{"weight_dir": "/home/ram/TTH_ANALYSIS_RUN2_LEGACY/CMSSW_10_2_10_CentOS7_Nov20_2019/src/tthAnalysis/bdtTraining/EvtLevel/2l_2tau_HH_dR03mvaVLoose_oversampling_finalVars_allMasses_Train_all_Masses4_2l_2tau_diagnostics_with_reweighting/"}
+{"weight_dir": "/hdfs/local/ram/MVA_fit_funcs/2017/2l_2tau/Resonant"}
