@@ -204,20 +204,16 @@ def main(best_hyper_paras_file_path, output_dir):
         weights="totalWeight"
     )
 
+    # ----NORMALIZING DATAFRAME ----#
+    df.normalize_hh_dataframe(
+        data, preferences,
+        global_settings, weight='totalWeight'
+    )
+
     # ----SPLITTING DATAFRAME INTO ODD-EVEN HALVES--#
     Even_df = data.loc[(data["event"].values % 2 == 0)]
     Odd_df = data.loc[~(data["event"].values % 2 == 0)]
     df_list = [Odd_df, Even_df]
-
-    # ----NORMALIZING EACH HALF SEPARATELY----#
-    df.normalize_hh_dataframe(
-        Even_df, preferences,
-        global_settings, weight='totalWeight'
-    )
-    df.normalize_hh_dataframe(
-        Odd_df, preferences,
-        global_settings, weight='totalWeight'
-    )
 
     # ----RUNNING SEPERATE BDT TRAINING FOR THE HALVES--#
     cls_Even_train_Odd_test = Evaluate(
