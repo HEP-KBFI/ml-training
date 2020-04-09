@@ -3,9 +3,9 @@
 {"ml_method": "xgb"}
 {"process": "HH"}
 {"bdtType": "evtLevelSUM_HH_2l_2tau_res"}
-{"trainvar": "noHTT"}
+{"trainvar": "finalVars_allMasses"}
 {"tauID_training": "dR03mvaVLoose"}
-{"bkg_mass_rand": "default"}
+{"bkg_mass_rand": "oversampling"}
 {"channel": "2l_2tau"}
 {"fitness_fn": "d_roc"}
 {"use_kfold": 1}
