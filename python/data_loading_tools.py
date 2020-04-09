@@ -368,7 +368,7 @@ def get_all_paths(input_path, folder_name, bdt_type):
             paths = glob.glob(wild_card_path)
         elif ('TTW' in folder_name) or ('TTZ' in folder_name):
             wild_card_path = os.path.join(
-                inputPath, folder_name + '_LO*', folder_name + '*.root')
+                input_path, folder_name + '_LO*', folder_name + '*.root')
             paths = glob.glob(wild_card_path)
         else:
             if 'ttH' in folder_name:
@@ -382,6 +382,10 @@ def get_all_paths(input_path, folder_name, bdt_type):
             wild_card_path = os.path.join(
                 input_path, folder_name + "*", folder_name + '*.root')
             paths = glob.glob(wild_card_path)
+            if len(paths) == 0:
+                wild_card_path = os.path.join(
+                    input_path, folder_name + '*', '*.root') # old structure
+                paths = glob.glob(wild_card_path)
     else:
         wild_card_path = os.path.join(
             input_path, folder_name + '*', 'central', '*.root') # new structure
@@ -446,7 +450,7 @@ def advanced_sample_name(bdt_type, folder_name, masses):
             sample_name = 'TTH'
         else:
             target = 1
-            sample_name = 'signal' # changed from 'ttH'
+            sample_name = 'ttH' # changed from 'signal'
     sample_dict = {
         'sampleName': sample_name,
         'target': target
@@ -631,22 +635,31 @@ def get_tth_parameters(channel, bdt_type):
         channel
     )
     parameters = {}
+    keys_path = os.path.join(channel_dir, 'keys.txt')
     info_path = os.path.join(channel_dir, 'info.json')
     datacard_info_path = os.path.join(channel_dir, 'datacard_info.json')
     trainvar_path = os.path.join(channel_dir, 'trainvars.txt')
     htt_var_path = os.path.join(channel_dir, 'HTT_var.txt')
     dict_list = ut.read_parameters(datacard_info_path)
+    multidict = {}
     if dict_list != []:
         for dictionary in dict_list:
-            if dictionary['bdtType'] == bdt_type:
-                multidict = dictionary
-    else:
-        multidict = {}
+            if bdt_type in dictionary['bdtType']:
+                if multidict == {}:
+                    multidict = dictionary
+                else:
+                    print(
+'''Warning: Multiple choices with the given bdtType. Using %s as bdtType'''
+                     %(multidict['bdtType']))
+        parameters.update(multidict)
     parameters['HTT_var'] = read_list(htt_var_path)
     parameters['trainvars'] = read_list(trainvar_path)
     info_dict = ut.read_multiline_json_to_dict(info_path)
+    if os.path.exists(keys_path):
+        parameters['keys'] = read_list(keys_path)
+    else:
+        print('Error: File %s does not exist. No keys found' %(keys_path))
     parameters.update(info_dict)
-    parameters.update(multidict)
     return parameters
 
 
