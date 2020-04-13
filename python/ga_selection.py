@@ -76,7 +76,7 @@ def rank(population, fitnesses):
         ranks.append(curr_rank)
         curr_rank += 1
     for curr_rank in ranks:
-        probabilities.append(curr_rank / (len(ranks) * (len(ranks) - 1)))
+        probabilities.append(float(curr_rank) / (len(ranks) * (len(ranks) - 1)))
     parents = wheel_parents(ranked_population, probabilities)
     return parents
 
@@ -150,5 +150,5 @@ def normalize(fitnesses):
     normalized = []
     total = sum(fitnesses)
     for fitness in fitnesses:
-        normalized.append(fitness / total)
+        normalized.append(float(fitness) / total)
     return normalized
