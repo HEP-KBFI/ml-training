@@ -1,8 +1,12 @@
 {"hasHTT": 1}
 {"channelInTree": "1l_2tau_OS_forBDTtraining"}
-{"inputPath": "/hdfs/local/acaan/ttHAnalysis/2017/1l_2tau_toBDT_2018Sep27_tauLoose/histograms/1l_2tau/forBDTtraining_OS/"}
+{"inputPath": "/hdfs/local/acaan/ttHAnalysis/2016/DeepTautau_BDT_mll_2019Oct08/histograms/1l_2tau/forBDTtraining_OS/"}
+{"inputPath16" : "/hdfs/local/acaan/ttHAnalysis/2016/DeepTautau_BDT_mll_2019Oct08/histograms/1l_2tau/forBDTtraining_OS/"}
+{"inputPath17" : "/hdfs/local/acaan/ttHAnalysis/2017/DeepTautau_BDT_mll_2019Oct08/histograms/1l_2tau/forBDTtraining_OS/"}
+{"inputPath18" : "/hdfs/local/acaan/ttHAnalysis/2018/DeepTautau_BDT_mll_2019Oct08/histograms/1l_2tau/forBDTtraining_OS/"}
 {"channelInTreeTight": "1l_2tau_OS_forBDTtraining"}
 {"inputPathTight": "/hdfs/local/acaan/ttHAnalysis/2016/1l_2tau_2018Jan26_forBDT_tightLtightT/histograms/1l_2tau/forBDTtraining_OS/"}
 {"criteria": []}
+{"masses": []}
 {"testtruth": "bWj1Wj2_isGenMatchedWithKinFit"}
 {"WP": "TightLep_MediumTau"}

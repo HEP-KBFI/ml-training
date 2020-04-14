@@ -1,8 +1,12 @@
 {"hasHTT": 1}
-{"channelInTree": "3l_1tau_OS_lepLoose_tauTight"}
-{"inputPath": "/hdfs/local/acaan/ttHAnalysis/2016/3l_1tau_2018Feb19_BDT_LLepVLTau/histograms/3l_1tau/forBDTtraining_OS/"}
+{"channelInTree": "3l_1tau_OS_lepforBDTtraining_hadTauTight"}
+{"inputPath": "/hdfs/local/acaan/ttHAnalysis/2016/DeepTautau_BDT_mll_2019Oct08/histograms/3l_1tau/forBDTtraining_OS/"}
+{"inputPath16" : "/hdfs/local/acaan/ttHAnalysis/2016/DeepTautau_BDT_mll_2019Oct08/histograms/3l_1tau/forBDTtraining_OS/"}
+{"inputPath17" : "/hdfs/local/acaan/ttHAnalysis/2017/DeepTautau_BDT_mll_2019Oct08/histograms/3l_1tau/forBDTtraining_OS/"}
+{"inputPath18" : "/hdfs/local/acaan/ttHAnalysis/2018/DeepTautau_BDT_mll_2019Oct08/histograms/3l_1tau/forBDTtraining_OS/"}
 {"criteria": []}
 {"testtruth": "None"}
 {"channelInTreeTight": "3l_1tau_OS_lepTight_tauTight"}
 {"inputPathTight": "/hdfs/local/acaan/ttHAnalysis/2016/3l_1tau_2018Feb19_BDT_TLepMTau/histograms/3l_1tau/forBDTtraining_OS/"}
 {"FullsimWP": "TightLep_MediumTau"}
+{"masses": []}
