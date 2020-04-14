@@ -391,10 +391,8 @@ def arrange_population(population):
     eval_pop = []
     rest_pop = []
     for member in population:
-        # Find members not yet evaluated
         if member.fitness is None:
             eval_pop.append(member)
-        # Find member already evaluated
         else:
             rest_pop.append(member)
     return eval_pop, rest_pop
@@ -486,7 +484,8 @@ def evolve(
         best parameters found for the current problem.
     '''
     if settings['sub_pops'] > 1:
-        population = evolve_subpopulations(population, settings, create_set)
+        population = evolve_subpopulations(
+            population, settings, parameters, create_set, evaluate)
     iteration = 0
     improvement = 1
     improvements = []

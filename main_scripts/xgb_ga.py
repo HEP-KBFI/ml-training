@@ -33,7 +33,7 @@ def main():
     settings = global_settings
     settings.update(ga_settings)
     hyperparameter_sets = xt.prepare_run_params(
-        value_dicts, pso_settings['sample_size']
+        value_dicts, settings['sample_size']
     )
     print("\n============ Starting hyperparameter optimization ==========\n")
     best_hyperparameters = gmt.evolve(
