@@ -1,7 +1,7 @@
 '''
 Call with 'python3'
 
-Usage: slurm_xgb_ttH.py --parameter_file=PTH --output_dir=DIR
+Usage: slurm_nn_HH.py --parameter_file=PTH --output_dir=DIR
 
 Options:
     -p --parameter_file=PTH      Path to parameters to be run
@@ -10,10 +10,10 @@ Options:
 
 from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning import evaluation_tools as et
-from machineLearning.machineLearning import xgb_tools as xt
+from machineLearning.machineLearning import nn_tools as nnt
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import slurm_tools as st
-from machineLearning.machineLearning import tth_aux_tools as tthat
+from machineLearning.machineLearning import hh_aux_tools as hhat
 from pathlib import Path
 import os
 import csv
@@ -29,9 +29,9 @@ def main(hyperparameter_file, output_dir):
     path = Path(hyperparameter_file)
     save_dir = str(path.parent)
     hyperparameters = ut.read_parameters(hyperparameter_file)[0]
-    preferences = dlt.get_tth_parameters(
+    preferences = dlt.get_hh_parameters(
         global_settings['channel'],
-        global_settings['bdtType']
+        global_settings['tauID_training']
     )
     data = dlt.load_data(
         preferences['inputPath'],
@@ -43,10 +43,17 @@ def main(hyperparameter_file, output_dir):
         preferences['masses'],
         global_settings['bkg_mass_rand'],
     )
-    tthat.normalize_tth_dataframe(data, preferences, global_settings)
+    dlt.reweigh_dataframe(
+        data,
+        preferences['weight_dir'],
+        preferences['trainvars'],
+        ['gen_mHH'],
+        preferences['masses']
+    )
+    hhat.normalize_hh_dataframe(data, preferences, global_settings)
     if bool(global_settings['use_kfold']):
         score = et.kfold_cv(
-            xt.model_evaluation_main,
+            nnt.model_evaluation_main,
             data,
             preferences['trainvars'],
             global_settings,
@@ -54,7 +61,7 @@ def main(hyperparameter_file, output_dir):
         )
     else:
         score, pred_train, pred_test = et.get_evaluation(
-            xt.model_evaluation_main,
+            nnt.model_evaluation_main,
             data,
             preferences['trainvars'],
             global_settings,

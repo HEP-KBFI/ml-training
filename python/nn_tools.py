@@ -19,6 +19,35 @@ from eli5.formatters.as_dataframe import format_as_dataframe
 from machineLearning.machineLearning import universal_tools as ut
 
 
+def model_evaluation_main(nn_hyperparameters, data_dict, global_settings):
+    ''' Collected functions for CGB model evaluation
+
+    Parameters:
+    ----------
+    nn_hyperparamters : dict
+        hyperparameters for the model to be created
+    data_dict : dict
+        Contains all the necessary information for the evaluation.
+    global_settings : dict
+        Preferences for the optimization
+
+    Returns:
+    -------
+    score : float
+        The score calculated according to the fitness_fn
+    '''
+    k_model = parameter_evaluation(
+        nn_hyperparameters,
+        data_dict,
+        global_settings['nthread'],
+        global_settings['num_class'],
+    )
+    score, pred_train, pred_test = evaluate(
+        k_model, data_dict, global_settings
+    )
+    return score, pred_train, pred_test
+
+
 def create_nn_model(
         nn_hyperparameters={},
         nr_trainvars=9,
@@ -86,7 +115,7 @@ def create_nn_model(
     return model
 
 
-def create_nn_model(
+def parameter_evaluation(
         nn_hyperparameters,
         data_dict,
         nthread,
@@ -121,8 +150,6 @@ def create_nn_model(
     )
     nr_trainvars = len(data_dict['train'][0])
     number_samples = len(data_dict['train'])
-    nn_model = create_nn_model(
-        nn_hyperparameters, nr_trainvars, num_class, number_samples)
     k_model = KerasClassifier(
         build_fn=create_nn_model,
         epochs=nn_hyperparameters['epochs'],
@@ -137,7 +164,7 @@ def create_nn_model(
 
 
 def evaluate(k_model, data_dict, global_settings):
-    '''Creates the data_dict for the XGBoost method
+    '''Evaluates the nn k_model
 
     Parameters:
     ----------
@@ -169,7 +196,7 @@ def evaluate(k_model, data_dict, global_settings):
         score = et.calculate_d_ams(pred_train, pred_test, data_dict)
     else:
         print('This fitness_fn is not implemented')
-    return score
+    return score, pred_train, pred_test
 
 
 def get_feature_importances(model, data_dict):
