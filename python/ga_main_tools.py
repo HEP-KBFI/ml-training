@@ -1,7 +1,6 @@
 '''Main functions for the genetic algorithm'''
-import inspect
 import numpy as np
-from machineLearning.machineLearning import universal as ut
+from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import ga_selection as select
 from machineLearning.machineLearning import ga_crossover as gc
 
