@@ -408,7 +408,6 @@ def calculate_compactness(parameter_dicts):
     return mean_cov
 
 
-
 def values_to_list_dict(keys, parameter_dicts):
     '''Adds same key values from different dictionaries into a list w
 
@@ -455,3 +454,38 @@ def calculate_dict_mean_coeff_of_variation(list_dict):
         coeff_of_variations.append(coeff_of_variation)
     mean_coeff_of_variation = np.mean(coeff_of_variations)
     return mean_coeff_of_variation
+
+
+def calculate_improvement(avg_scores, improvements, threshold):
+    '''Calculates the improvement based on the average scores. Purpose:
+    stopping criteria. Currently used only in GA algorithm.
+
+    Parameters:
+    -----------
+    avg_scores : list
+        Average scores of each iteration in the evolutionary algorithm
+    improvements : list
+        List of improvements of previous iterations
+    threshold : float
+        Stopping criteria.
+
+    Returns:
+    --------
+    improvements : list
+        List of improvements
+    imporvement : float
+        Improvement for comparing
+
+    Comments:
+    ---------
+    Elif clause used in order to have last 2 iterations less than the threshold
+    '''
+    if len(avg_scores) > 1:
+        improvements.append(
+            (float(avg_scores[-1]-avg_scores[-2])) / avg_scores[-2])
+        improvement = improvements[-1]
+    if len(improvements) < 2:
+        improvement = 1
+    elif improvement <= threshold:
+        improvement = improvements[-2]
+    return improvements, improvement
