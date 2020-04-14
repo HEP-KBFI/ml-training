@@ -483,7 +483,6 @@ def evolve(
     best_parameters : dict
         best parameters found for the current problem.
     '''
-    population = assign_individuals(population, subpop)
     if settings['sub_pops'] > 1:
         population = evolve_subpopulations(
             population, settings, parameters, create_set, evaluate)

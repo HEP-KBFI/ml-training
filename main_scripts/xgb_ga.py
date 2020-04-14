@@ -28,18 +28,13 @@ def main():
         settings_dir,
         'xgb_parameters.json'
     )
-    value_dicts = ut.read_parameters(param_file)
+    parameters = ut.read_parameters(param_file)
     ga_settings = ut.read_settings(settings_dir, 'ga')
     settings = global_settings
     settings.update(ga_settings)
-    hyperparameter_sets = xt.prepare_run_params(
-        value_dicts, settings['sample_size']
-    )
     print("\n============ Starting hyperparameter optimization ==========\n")
-    best_hyperparameters = gmt.evolve(
-        hyperparameter_sets, settings, value_dicts,
-        xt.prepare_run_params, st.get_fitness_score
-    )
+    best_hyperparameters = gmt.evolution(
+        settings, parameters, xt.prepare_run_params, st.get_fitness_score)
     print("\n============ Saving results ================\n")
     best_parameters_path = os.path.join(
         output_dir, 'best_hyperparameters.json')
