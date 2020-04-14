@@ -456,7 +456,13 @@ def finish_subpopulation(
     return finished_subpopulations, remaining_subpopulations
 
 
-def evolve(population, settings, parameters, create_set, evaluate):
+def evolve(
+        population,
+        settings,
+        parameters,
+        create_set,
+        evaluate
+):
     '''Evolve a population until reaching the threshold
     or maximum number of iterations. In case of subpopulations, first
     evolve all subpopulations until reaching either criteria, then
@@ -477,15 +483,15 @@ def evolve(population, settings, parameters, create_set, evaluate):
 
     Returns
     -------
-    output : dict
-        All gathered information
+    best_parameters : dict
+        best parameters found for the current problem.
     '''
     if settings['sub_pops'] > 1:
         population = evolve_subpopulations(population, settings, create_set)
     iteration = 0
     improvement = 1
     improvements = []
-    final_tracker = {}
+    avg_scores = []
     while (iteration <= settings['iterations']
            and improvement > settings['threshold']):
         if iteration != 0:
@@ -494,8 +500,10 @@ def evolve(population, settings, parameters, create_set, evaluate):
                 population, settings, parameters, create_set, evaluate)
         population = fitness_calculation(
             population, settings, evaluate)
+        fitnesses = fitness_list(population)
+        avg_scores.append(np.mean(fitnesses))
         improvements, improvement = ut.calculate_improvement(
-            final_tracker['avg_scores'],
+            avg_scores,
             improvements,
             settings['threshold']
         )
@@ -505,14 +513,42 @@ def evolve(population, settings, parameters, create_set, evaluate):
     return best_parameters
 
 
-def evolve_subpopulations(population, settings, create_set, parameters, evlauate):
+def evolve_subpopulations(
+        population,
+        settings,
+        parameters,
+        create_set,
+        evaluate
+):
+    '''Evolve subpopulations until reaching the threshold
+    or maximum number of iterations. In case of subpopulations, first
+    evolve all subpopulations until reaching either criteria, then
+    evolve the merged population until reaching either criteria
+
+    Parameters
+    ----------
+    population : list
+        Initial population
+    settings : dict
+        Settings of the genetic algorithm
+    parameters: dict
+        Descriptions of the xgboost parameters
+    create_set : function
+        Function used to generate a population
+    evaluate : function
+        Function used to calculate scores
+
+    Returns
+    -------
+    best_parameters : dict
+        best parameters found for the current problem.
+    '''
     iteration = 0
     finished_subpopulations = []
     curr_improvement = []
     improvements = {}
-    tracker = {}
-    while (iteration <= settings['iterations']
-           and population):
+    avg_scores = {}
+    while (iteration <= settings['iterations'] and population):
         if iteration != 0:
             print('::::: Iteration:' + str(iteration) + ' :::::')
             new_subpopulations = []
@@ -531,7 +567,7 @@ def evolve_subpopulations(population, settings, create_set, parameters, evlauate
             population, settings, evaluate)
         subpopulations = separate_subpopulations(population, settings)
         curr_improvements = []
-        for i, subpopulation in enumerate(subpopulations):
+        for subpopulation in subpopulations:
             index = subpopulation[0].subpop
             fitnesses = fitness_list(subpopulation)
             if iteration == 0:
@@ -539,7 +575,7 @@ def evolve_subpopulations(population, settings, create_set, parameters, evlauate
                 improvements[index] = []
             avg_scores[index].append(np.mean(fitnesses))
             improvements[index], curr_improvement = ut.calculate_improvement(
-                tracker[index]['avg_scores'],
+                avg_scores[index],
                 improvements[index],
                 settings['threshold']
             )
