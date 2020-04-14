@@ -135,7 +135,6 @@ def calculate_d_score(train_score, test_score, kappa=1.5):
 ########################################################
 
 
-
 def roc(labels, pred_vectors):
     '''Calculate the ROC values using the method used in Dianas thesis.
 
@@ -242,14 +241,14 @@ def calculate_d_roc(data_dict, pred_train, pred_test, kappa=1.5):
 
 
 def ams(s, b):
-    """ Approximate Median Significance defined as:
+    ''' Approximate Median Significance defined as:
         AMS = sqrt(
                 2 { (s + b + b_r) log[1 + (s/(b+b_r))] - s}
-              )        
+              )
     where b_r = 10, b = background, s = signal, log is natural logarithm
-    """
+    '''
     br = 10.0
-    radicand = 2 *( (s+b+br) * np.log (1.0 + s/(b+br)) -s)
+    radicand = 2 * ((s + b + br) * np.log(1.0 + s / (b + br)) - s)
     if radicand < 0:
         print 'radicand is negative. Exiting'
         exit()
@@ -290,7 +289,7 @@ def try_different_thresholds(predicted, data_dict, label_type, threshold=None):
     signals = []
     backgrounds = []
     prediction = pandas.Series(i[1] for i in predicted)
-    if threshold != None:
+    if threshold is not None:
         th_prediction = pandas.Series(
             [1 if pred >= threshold else 0 for pred in prediction])
         signal, background = calculate_s_and_b(
@@ -385,7 +384,6 @@ def calculate_d_ams(
 
 
 ###############################################################3
-
 
 
 def calculate_compactness(parameter_dicts):

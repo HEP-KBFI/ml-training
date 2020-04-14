@@ -23,7 +23,7 @@ def initialize_values(value_dicts):
     sample = {}
     for xgb_params in value_dicts:
         if bool(xgb_params['true_int']):
-             value = np.random.randint(
+            value = np.random.randint(
                 low=xgb_params['range_start'],
                 high=xgb_params['range_end']
             )

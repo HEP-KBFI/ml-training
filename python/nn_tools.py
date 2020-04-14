@@ -26,7 +26,7 @@ def create_nn_model(
         number_samples=5000,
         metrics=['accuracy'],
 ):
-    ''' Creates the neural network model. The normalization used is 
+    ''' Creates the neural network model. The normalization used is
     batch normalization. Kernel is initialized by the Kaiming initializer
     called 'he_uniform'
 
@@ -123,7 +123,7 @@ def create_nn_model(
     number_samples = len(data_dict['train'])
     nn_model = create_nn_model(
         nn_hyperparameters, nr_trainvars, num_class, number_samples)
-    k_model  = KerasClassifier(
+    k_model = KerasClassifier(
         build_fn=create_nn_model,
         epochs=nn_hyperparameters['epochs'],
         batch_size=nn_hyperparameters['batch_size'],
@@ -298,7 +298,7 @@ def initialize_values(value_dicts):
     sample = {}
     for xgb_params in value_dicts:
         if bool(xgb_params['true_int']):
-             value = np.random.randint(
+            value = np.random.randint(
                 low=xgb_params['range_start'],
                 high=xgb_params['range_end']
             )
@@ -311,7 +311,6 @@ def initialize_values(value_dicts):
             value = np.exp(value)
         sample[str(xgb_params['p_name'])] = value
     return sample
-
 
 
 def prepare_run_params(value_dicts, sample_size):

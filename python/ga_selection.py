@@ -76,7 +76,8 @@ def rank(population, fitnesses):
         ranks.append(curr_rank)
         curr_rank += 1
     for curr_rank in ranks:
-        probabilities.append(float(curr_rank) / (len(ranks) * (len(ranks) - 1)))
+        probabilities.append(
+            float(curr_rank) / (len(ranks) * (len(ranks) - 1)))
     parents = wheel_parents(ranked_population, probabilities)
     return parents
 

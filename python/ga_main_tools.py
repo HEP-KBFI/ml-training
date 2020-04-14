@@ -38,7 +38,7 @@ class Individual:
             self,
             fitness,
             score=None,
-        ):
+    ):
         '''Adds the the evaluation results as attributes to the
         individual'''
         self.fitness = fitness
@@ -48,7 +48,6 @@ class Individual:
         self.subpop = 0
 
 
-# OK!
 def assign_individuals(population, subpop):
     '''Assigns generated values to members of the class Individual
 
@@ -71,7 +70,6 @@ def assign_individuals(population, subpop):
     return individuals
 
 
-# OK!
 def create_population(settings, parameters, create_set):
     '''Creates a randomly generated population
 
@@ -105,7 +103,6 @@ def create_population(settings, parameters, create_set):
     return population
 
 
-# OK!
 def separate_subpopulations(population, settings):
     '''Separate the population into subpopulations
 
@@ -134,7 +131,6 @@ def separate_subpopulations(population, settings):
     return separated
 
 
-# OK!
 def unite_subpopulations(subpopulations):
     '''Reunite separated subpopulations
 
@@ -186,7 +182,6 @@ def set_num(amount, population):
     return num
 
 
-# OK!
 def fitness_list(population):
     '''Generate a list of fitness scores for the given population
 
@@ -250,7 +245,7 @@ def fitness_calculation(population, settings, evaluate):
         population = eval_pop + rest_pop
     return population
 
-# OK!
+
 def elitism(population, settings):
     '''Preserve best performing members of the previous generation
 
@@ -277,7 +272,7 @@ def elitism(population, settings):
         num -= 1
     return elite
 
-# OK!
+
 def culling(
         population,
         settings,
@@ -326,7 +321,6 @@ def culling(
     return population
 
 
-# OK!
 def new_population(
         population,
         settings,
@@ -398,7 +392,6 @@ def arrange_population(population):
     return eval_pop, rest_pop
 
 
-# OK!
 def merge_subpopulations(subpopulations):
     '''Merge subpopulations into one population
 
@@ -609,10 +602,10 @@ def evolution(settings, parameters, create_set, evaluate):
     result : dict
         Result of the run of the genetic algorithm
     '''
-    print('\n::::: Generating initial population :::::')
+    print('::::: Generating initial population :::::')
     population = create_population(settings, parameters, create_set)
-    print('\n::::: Starting evoliton :::::')
+    print('::::: Starting evoliton :::::')
     best_parameters = evolve(
         population, settings, parameters, create_set, evaluate)
-    print('\n::::: Evolved! :::::')
+    print('::::: Evolved! :::::')
     return best_parameters
