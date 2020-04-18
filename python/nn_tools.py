@@ -40,7 +40,7 @@ def model_evaluation_main(nn_hyperparameters, data_dict, global_settings):
         nn_hyperparameters,
         data_dict,
         global_settings['nthread'],
-        global_settings['num_class'],
+        global_settings['num_classes'],
     )
     score, pred_train, pred_test = evaluate(
         k_model, data_dict, global_settings
@@ -148,7 +148,7 @@ def parameter_evaluation(
             )
         )
     )
-    nr_trainvars = len(data_dict['train'][0])
+    nr_trainvars = len(data_dict['train'].columns)
     number_samples = len(data_dict['train'])
     k_model = KerasClassifier(
         build_fn=create_nn_model,
@@ -190,10 +190,11 @@ def evaluate(k_model, data_dict, global_settings):
     )
     pred_train = k_model.predict_proba(data_dict['train'])
     pred_test = k_model.predict_proba(data_dict['test'])
+    kappa = global_settings['kappa']
     if global_settings['fitness_fn'] == 'd_roc':
-        score = et.calculate_d_roc(pred_train, pred_test, data_dict)
+        score = et.calculate_d_roc(pred_train, pred_test, data_dict, kappa)
     elif global_settings['fitness_fn'] == 'd_ams':
-        score = et.calculate_d_ams(pred_train, pred_test, data_dict)
+        score = et.calculate_d_ams(pred_train, pred_test, data_dict, kappa)
     else:
         print('This fitness_fn is not implemented')
     return score, pred_train, pred_test
