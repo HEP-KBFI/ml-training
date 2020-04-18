@@ -148,8 +148,8 @@ def parameter_evaluation(
             )
         )
     )
-    nr_trainvars = len(data_dict['train'].columns)
-    number_samples = len(data_dict['train'])
+    nr_trainvars = len(data_dict['traindataset'][0])
+    number_samples = len(data_dict['traindataset'])
     k_model = KerasClassifier(
         build_fn=create_nn_model,
         epochs=nn_hyperparameters['epochs'],
@@ -181,10 +181,10 @@ def evaluate(k_model, data_dict, global_settings):
         The score calculated according to the fitness_fn
     '''
     fit_result = k_model.fit(
-        data_dict['train'],
+        data_dict['traindataset'],
         data_dict['training_labels'],
         validation_data=(
-            data_dict['test'],
+            data_dict['testdataset'],
             data_dict['testing_labels']
         )
     )
