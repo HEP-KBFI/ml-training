@@ -70,7 +70,7 @@ def plot_costfunction(avg_scores, output_dir, y_label='Fitness score'):
         plt.plot(gen_numbers, avg_scores, color='k')
         plt.xlim(0, n_gens - 1)
         plt.xticks(np.arange(n_gens - 1))
-    except:  # in case of a genetic algorithm with multiple subpopulations
+    except: # in case of a genetic algorithm with multiple subpopulations
         x_max = 0
         for i in avg_scores:
             n_gens = len(avg_scores[i])
@@ -84,7 +84,8 @@ def plot_costfunction(avg_scores, output_dir, y_label='Fitness score'):
                 line_length = x_max - len(avg_scores[i]) + 1
                 y_values = [avg_scores[i][-1] for n in range(line_length)]
                 x_values = np.arange(len(avg_scores[i]) - 1, x_max)
-                plt.plot(x_values, y_values, color='b', linestyle='--', alpha=0.2)
+                plt.plot(
+                    x_values, y_values, color='b', linestyle='--', alpha=0.2)
         n_gens_final = x_max + len(avg_scores['final']) - 1
         gen_numbers = np.arange(x_max - 1, n_gens_final)
         plt.plot(gen_numbers, avg_scores['final'], color='k')

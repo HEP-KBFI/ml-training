@@ -46,7 +46,8 @@ def get_fitness_score(
             settings_dir, global_settings['optimization_algo'])
         sample_size = opt_settings['sample_size']
     parameters_to_file(output_dir, hyperparameter_sets)
-    wild_card_path = os.path.join(output_dir, 'samples', '*', 'parameters.json')
+    wild_card_path = os.path.join(
+        output_dir, 'samples', '*', 'parameters.json')
     zero_sized = 1
     while zero_sized != 0:
         zero_sized = check_parameter_file_sizes(wild_card_path)
@@ -138,8 +139,8 @@ python %s --parameter_file %s --output_dir %s
 
 
 def check_parameter_file_sizes(wild_card_path):
-    '''Checks all files in the wild_card_path for their size. Returns the number
-    of files with zero size
+    '''Checks all files in the wild_card_path for their size. Returns the
+    number of files with zero size
 
     Paramters:
     ---------

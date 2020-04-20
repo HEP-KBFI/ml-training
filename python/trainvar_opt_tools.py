@@ -35,7 +35,7 @@ def write_new_trainvar_list(trainvars, out_dir):
 
 
 def choose_trainvar(datacard_dir, channel, trainvar, bdt_type):
-    '''Reads the training variables from the data folder from file 
+    '''Reads the training variables from the data folder from file
     'optimization_trainvars.txt'. Is used for the xgb_tth cf function.
 
     Parametrs:
@@ -105,7 +105,7 @@ def initialize_trainvars(channel='2l_2tau', process='HH', random_sample='TTZ'):
     sample_dict = dlt.find_sample(folder_name, samplename_info)
     if sample_dict == {}:
         sample_dict = dl.advanced_sample_name(
-            global_settings['bdtType'], folder_name, []) # TTZ is just a random choice
+            global_settings['bdtType'], folder_name, [])
     sample_name = sample_dict['sampleName']
     input_tree = str(os.path.join(
         channel_in_tree, 'sel/evtntuple', sample_name, 'evtTree'))

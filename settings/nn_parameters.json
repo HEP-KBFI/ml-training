@@ -1,5 +1,5 @@
 {"p_name": "nr_hidden_layers", "range_start": 1, "range_end": 3, "true_int": 1, "exp": 0}
-{"p_name": "learning_rate", "range_start": -5, "range_end": 0, "true_int": 0, "exp": 1}
+{"p_name": "learning_rate", "range_start": -3, "range_end": 0, "true_int": 0, "exp": 1}
 {"p_name": "schedule_decay", "range_start": 0.0001, "range_end": 0.1, "true_int": 0, "exp": 0}
 {"p_name": "visible_layer_dropout_rate", "range_start": 0.8, "range_end": 1.0, "true_int": 0, "exp": 0}
 {"p_name": "hidden_layer_dropout_rate", "range_start": 0.5, "range_end": 0.8, "true_int": 0, "exp": 0}

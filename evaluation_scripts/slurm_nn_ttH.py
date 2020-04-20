@@ -46,7 +46,7 @@ def main(hyperparameter_file, output_dir):
     tthat.normalize_tth_dataframe(data, preferences, global_settings)
     if bool(global_settings['use_kfold']):
         score = et.kfold_cv(
-            xt.model_evaluation_main,
+            nnt.model_evaluation_main,
             data,
             preferences['trainvars'],
             global_settings,
@@ -54,7 +54,7 @@ def main(hyperparameter_file, output_dir):
         )
     else:
         score, pred_train, pred_test = et.get_evaluation(
-            xt.model_evaluation_main,
+            nnt.model_evaluation_main,
             data,
             preferences['trainvars'],
             global_settings,
