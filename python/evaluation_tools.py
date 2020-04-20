@@ -250,7 +250,7 @@ def ams(s, b):
     br = 10.0
     radicand = 2 * ((s + b + br) * np.log(1.0 + s / (b + br)) - s)
     if radicand < 0:
-        print 'radicand is negative. Exiting'
+        print('radicand is negative. Exiting')
         exit()
     else:
         return np.sqrt(radicand)
