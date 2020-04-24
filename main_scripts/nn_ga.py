@@ -1,13 +1,13 @@
 '''
-Hyperparameter optimization with Particle Swarm Optimization for HH/ttH analysis
+Hyperparameter optimization with Genetic Algorithm for ttH/HH analysis.
 Call with 'python'
 
-Usage: xgb_pso.py
+Usage: xgb_pso_hh.py
 '''
 from machineLearning.machineLearning import slurm_tools as st
-from machineLearning.machineLearning import pso_tools as pt
+from machineLearning.machineLearning import ga_main_tools as gmt
 from machineLearning.machineLearning import universal_tools as ut
-from machineLearning.machineLearning import xgb_tools as xt
+from machineLearning.machineLearning import nn_tools as nnt
 import os
 import numpy as np
 np.random.seed(1)
@@ -26,18 +26,15 @@ def main():
     print("::::::: Reading parameters :::::::")
     param_file = os.path.join(
         settings_dir,
-        'xgb_parameters.json'
+        'nn_parameters.json'
     )
-    value_dicts = ut.read_parameters(param_file)
-    pso_settings = ut.read_settings(settings_dir, 'pso')
-    hyperparameter_sets = xt.prepare_run_params(
-        value_dicts, pso_settings['sample_size']
-    )
+    parameters = ut.read_parameters(param_file)
+    ga_settings = ut.read_settings(settings_dir, 'ga')
+    settings = global_settings
+    settings.update(ga_settings)
     print("\n============ Starting hyperparameter optimization ==========\n")
-    best_hyperparameters = pt.run_pso(
-        value_dicts, st.get_fitness_score, hyperparameter_sets,
-        output_dir
-    )
+    best_hyperparameters = gmt.evolution(
+        settings, parameters, nnt.prepare_run_params, st.get_fitness_score)
     print("\n============ Saving results ================\n")
     best_parameters_path = os.path.join(
         output_dir, 'best_hyperparameters.json')

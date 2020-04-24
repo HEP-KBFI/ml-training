@@ -7,7 +7,7 @@ Usage: xgb_pso.py
 from machineLearning.machineLearning import slurm_tools as st
 from machineLearning.machineLearning import pso_tools as pt
 from machineLearning.machineLearning import universal_tools as ut
-from machineLearning.machineLearning import xgb_tools as xt
+from machineLearning.machineLearning import nn_tools as nnt
 import os
 import numpy as np
 np.random.seed(1)
@@ -26,11 +26,11 @@ def main():
     print("::::::: Reading parameters :::::::")
     param_file = os.path.join(
         settings_dir,
-        'xgb_parameters.json'
+        'nn_parameters.json'
     )
     value_dicts = ut.read_parameters(param_file)
     pso_settings = ut.read_settings(settings_dir, 'pso')
-    hyperparameter_sets = xt.prepare_run_params(
+    hyperparameter_sets = nnt.prepare_run_params(
         value_dicts, pso_settings['sample_size']
     )
     print("\n============ Starting hyperparameter optimization ==========\n")

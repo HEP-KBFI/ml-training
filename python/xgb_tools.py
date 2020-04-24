@@ -23,7 +23,7 @@ def initialize_values(value_dicts):
     sample = {}
     for xgb_params in value_dicts:
         if bool(xgb_params['true_int']):
-             value = np.random.randint(
+            value = np.random.randint(
                 low=xgb_params['range_start'],
                 high=xgb_params['range_end']
             )
@@ -147,10 +147,11 @@ def evaluate_model(data_dict, global_settings, model):
     '''
     pred_train = model.predict(data_dict['dtrain'])
     pred_test = model.predict(data_dict['dtest'])
+    kappa = global_settings['kappa']
     if global_settings['fitness_fn'] == 'd_roc':
-        score = et.calculate_d_roc(data_dict, pred_train, pred_test)
+        score = et.calculate_d_roc(data_dict, pred_train, pred_test, kappa)
     elif global_settings['fitness_fn'] == 'd_ams':
-        score = et.calculate_d_ams(pred_train, pred_test, data_dict)
+        score = et.calculate_d_ams(pred_train, pred_test, data_dictm kappa)
     else:
         print('This fitness_fn is not implemented')
     return score, pred_train, pred_test

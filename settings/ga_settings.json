@@ -1,0 +1,7 @@
+{"sample_size": 2}
+{"sub_pops": 1}
+{"iterations": 2}
+{"threshold": 0.001}
+{"mut_chance": 0.03}
+{"elites": 1}
+{"culling": 0}

@@ -19,6 +19,35 @@ from eli5.formatters.as_dataframe import format_as_dataframe
 from machineLearning.machineLearning import universal_tools as ut
 
 
+def model_evaluation_main(nn_hyperparameters, data_dict, global_settings):
+    ''' Collected functions for CGB model evaluation
+
+    Parameters:
+    ----------
+    nn_hyperparamters : dict
+        hyperparameters for the model to be created
+    data_dict : dict
+        Contains all the necessary information for the evaluation.
+    global_settings : dict
+        Preferences for the optimization
+
+    Returns:
+    -------
+    score : float
+        The score calculated according to the fitness_fn
+    '''
+    k_model = parameter_evaluation(
+        nn_hyperparameters,
+        data_dict,
+        global_settings['nthread'],
+        global_settings['num_classes'],
+    )
+    score, pred_train, pred_test = evaluate(
+        k_model, data_dict, global_settings
+    )
+    return score, pred_train, pred_test
+
+
 def create_nn_model(
         nn_hyperparameters={},
         nr_trainvars=9,
@@ -26,7 +55,7 @@ def create_nn_model(
         number_samples=5000,
         metrics=['accuracy'],
 ):
-    ''' Creates the neural network model. The normalization used is 
+    ''' Creates the neural network model. The normalization used is
     batch normalization. Kernel is initialized by the Kaiming initializer
     called 'he_uniform'
 
@@ -86,7 +115,7 @@ def create_nn_model(
     return model
 
 
-def create_nn_model(
+def parameter_evaluation(
         nn_hyperparameters,
         data_dict,
         nthread,
@@ -119,11 +148,9 @@ def create_nn_model(
             )
         )
     )
-    nr_trainvars = len(data_dict['train'][0])
-    number_samples = len(data_dict['train'])
-    nn_model = create_nn_model(
-        nn_hyperparameters, nr_trainvars, num_class, number_samples)
-    k_model  = KerasClassifier(
+    nr_trainvars = len(data_dict['traindataset'][0])
+    number_samples = len(data_dict['traindataset'])
+    k_model = KerasClassifier(
         build_fn=create_nn_model,
         epochs=nn_hyperparameters['epochs'],
         batch_size=nn_hyperparameters['batch_size'],
@@ -137,7 +164,7 @@ def create_nn_model(
 
 
 def evaluate(k_model, data_dict, global_settings):
-    '''Creates the data_dict for the XGBoost method
+    '''Evaluates the nn k_model
 
     Parameters:
     ----------
@@ -154,22 +181,23 @@ def evaluate(k_model, data_dict, global_settings):
         The score calculated according to the fitness_fn
     '''
     fit_result = k_model.fit(
-        data_dict['train'],
+        data_dict['traindataset'],
         data_dict['training_labels'],
         validation_data=(
-            data_dict['test'],
+            data_dict['testdataset'],
             data_dict['testing_labels']
         )
     )
     pred_train = k_model.predict_proba(data_dict['train'])
     pred_test = k_model.predict_proba(data_dict['test'])
+    kappa = global_settings['kappa']
     if global_settings['fitness_fn'] == 'd_roc':
-        score = et.calculate_d_roc(pred_train, pred_test, data_dict)
+        score = et.calculate_d_roc(pred_train, pred_test, data_dict, kappa)
     elif global_settings['fitness_fn'] == 'd_ams':
-        score = et.calculate_d_ams(pred_train, pred_test, data_dict)
+        score = et.calculate_d_ams(pred_train, pred_test, data_dict, kappa)
     else:
         print('This fitness_fn is not implemented')
-    return score
+    return score, pred_train, pred_test
 
 
 def get_feature_importances(model, data_dict):
@@ -298,7 +326,7 @@ def initialize_values(value_dicts):
     sample = {}
     for xgb_params in value_dicts:
         if bool(xgb_params['true_int']):
-             value = np.random.randint(
+            value = np.random.randint(
                 low=xgb_params['range_start'],
                 high=xgb_params['range_end']
             )
@@ -311,7 +339,6 @@ def initialize_values(value_dicts):
             value = np.exp(value)
         sample[str(xgb_params['p_name'])] = value
     return sample
-
 
 
 def prepare_run_params(value_dicts, sample_size):

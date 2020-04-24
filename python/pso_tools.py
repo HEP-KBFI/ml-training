@@ -52,7 +52,7 @@ def run_pso(
     max_iterations_not_reached = True
     not_clustered = True
     while max_iterations_not_reached and not_clustered:
-        print('::::::: Iteration: '+ str(iteration) + ' ::::::::')
+        print('::::::: Iteration: ' + str(iteration) + ' ::::::::')
         hyperparameter_sets = new_hyperparameter_sets
         compactness = et.calculate_compactness(hyperparameter_sets)
         print(' --- Compactness: ' + str(compactness) + ' ---')

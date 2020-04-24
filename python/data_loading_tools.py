@@ -35,7 +35,8 @@ def load_data(
     channel : str
         What channel data is to be loaded
     keys : list
-        Which keys to be included in the data (part included in the folder names)
+        Which keys to be included in the data
+        (part included in the folder names)
     masses : list
         List of the masses to be used in data loading
     mass_randomization : str
@@ -98,7 +99,8 @@ def data_main_loop(
     folder_name : str
         Folder from the keys where .root file is searched.
     sample_name_info : dict
-        dictionary containing info which samples are signal and which background
+        dictionary containing info which samples are signal and which
+        background.
     channel_in_tree : str
         path where data is located in the .root file
     masses : list
@@ -123,7 +125,7 @@ def data_main_loop(
     if sample_dict == {}:
         sample_dict = advanced_sample_name(
             bdt_type, folder_name, masses
-    )
+        )
     sample_name = sample_dict['sampleName']
     target = sample_dict['target']
     print(':::::::::::::::::')
@@ -236,7 +238,7 @@ def define_new_variables(
     Parameters:
     ----------
     chunk_df : pandas DataFrame
-        DataFrame containing only columns that are specified in trainvars + 
+        DataFrame containing only columns that are specified in trainvars +
         evtWeight. The data is read from .root file.
     sample_name : str
         For each folder seperate sample name as defined in samplename_info.json
@@ -262,19 +264,22 @@ def define_new_variables(
     chunk_df['key'] = folder_name
     chunk_df['target'] = target
     chunk_df['totalWeight'] = chunk_df['evtWeight']
-    if "HH_bb2l" in bdt_type :
+    if "HH_bb2l" in bdt_type:
         chunk_df["max_dR_b_lep"] = chunk_df[
-            ["dR_b1lep1","dR_b2lep1","dR_b2lep1","dR_b2lep2"]
+            ["dR_b1lep1", "dR_b2lep1", "dR_b2lep1", "dR_b2lep2"]
         ].max(axis=1)
-        chunk_df["max_lep_pt"] = chunk_df[["lep1_pt","lep2_pt"]].max(axis=1)
-    if "HH_bb1l" in bdt_type :
-        chunk_df["max_dR_b_lep"] = chunk_df[["dR_b1lep","dR_b2lep"]].max(axis=1)
-        chunk_df["max_bjet_pt"] = chunk_df[["bjet1_pt","bjet2_pt"]].max(axis=1)
+        chunk_df["max_lep_pt"] = chunk_df[["lep1_pt", "lep2_pt"]].max(axis=1)
+    if "HH_bb1l" in bdt_type:
+        chunk_df["max_dR_b_lep"] = chunk_df[
+            ["dR_b1lep", "dR_b2lep"]].max(axis=1)
+        chunk_df["max_bjet_pt"] = chunk_df[
+            ["bjet1_pt", "bjet2_pt"]].max(axis=1)
     if (("HH_0l_2tau" in bdt_type) or ("HH_2l_2tau" in bdt_type)):
         chunk_df["tau1_eta"] = abs(chunk_df["tau1_eta"])
         chunk_df["tau2_eta"] = abs(chunk_df["tau2_eta"])
-        chunk_df["max_tau_eta"] = chunk_df[["tau1_eta", "tau2_eta"]].max(axis=1)
-    if "HH_2l_2tau" in bdt_type :
+        chunk_df["max_tau_eta"] = chunk_df[
+            ["tau1_eta", "tau2_eta"]].max(axis=1)
+    if "HH_2l_2tau" in bdt_type:
         chunk_df["min_dr_lep_tau"] = chunk_df[
             ["dr_lep1_tau1", "dr_lep1_tau2", "dr_lep2_tau1", "dr_lep2_tau2"]
         ].min(axis=1)
@@ -384,15 +389,15 @@ def get_all_paths(input_path, folder_name, bdt_type):
             paths = glob.glob(wild_card_path)
             if len(paths) == 0:
                 wild_card_path = os.path.join(
-                    input_path, folder_name + '*', '*.root') # old structure
+                    input_path, folder_name + '*', '*.root')
                 paths = glob.glob(wild_card_path)
     else:
         wild_card_path = os.path.join(
-            input_path, folder_name + '*', 'central', '*.root') # new structure
+            input_path, folder_name + '*', 'central', '*.root')
         paths = glob.glob(wild_card_path)
         if len(paths) == 0:
             wild_card_path = os.path.join(
-                input_path, folder_name + '*', '*.root') # old structure
+                input_path, folder_name + '*', '*.root')
             paths = glob.glob(wild_card_path)
     return paths
 
@@ -418,7 +423,7 @@ def advanced_sample_name(bdt_type, folder_name, masses):
     if 'evtLevelSUM_HH_bb2l' in bdt_type or 'evtLevelSUM_HH_bb1l' in bdt_type:
         if 'signal_ggf' in folder_name:
             if 'evtLevelSUM_HH_bb2l_res' in bdt_type:
-                sample_name = 'signal_ggf_spin0' 
+                sample_name = 'signal_ggf_spin0'
             else:
                 sample_name = 'signal_ggf_nonresonant_node'
             for mass in masses:
@@ -450,7 +455,7 @@ def advanced_sample_name(bdt_type, folder_name, masses):
             sample_name = 'TTH'
         else:
             target = 1
-            sample_name = 'ttH' # changed from 'signal'
+            sample_name = 'ttH'  # changed from 'signal'
     sample_dict = {
         'sampleName': sample_name,
         'target': target
@@ -499,28 +504,33 @@ def signal_background_calc(data, bdt_type, folder_name):
     if len(data) == 0:
         print("Error: No data (!!!)")
     if 'evtLevelSUM_HH_bb2l' in bdt_type and folder_name == 'TTTo2L2Nu':
-        data.drop(data.tail(6000000).index, inplace = True)
+        data.drop(data.tail(6000000).index, inplace=True)
     elif 'evtLevelSUM_HH_bb1l' in bdt_type:
         if folder_name == 'TTToSemiLeptonic_PSweights':
             data.drop(data.tail(24565062).index, inplace=True)
         if folder_name == 'TTTo2L2Nu_PSweights':
-            data.drop(data.tail(11089852).index, inplace=True) #12089852
-        if folder_name.find('signal') !=-1:
-            if folder_name.find('900') ==-1 and folder_name.find('1000') ==-1:
-                data.drop(data.tail(15000).index,inplace = True)
+            data.drop(data.tail(11089852).index, inplace=True)  # 12089852
+        if folder_name.find('signal') != -1:
+            if folder_name.find('900') == -1 and folder_name.find('1000') == -1:
+                data.drop(data.tail(15000).index, inplace=True)
             if bdt_type.find('nonres') != -1:
-                data.drop(data.tail(20000).index,inplace = True)
+                data.drop(data.tail(20000).index, inplace=True)
         elif folder_name == 'W':
             data.drop(data.tail(2933623).index, inplace=True)
-    nS = len(data.loc[(data.target.values == 1) & (data.key.values == folder_name)])
-    nB = len(data.loc[(data.target.values == 0) & (data.key.values==folder_name) ])
-    nNW = len(data.loc[(data['totalWeight'].values < 0) & (data.key.values==folder_name)])
+    nS = len(
+        data.loc[(data.target.values == 1) & (data.key.values == folder_name)])
+    nB = len(
+        data.loc[(data.target.values == 0) & (data.key.values == folder_name)])
+    nNW = len(
+        data.loc[
+            (data['totalWeight'].values < 0) & (
+                data.key.values == folder_name)])
     print('Signal: ' + str(nS))
     print('Background: ' + str(nB))
     print('Event weight: ' + str(data.loc[
-            (data.key.values==folder_name)]['evtWeight'].sum()))
+            (data.key.values == folder_name)]['evtWeight'].sum()))
     print('Total data weight: ' + str(data.loc[
-            (data.key.values==folder_name)]['totalWeight'].sum()))
+            (data.key.values == folder_name)]['totalWeight'].sum()))
     print('events with -ve weights: ' + str(nNW))
     print(':::::::::::::::::')
 
@@ -606,7 +616,7 @@ def get_hh_parameters(
         tau_id_applications
     )
     parameters['inputPath'] = find_correct_dict(
-        'tauID_training', tau_id_training , tau_id_trainings)['inputPath']
+        'tauID_training', tau_id_training, tau_id_trainings)['inputPath']
     parameters['keys'] = read_list(keys_path)
     parameters['trainvars'] = read_list(trainvars_path)
     parameters.update(info_dict)
@@ -650,7 +660,7 @@ def get_tth_parameters(channel, bdt_type):
                 else:
                     print(
 '''Warning: Multiple choices with the given bdtType. Using %s as bdtType'''
-                     %(multidict['bdtType']))
+                     % (multidict['bdtType']))
         parameters.update(multidict)
     parameters['HTT_var'] = read_list(htt_var_path)
     parameters['trainvars'] = read_list(trainvar_path)
@@ -658,7 +668,7 @@ def get_tth_parameters(channel, bdt_type):
     if os.path.exists(keys_path):
         parameters['keys'] = read_list(keys_path)
     else:
-        print('Error: File %s does not exist. No keys found' %(keys_path))
+        print('Error: File %s does not exist. No keys found' % (keys_path))
     parameters.update(info_dict)
     return parameters
 
@@ -715,8 +725,8 @@ def read_list(path):
 
 
 def print_info(
-        inputPath,
-        channelInTree,
+        input_path,
+        channel_in_tree,
         variables,
         bdt_type,
         channel,
@@ -725,10 +735,10 @@ def print_info(
         mass_randomization
 ):
     '''Prints the data loading preferences info'''
-    print('In data_manager') 
+    print('In data_manager')
     print(':::: Loading data ::::')
-    print('inputPath: ' + str(inputPath))
-    print('channelInTree: ' + str(channelInTree))
+    print('inputPath: ' + str(input_path))
+    print('channelInTree: ' + str(channel_in_tree))
     print('-----------------------------------')
     print('variables:')
     print_columns(variables)

@@ -12,3 +12,4 @@
 {"num_classes": 2}
 {"nthread": 8}
 {"trainvar_opt": 0}
+{"kappa": 1.5}

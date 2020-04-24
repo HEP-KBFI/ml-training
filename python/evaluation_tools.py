@@ -135,7 +135,6 @@ def calculate_d_score(train_score, test_score, kappa=1.5):
 ########################################################
 
 
-
 def roc(labels, pred_vectors):
     '''Calculate the ROC values using the method used in Dianas thesis.
 
@@ -242,16 +241,16 @@ def calculate_d_roc(data_dict, pred_train, pred_test, kappa=1.5):
 
 
 def ams(s, b):
-    """ Approximate Median Significance defined as:
+    ''' Approximate Median Significance defined as:
         AMS = sqrt(
                 2 { (s + b + b_r) log[1 + (s/(b+b_r))] - s}
-              )        
+              )
     where b_r = 10, b = background, s = signal, log is natural logarithm
-    """
+    '''
     br = 10.0
-    radicand = 2 *( (s+b+br) * np.log (1.0 + s/(b+br)) -s)
+    radicand = 2 * ((s + b + br) * np.log(1.0 + s / (b + br)) - s)
     if radicand < 0:
-        print 'radicand is negative. Exiting'
+        print('radicand is negative. Exiting')
         exit()
     else:
         return np.sqrt(radicand)
@@ -290,7 +289,7 @@ def try_different_thresholds(predicted, data_dict, label_type, threshold=None):
     signals = []
     backgrounds = []
     prediction = pandas.Series(i[1] for i in predicted)
-    if threshold != None:
+    if threshold is not None:
         th_prediction = pandas.Series(
             [1 if pred >= threshold else 0 for pred in prediction])
         signal, background = calculate_s_and_b(
@@ -387,7 +386,6 @@ def calculate_d_ams(
 ###############################################################3
 
 
-
 def calculate_compactness(parameter_dicts):
     '''Calculates the improvement based on how similar are different sets of
     parameters
@@ -406,7 +404,6 @@ def calculate_compactness(parameter_dicts):
     list_dict = values_to_list_dict(keys, parameter_dicts)
     mean_cov = calculate_dict_mean_coeff_of_variation(list_dict)
     return mean_cov
-
 
 
 def values_to_list_dict(keys, parameter_dicts):
@@ -455,3 +452,38 @@ def calculate_dict_mean_coeff_of_variation(list_dict):
         coeff_of_variations.append(coeff_of_variation)
     mean_coeff_of_variation = np.mean(coeff_of_variations)
     return mean_coeff_of_variation
+
+
+def calculate_improvement(avg_scores, improvements, threshold):
+    '''Calculates the improvement based on the average scores. Purpose:
+    stopping criteria. Currently used only in GA algorithm.
+
+    Parameters:
+    -----------
+    avg_scores : list
+        Average scores of each iteration in the evolutionary algorithm
+    improvements : list
+        List of improvements of previous iterations
+    threshold : float
+        Stopping criteria.
+
+    Returns:
+    --------
+    improvements : list
+        List of improvements
+    imporvement : float
+        Improvement for comparing
+
+    Comments:
+    ---------
+    Elif clause used in order to have last 2 iterations less than the threshold
+    '''
+    if len(avg_scores) > 1:
+        improvements.append(
+            (float(avg_scores[-1]-avg_scores[-2])) / avg_scores[-2])
+        improvement = improvements[-1]
+    if len(improvements) < 2:
+        improvement = 1
+    elif improvement <= threshold:
+        improvement = improvements[-2]
+    return improvements, improvement
