@@ -1,5 +1,5 @@
-{"iterations": 2}
-{"sample_size": 2}
+{"iterations": 30}
+{"sample_size": 30}
 {"compactness_threshold": 0.1}
 {"w_init": 0.9}
 {"w_fin": 0.4}

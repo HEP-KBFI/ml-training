@@ -841,7 +841,7 @@ def MakeTProfile(
                         mass_low, mass_high
                     )
                 else:
-                    assert((TrainMode == 0), "Invalid TrainMode: Choose 0/1/2")
+                    assert TrainMode == 0, "Invalid TrainMode: Choose 0/1/2"
                 r_old = TFitResultPtr()
                 r_old = hprof.Fit(f_old, "SF")  # Fit using Minuit
                 f_old.Draw("same")
