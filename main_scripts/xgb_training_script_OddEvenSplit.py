@@ -25,7 +25,7 @@ from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning import evaluation_tools as et
 from machineLearning.machineLearning import xgb_tools as xt
 from machineLearning.machineLearning import universal_tools as ut
-from machineLearning.machineLearning import hh_aux_tools as df
+from machineLearning.machineLearning import hh_aux_tools as hhat
 from sklearn.metrics import roc_curve, auc, accuracy_score
 from sklearn import preprocessing
 from pathlib import Path
@@ -96,7 +96,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
     print("BDTvariables_wo_gen_mHH", BDTvariables_wo_gen_mHH)
 
     print("MAKING PRE-REWEIGHING PLOTS")
-    df.MakeHisto(
+    hhat.MakeHisto(
         save_dir,
         global_settings['channel'],
         data,
@@ -105,7 +105,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         "bef_rewt",
         weights="totalWeight"
     )
-    df.MakeTHStack(
+    hhat.MakeTHStack(
         save_dir,
         global_settings['channel'],
         data,
@@ -114,7 +114,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         label="bef_rewt",
         weights="totalWeight"
     )
-    df.MakeTProfile(
+    hhat.MakeTProfile(
         save_dir,
         preferences['masses'],
         global_settings['channel'],
@@ -137,7 +137,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
     )
 
     print("MAKING THE FITS FOR REWEIGHING")
-    df.MakeTProfile(
+    hhat.MakeTProfile(
         save_dir,
         preferences['masses'],
         global_settings['channel'],
@@ -161,7 +161,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
     )
 
     print("MAKING POST-REWEIGHING PLOTS")
-    df.MakeHisto(
+    hhat.MakeHisto(
         save_dir,
         global_settings['channel'],
         data,
@@ -170,7 +170,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         "aft_rewt",
         weights="totalWeight"
     )
-    df.MakeTHStack(
+    hhat.MakeTHStack(
         save_dir,
         global_settings['channel'],
         data,
@@ -179,7 +179,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         label="aft_rewt",
         weights="totalWeight"
     )
-    df.MakeTProfile(
+    hhat.MakeTProfile(
         save_dir,
         preferences['masses'],
         global_settings['channel'],
@@ -192,7 +192,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         TrainMode=0,
         weights="totalWeight"
     )
-    df.MakeTProfile(
+    hhat.MakeTProfile(
         save_dir,
         preferences['masses'],
         global_settings['channel'],
@@ -215,7 +215,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
     )
 
     print("NORMALIZING DATAFRAME")
-    df.normalize_hh_dataframe(
+    hhat.normalize_hh_dataframe(
         data, preferences,
         global_settings, weight='totalWeight'
     )
@@ -267,7 +267,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         )
         cls_list = [cls_Odd_train_Even_test, cls_Even_train_Odd_test]
         cls_label_list = ["Odd_train_Even_test", "Even_train_Odd_test"]
-        df.PlotROCByMass(
+        hhat.PlotROCByMass(
             output_dir,
             global_settings,
             preferences,
@@ -276,7 +276,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
             BDTvariables,
             label_list=cls_label_list
         )
-        df.PlotClassifierByMass(
+        hhat.PlotClassifierByMass(
             output_dir,
             global_settings,
             preferences,
@@ -319,7 +319,7 @@ def PlotInputVar(
     trainvar = global_settings['trainvar']
     test_masses = preferences["masses_test"]
     mass_list = preferences['masses']
-    labelBKG = df.BkgLabelMaker(global_settings)
+    labelBKG = hhat.BkgLabelMaker(global_settings)
     BDTvariables = preferences['trainvars']
     # --- PLOTING OPTIONS ---#
     printmin = True
@@ -331,7 +331,7 @@ def PlotInputVar(
         str(output_dir), channel,
         bdtType, trainvar, label
     )
-    df.make_plots(
+    hhat.make_plots(
         BDTvariables, nbins,
         data.ix[data.target.values == 0], labelBKG, colorFast,
         data.ix[data.target.values == 1], 'Signal', colorFastT,
@@ -446,21 +446,21 @@ def Evaluate(
         print("XGBoost test set auc - {}".format(test_auc))
 
         # --- PLOTTING FEATURE IMPORTANCES AND ROCs ---#
-        df.PlotFeaturesImportance(
+        hhat.PlotFeaturesImportance(
             output_dir,
             global_settings['channel'],
             cls,
             trainvars,
             label=PlotLabel
         )
-        df.PlotROC(
+        hhat.PlotROC(
             output_dir,
             global_settings['channel'],
             roc_train,
             roc_test,
             label=PlotLabel
         )
-        df.PlotClassifier(
+        hhat.PlotClassifier(
             output_dir,
             global_settings,
             cls,
@@ -469,7 +469,7 @@ def Evaluate(
             trainvars,
             label=PlotLabel
         )
-        df.PlotCorrelation(
+        hhat.PlotCorrelation(
             output_dir,
             global_settings,
             train,
@@ -591,7 +591,7 @@ def InterpolTest(
             masses_test1 = [masses1[0]]  # taking first element of masses1
             masses2 = [mass]  # mass_list
             masses_test2 = [mass]
-            labelBKG = df.BkgLabelMaker(global_settings)
+            labelBKG = hhat.BkgLabelMaker(global_settings)
             Label = label_list[dd]+"_train_"+label_list[val_data]+"_test"
             plot_name_train1 = "{}/{}_{}_{}.pdf".format(
                 output_dir,
@@ -623,7 +623,7 @@ def InterpolTest(
             nbins = 15
             colorFast = 'g'
             colorFastT = 'b'
-            df.make_plots(
+            hhat.make_plots(
                 BDTvariables,
                 nbins,
                 traindataset1.ix[traindataset1[target].values == 0],
@@ -639,7 +639,7 @@ def InterpolTest(
                 masses1,
                 weights
             )
-            df.make_plots(
+            hhat.make_plots(
                 BDTvariables,
                 nbins,
                 valdataset1.ix[valdataset1[target].values == 0],
@@ -655,7 +655,7 @@ def InterpolTest(
                 masses2,
                 weights
             )
-            df.make_plots(
+            hhat.make_plots(
                 BDTvariables,
                 nbins,
                 traindataset2.ix[traindataset2[target].values == 0],
@@ -671,7 +671,7 @@ def InterpolTest(
                 masses1,
                 weights
             )
-            df.make_plots(
+            hhat.make_plots(
                 BDTvariables,
                 nbins,
                 valdataset2.ix[valdataset2[target].values == 0],
