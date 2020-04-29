@@ -22,19 +22,12 @@ Options:
        Skip mass interpolation studies ? True or False
 '''
 from machineLearning.machineLearning import data_loading_tools as dlt
-from machineLearning.machineLearning import evaluation_tools as et
-from machineLearning.machineLearning import xgb_tools as xt
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_aux_tools as hhat
 from sklearn.metrics import roc_curve, auc, accuracy_score
-from sklearn import preprocessing
-from pathlib import Path
 import xgboost as xgb
 import numpy as np
 import os
-import subprocess
-import sys
-import csv
 import docopt
 import json
 import copy
@@ -241,7 +234,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         )
     else:
         print("RUNNING SEPERATE BDT TRAINING FOR THE HALVES")
-        cls_Even_train_Odd_test = Evaluate(
+        model_Even_train_Odd_test = Evaluate(
                                     output_dir,
                                     Even_df,
                                     Odd_df,
@@ -253,7 +246,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
                                     label="Even_train_Odd_test",
                                     weights='totalWeight'
         )
-        cls_Odd_train_Even_test = Evaluate(
+        model_Odd_train_Even_test = Evaluate(
                                     output_dir,
                                     Odd_df,
                                     Even_df,
@@ -265,25 +258,25 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
                                     label="Odd_train_Even_test",
                                     weights='totalWeight'
         )
-        cls_list = [cls_Odd_train_Even_test, cls_Even_train_Odd_test]
-        cls_label_list = ["Odd_train_Even_test", "Even_train_Odd_test"]
+        model_list = [model_Odd_train_Even_test, model_Even_train_Odd_test]
+        model_label_list = ["Odd_train_Even_test", "Even_train_Odd_test"]
         hhat.PlotROCByMass(
             output_dir,
             global_settings,
             preferences,
-            cls_list,
+            model_list,
             df_list,
             BDTvariables,
-            label_list=cls_label_list
+            label_list=model_label_list
         )
         hhat.PlotClassifierByMass(
             output_dir,
             global_settings,
             preferences,
-            cls_list,
+            model_list,
             df_list,
             BDTvariables,
-            label_list=cls_label_list
+            label_list=model_label_list
         )
 
 
@@ -379,7 +372,7 @@ def Evaluate(
     XGBClassifier object
     '''
     PlotLabel = label
-    cls = xgb.XGBClassifier(
+    model = xgb.XGBClassifier(
                n_estimators=hyperparameters[0]["num_boost_round"],
                max_depth=hyperparameters[0]["max_depth"],
                min_child_weight=hyperparameters[0]["min_child_weight"],
@@ -391,7 +384,7 @@ def Evaluate(
                num_class=global_settings["num_classes"],
                objective="multi:softprob"
     )
-    cls.fit(
+    model.fit(
         train[trainvars].values,
         train['target'].astype(np.bool),
         sample_weight=(train[weights].astype(np.float64))
@@ -405,7 +398,7 @@ def Evaluate(
             output_dir, channel, trainvar,
             bdtType, VarNos, label
         )
-        pickle.dump(cls, open(pklFileName+".pkl", 'wb'))
+        pickle.dump(model, open(pklFileName+".pkl", 'wb'))
         file = open(pklFileName + "pkl.log", "w")
         file.write(str(trainvars) + "\n")
         file.close()
@@ -415,7 +408,7 @@ def Evaluate(
         print("No .pkl file will be saved")
 
     if(makePlots):
-        proba_train = cls.predict_proba(train[trainvars].values)
+        proba_train = model.predict_proba(train[trainvars].values)
         fpr, tpr, thresholds_train = roc_curve(
             train['target'].astype(np.bool),
             proba_train[:, 1],
@@ -429,8 +422,8 @@ def Evaluate(
                      "train_auc": train_auc
         }]
         print("XGBoost train set auc - {}".format(train_auc))
-
-        proba_test = cls.predict_proba(test[trainvars].values)
+        
+        proba_test = model.predict_proba(test[trainvars].values)
         fprt, tprt, thresholds_test = roc_curve(
             test['target'].astype(np.bool),
             proba_test[:, 1],
@@ -444,12 +437,12 @@ def Evaluate(
                     "test_auc": test_auc
         }]
         print("XGBoost test set auc - {}".format(test_auc))
-
+        
         # --- PLOTTING FEATURE IMPORTANCES AND ROCs ---#
         hhat.PlotFeaturesImportance(
             output_dir,
             global_settings['channel'],
-            cls,
+            model,
             trainvars,
             label=PlotLabel
         )
@@ -463,7 +456,7 @@ def Evaluate(
         hhat.PlotClassifier(
             output_dir,
             global_settings,
-            cls,
+            model,
             train,
             test,
             trainvars,
@@ -478,7 +471,7 @@ def Evaluate(
         )
     else:
         print("No plots will be made")
-    return cls
+    return model
 
 
 def StrToBool(
@@ -803,8 +796,6 @@ def WriteInterpolLogFile(
        and write it to a .json file
     Parameters:
     -----------
-    cls : XGBClassifier object
-          Fit function to extract info from
     traindataset : pandas dataframe
                 dataset used to train XGBClassifier object
     valdataset : pandas dataframe
@@ -837,7 +828,7 @@ def WriteInterpolLogFile(
     Train_Mode_str = train_mode_label
     Train_df_str = train_df_label
     Test_df_str = test_df_label
-    cls = xgb.XGBClassifier(
+    model = xgb.XGBClassifier(
                n_estimators=hyperparameters[0]["num_boost_round"],
                max_depth=hyperparameters[0]["max_depth"],
                min_child_weight=hyperparameters[0]["min_child_weight"],
@@ -850,13 +841,13 @@ def WriteInterpolLogFile(
                objective="multi:softprob"
     )
     print("FITTING")
-    cls.fit(
+    model.fit(
         traindataset[trainvars].values,
         traindataset[target].astype(np.bool),
         sample_weight=(traindataset[weights].astype(np.float64))
     )
     print("CALCULATING predict_proba() FOR TRAIN DF")
-    proba_train = cls.predict_proba(traindataset[trainvars].values)
+    proba_train = model.predict_proba(traindataset[trainvars].values)
     fpr, tpr, thresholds = roc_curve(
         traindataset[target].astype(np.bool),
         proba_train[:, 1],
@@ -864,16 +855,16 @@ def WriteInterpolLogFile(
     )
     train_auc = auc(fpr, tpr, reorder=True)
     print("CALCULATING predict_proba() FOR TEST DF")
-    proba_val = cls.predict_proba(valdataset[trainvars].values)
+    proba_val = model.predict_proba(valdataset[trainvars].values)
     fprt, tprt, thresholdst = roc_curve(
         valdataset[target].astype(np.bool),
         proba_val[:, 1],
         sample_weight=(valdataset[weights].astype(np.float64))
     )
     test_auc = auc(fprt, tprt, reorder=True)
-
+    
     # ---- BDT Output distributions ----#
-    y_pred_test = cls.predict_proba(
+    y_pred_test = model.predict_proba(
         valdataset.loc[
             (valdataset[target].values == 0)
         ][trainvars].values
@@ -881,7 +872,7 @@ def WriteInterpolLogFile(
     y_pred_test_weights = valdataset.loc[
         (valdataset[target].values == 0)
     ][weights]
-    y_predS_test = cls.predict_proba(
+    y_predS_test = model.predict_proba(
         valdataset.loc[
             (valdataset[target].values == 1)
         ][trainvars].values
@@ -889,7 +880,7 @@ def WriteInterpolLogFile(
     y_predS_test_weights = valdataset.loc[
         (valdataset[target].values == 1)
     ][weights]
-    y_pred_train = cls.predict_proba(
+    y_pred_train = model.predict_proba(
         traindataset.loc[
             (traindataset[target].values == 0)
         ][trainvars].values
@@ -897,7 +888,7 @@ def WriteInterpolLogFile(
     y_pred_train_weights = traindataset.loc[
         (traindataset[target].values == 0)
     ][weights]
-    y_predS_train = cls.predict_proba(
+    y_predS_train = model.predict_proba(
         traindataset.loc[
             (traindataset[target].values == 1)
         ][trainvars].values
