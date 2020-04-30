@@ -65,6 +65,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
     )
     histo_dicts_json = os.path.join(channel_dir, 'histo_dict.json')
     histo_dicts = ut.read_parameters(histo_dicts_json)
+
     preferences = dlt.get_hh_parameters(
         global_settings['channel'],
         global_settings['tauID_training']
@@ -79,7 +80,6 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         preferences['masses'],
         global_settings['bkg_mass_rand']
     )
-
     BDTvariables = preferences['trainvars']
     print("BDTvariables: ", BDTvariables)
 
@@ -206,13 +206,11 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         label="aft_rewt_BDT",
         weights="totalWeight"
     )
-
     print("NORMALIZING DATAFRAME")
     hhat.normalize_hh_dataframe(
         data, preferences,
         global_settings, weight='totalWeight'
     )
-
     print("SPLITTING DATAFRAME INTO ODD-EVEN HALVES")
     Even_df = data.loc[(data["event"].values % 2 == 0)]
     Odd_df = data.loc[~(data["event"].values % 2 == 0)]
@@ -422,7 +420,6 @@ def Evaluate(
                      "train_auc": train_auc
         }]
         print("XGBoost train set auc - {}".format(train_auc))
-        
         proba_test = model.predict_proba(test[trainvars].values)
         fprt, tprt, thresholds_test = roc_curve(
             test['target'].astype(np.bool),
@@ -437,7 +434,6 @@ def Evaluate(
                     "test_auc": test_auc
         }]
         print("XGBoost test set auc - {}".format(test_auc))
-        
         # --- PLOTTING FEATURE IMPORTANCES AND ROCs ---#
         hhat.PlotFeaturesImportance(
             output_dir,
@@ -862,7 +858,6 @@ def WriteInterpolLogFile(
         sample_weight=(valdataset[weights].astype(np.float64))
     )
     test_auc = auc(fprt, tprt, reorder=True)
-    
     # ---- BDT Output distributions ----#
     y_pred_test = model.predict_proba(
         valdataset.loc[
