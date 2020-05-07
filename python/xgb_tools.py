@@ -151,7 +151,7 @@ def evaluate_model(data_dict, global_settings, model):
     if global_settings['fitness_fn'] == 'd_roc':
         score = et.calculate_d_roc(data_dict, pred_train, pred_test, kappa)
     elif global_settings['fitness_fn'] == 'd_ams':
-        score = et.calculate_d_ams(pred_train, pred_test, data_dictm kappa)
+        score = et.calculate_d_ams(pred_train, pred_test, data_dict, kappa)
     else:
         print('This fitness_fn is not implemented')
     return score, pred_train, pred_test
