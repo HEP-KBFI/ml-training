@@ -472,7 +472,7 @@ def advanced_sample_name(bdt_type, folder_name, masses):
         else:
             target = 1
             sample_name = 'ttH'  # changed from 'signal'
-    if 'HH_nonres' in bdt_type and 'nonresonant' in path:
+    if 'HH_nonres' in bdt_type:
         target = 1
         sample_name = 'HH_nonres_decay'
     sample_dict = {
