@@ -474,10 +474,13 @@ def advanced_sample_name(bdt_type, folder_name, masses):
         else:
             target = 1
             sample_name = 'ttH'  # changed from 'signal'
-    sample_dict = {
-        'sampleName': sample_name,
-        'target': target
-    }
+    try:
+        sample_dict = {
+            'sampleName': sample_name,
+            'target': target
+        }
+    except UnboundLocalError:
+        continue
     return sample_dict
 
 
