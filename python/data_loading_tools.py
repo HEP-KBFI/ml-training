@@ -480,7 +480,7 @@ def advanced_sample_name(bdt_type, folder_name, masses):
             'target': target
         }
     except UnboundLocalError:
-        continue
+        print('sample_dict could not be set with advanced_sample_name')
     return sample_dict
 
 
