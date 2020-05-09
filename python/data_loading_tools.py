@@ -280,7 +280,7 @@ def define_new_variables(
     chunk_df['key'] = folder_name
     chunk_df['target'] = target
     chunk_df['totalWeight'] = chunk_df['evtWeight']
-    chuck_df['nodeX'] = node_x
+    chunk_df['nodeX'] = node_x
     if "HH_bb2l" in bdt_type:
         chunk_df["max_dR_b_lep"] = chunk_df[
             ["dR_b1lep1", "dR_b2lep1", "dR_b2lep1", "dR_b2lep2"]
@@ -783,6 +783,18 @@ def print_columns(to_print):
 
 
 def get_node_nr(path):
+    '''Extracts the node number from the path. For 'hh_nonres type.
+
+    Parameters:
+    ----------
+    path : str
+        Path to the file
+
+    Returns:
+    -------
+    node_name : str
+        Name for the node (under nodeX in the pandas dataframe)
+    '''
     filename = os.path.basename(path)
     filename_elements = filename.split('_')
     index = filename_elements.index('node')
@@ -793,6 +805,21 @@ def get_node_nr(path):
 
 
 def create_input_tree_path(filename, channel_in_tree):
+    '''Constructs the input tree path based on the filename and the
+    channelInTree
+
+    Parameters:
+    -----------
+    filename : str
+        name (or path) of the file
+    channel_in_tree : str
+        Naame of the parent folder in the .root file
+
+    Returns:
+    -------
+    input_tree : str
+        Path in the .root file where data is located
+    '''
     if '4v' in filename:
         addition = 'wwww'
     if '2v2t' in filename:
