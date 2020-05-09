@@ -18,7 +18,7 @@ def load_data(
         channel,
         keys,
         masses=[],
-        mass_randomization='default',
+        mass_randomization='default'
 ):
     '''Loads the all the necessary data
 
@@ -52,6 +52,8 @@ def load_data(
         bdt_type, channel, keys, masses, mass_randomization
     )
     my_cols_list = variables + ['process', 'key', 'target', 'totalWeight']
+    if 'HH_nonres' in bdt_type:
+        my_cols_list += ['nodeX']
     data = pandas.DataFrame(columns=my_cols_list)
     samplename_info_path = os.path.join(
         os.path.expandvars('$CMSSW_BASE'),
@@ -136,6 +138,12 @@ def data_main_loop(
         channel_in_tree, 'sel/evtntuple', sample_name, 'evtTree'))
     paths = get_all_paths(input_path, folder_name, bdt_type)
     for path in paths:
+        node_x = 'NonNode'
+        if 'HH_nonres' in bdt_type and 'nonresonant' in path:
+            target = 1
+            sample_name = 'HH_nonres_decay'
+            input_tree = create_input_tree_path(path, channel_in_tree)
+            node_x = get_node_nr(path)
         print("Loading from: " + path)
         tree, tfile = read_root_tree(path, input_tree)
         data = load_data_from_tfile(
@@ -148,7 +156,8 @@ def data_main_loop(
             masses,
             mass_randomization,
             data,
-            variables
+            variables,
+            node_x
         )
     return data
 
@@ -163,7 +172,8 @@ def load_data_from_tfile(
         masses,
         mass_randomization,
         data,
-        variables
+        variables,
+        node_x
 ):
     ''' Loads data from the ROOT TTree.
 
@@ -189,6 +199,8 @@ def load_data_from_tfile(
         All the loaded data will be appended there.
     variables : list
         List of training variables to be used.
+    node_x : str
+        Name of the node. Used with HH_nonres type bdtType
 
     Returns:
     -------
@@ -214,7 +226,8 @@ def load_data_from_tfile(
                 masses,
                 mass_randomization,
                 data,
-                variables
+                variables,
+                node_x
             )
     else:
         print('Error: empty path')
@@ -230,7 +243,8 @@ def define_new_variables(
         masses,
         mass_randomization,
         data,
-        variables
+        variables,
+        node_x
 ):
     ''' Defines new variables based on the old ones that can be used in the
     training
@@ -254,6 +268,8 @@ def define_new_variables(
         Which kind of mass randomization to use: "default" or "oversampling"
     data : pandas DataFrame
         All the loaded data will be appended there.
+    node_x : str
+        Name of the node. Used with HH_nonres type bdtType
 
     Returns:
     -------
@@ -264,6 +280,7 @@ def define_new_variables(
     chunk_df['key'] = folder_name
     chunk_df['target'] = target
     chunk_df['totalWeight'] = chunk_df['evtWeight']
+    chuck_df['nodeX'] = node_x
     if "HH_bb2l" in bdt_type:
         chunk_df["max_dR_b_lep"] = chunk_df[
             ["dR_b1lep1", "dR_b2lep1", "dR_b2lep1", "dR_b2lep2"]
@@ -399,6 +416,7 @@ def get_all_paths(input_path, folder_name, bdt_type):
             wild_card_path = os.path.join(
                 input_path, folder_name + '*', '*.root')
             paths = glob.glob(wild_card_path)
+    paths = [path for path in paths if 'hadd' not in path]
     return paths
 
 
@@ -762,3 +780,29 @@ def print_columns(to_print):
     for one, two in zip(l1, l2):
         print('{0:<45s} {1}'.format(one, two))
     print('-----------------------------------')
+
+
+def get_node_nr(path):
+    filename = os.path.basename(path)
+    filename_elements = filename.split('_')
+    index = filename_elements.index('node')
+    node_name = '_'.join(
+        [filename_elements[index], filename_elements[index + 1]]
+    )
+    return node_name
+
+
+def create_input_tree_path(filename, channel_in_tree):
+    if '4v' in filename:
+        addition = 'wwww'
+    if '2v2t' in filename:
+        addition = 'wwtt'
+    if '4t' in filename:
+        addition = 'tttt'
+    if '2b2v_sl' in filename:
+        addition = '2b2v_sl'
+    elif '2b2v' in filename:
+        addition = '2b2v'
+    name = '_'.join(['signal_ggf_nonresonant_hh', addition])
+    input_tree = os.path.join(channel_in_tree, 'sel/evtntuple', name)
+    return input_tree

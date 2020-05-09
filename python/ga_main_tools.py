@@ -358,7 +358,7 @@ def new_population(
     fitnesses = fitness_list(population)
     while len(offsprings) < (len(population) - len(next_population)):
         parents = select.tournament(population_list(population), fitnesses)
-        offspring = gc.uniform_crossover(
+        offspring = gc.kpoint_crossover(
             parents, parameters, settings['mut_chance'])
         if offspring not in next_population:
             offsprings.append(offspring)
