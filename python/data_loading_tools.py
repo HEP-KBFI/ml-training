@@ -140,6 +140,8 @@ def data_main_loop(
     for path in paths:
         node_x = 'NonNode'
         if 'HH_nonres' in bdt_type and 'nonresonant' in path:
+            target = 1
+            sample_name = 'HH_nonres_decay'
             input_tree = create_input_tree_path(path, channel_in_tree)
             node_x = get_node_nr(path)
         print("Loading from: " + path)
@@ -798,10 +800,13 @@ def get_node_nr(path):
     '''
     filename = os.path.basename(path)
     filename_elements = filename.split('_')
-    index = filename_elements.index('node')
-    node_name = '_'.join(
-        [filename_elements[index], filename_elements[index + 1]]
-    )
+    try:
+        index = filename_elements.index('node')
+        node_name = '_'.join(
+            [filename_elements[index], filename_elements[index + 1]]
+        )
+    except ValueError:
+        node_name = filename
     return node_name
 
 
