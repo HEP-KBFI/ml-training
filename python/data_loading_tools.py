@@ -839,4 +839,4 @@ def create_input_tree_path(filename, channel_in_tree):
     name = '_'.join(['signal_ggf_nonresonant_hh', addition])
     input_tree = os.path.join(
         channel_in_tree, 'sel/evtntuple', name, 'evtTree')
-    return input_tree
+    return str(input_tree)
