@@ -455,8 +455,11 @@ def advanced_sample_name(bdt_type, folder_name, masses):
                 sample_name = sample_name + 'hh_bbvv'
             target = 1
     elif 'HH' in bdt_type:
-        if 'signal_ggf_spin0' in folder_name:
-            sample_name = 'signal_ggf_spin0_'
+        if 'signal_ggf_spin0' in folder_name or 'signal_ggf_spin2' in folder_name:
+            if 'signal_ggf_spin0' in folder_name:
+                sample_name = 'signal_ggf_spin0_'
+            elif 'signal_ggf_spin2' in folder_name:
+                sample_name = 'signal_ggf_spin2_'
             for mass in masses:
                 if str(mass) in folder_name:
                     sample_name = sample_name + str(mass)
