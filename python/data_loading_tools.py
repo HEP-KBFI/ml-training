@@ -837,5 +837,6 @@ def create_input_tree_path(filename, channel_in_tree):
     elif '2b2v' in filename:
         addition = '2b2v'
     name = '_'.join(['signal_ggf_nonresonant_hh', addition])
-    input_tree = os.path.join(channel_in_tree, 'sel/evtntuple', name)
+    input_tree = os.path.join(
+        channel_in_tree, 'sel/evtntuple', name, 'evtTree')
     return input_tree
