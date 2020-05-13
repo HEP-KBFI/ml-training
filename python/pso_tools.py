@@ -202,7 +202,7 @@ def calculate_new_position(
                 parameter_start = parameter['range_start']
                 parameter_end = parameter['range_end']
             else:
-                print('Check the "exp" parameter in "xgb_parameters.json"')
+                print('Check the "exp" parameter in "xgb or nn parameter file"')
             if parameter_start > new_value[key]:
                 new_value[key] = parameter_start
             elif parameter_end < new_value[key]:
