@@ -71,6 +71,32 @@ def save_run_settings(output_dir):
     for path in glob.glob(wild_card_path):
         shutil.copy(path, settings_dir)
 
+def save_info_settings(output_dir, global_settings):
+    '''Saves the info settings for future reference
+
+    Parameters:
+    ----------
+    output_dir : str
+        Path to the output directory
+    global_settings : str
+        Path to the global_settings directory
+    Returns:
+    -------
+    Nothing
+    '''
+    info_dir = os.path.join(output_dir, 'run_info')
+    if not os.path.exists(info_dir):
+        os.makedirs(info_dir)
+    wild_card_path = os.path.join(
+        os.path.expandvars('$CMSSW_BASE'),
+        'src/machineLearning/machineLearning/info/',
+        global_settings['process'],
+        global_settings['channel'],
+        "*"
+    )
+    for path in glob.glob(wild_card_path):
+        shutil.copy(path, info_dir)
+
 
 def read_parameters(param_file):
     '''Read values form a '.json' file
