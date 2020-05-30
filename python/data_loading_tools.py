@@ -602,6 +602,7 @@ def reweigh_dataframe(
 def get_hh_parameters(
         channel,
         tau_id_training,
+        channel_dir
 ):
     '''Reads the parameters for HH data loading
 
@@ -611,20 +612,14 @@ def get_hh_parameters(
         The name of the channel (e.g. 2l_2tau)
     tau_id_training : str
         Tau ID for training
-
-
+    channel_dir : str
+        Path to the "info" firectory of the current run
 
     Returns:
     --------
     parameters : dict
         The necessary info for loading data
     '''
-    channel_dir = os.path.join(
-        os.path.expandvars('$CMSSW_BASE'),
-        'src/machineLearning/machineLearning/info',
-        'HH',
-        channel
-    )
     info_path = os.path.join(channel_dir, 'info.json')
     keys_path = os.path.join(channel_dir, 'keys.txt')
     tau_id_application_path = os.path.join(
@@ -647,7 +642,7 @@ def get_hh_parameters(
     return parameters
 
 
-def get_tth_parameters(channel, bdt_type):
+def get_tth_parameters(channel, bdt_type, channel_dir):
     '''Reads the parameters for the tth channel
 
     Parameters:
@@ -656,18 +651,14 @@ def get_tth_parameters(channel, bdt_type):
         Name of the channel for which the parameters will be loaded
     bdt_type : str
         Name of the bdtType
+    channel_dir : str
+        Path to the "info" directory for the run
 
     Returns:
     -------
     parameters : dict
         Necessary info for loading and weighing the data
     '''
-    channel_dir = os.path.join(
-        os.path.expandvars('$CMSSW_BASE'),
-        'src/machineLearning/machineLearning/info',
-        'ttH',
-        channel
-    )
     parameters = {}
     keys_path = os.path.join(channel_dir, 'keys.txt')
     info_path = os.path.join(channel_dir, 'info.json')
