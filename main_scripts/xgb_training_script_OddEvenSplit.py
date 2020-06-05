@@ -57,6 +57,8 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
     num_classes = global_settings['num_classes']
     nthread = global_settings['nthread']
     save_dir = str(output_dir)
+    ut.save_run_settings(output_dir)
+    ut.save_info_settings(output_dir, global_settings)
     channel_dir = os.path.join(
         os.path.expandvars('$CMSSW_BASE'),
         'src/machineLearning/machineLearning/info',
@@ -65,7 +67,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
     )
     histo_dicts_json = os.path.join(channel_dir, 'histo_dict.json')
     histo_dicts = ut.read_parameters(histo_dicts_json)
-
+    print("global_settings[tauID_training] = ", global_settings['tauID_training'])
     preferences = dlt.get_hh_parameters(
         global_settings['channel'],
         global_settings['tauID_training']
@@ -144,6 +146,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         weights="totalWeight"
     )
 
+    
     print("REWEIGHING ENTIRE DATAFRAME")
     dlt.reweigh_dataframe(
         data,
@@ -288,7 +291,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
             BDTvariables,
             label_list=model_label_list
         )
-
+    
 
 def PlotInputVar(
         data,
