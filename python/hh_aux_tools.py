@@ -558,6 +558,27 @@ def BuildTHstack(
             (data['key'].isin(zz_samples))]  # ZZ
         data_copy_WZ = data.loc[
             (data['key'] == 'WZTo')]  # WZ
+        ttbar_samples = ['TTTo2L2Nu', 'TTToSemiLeptonic']
+        data_copy_TT = data.loc[
+            (data['key'].isin(ttbar_samples))]  # TTbar
+        data_copy_DY = data.loc[
+            (data['key'] == 'DY')]  # DY
+        if not(data_copy_DY.empty):
+            AddHistToStack(
+                data_copy_DY, var_name,
+                hstack, nbins,
+                X_min, X_max,
+                2, 'DY',
+                weights
+            )  # Red
+        if not(data_copy_TT.empty):
+            AddHistToStack(
+                data_copy_TT, var_name,
+                hstack, nbins,
+                X_min, X_max,
+                4, 'TTbar',
+                weights
+            )  # TT
         if not(data_copy_ZZ.empty):
             AddHistToStack(
                 data_copy_ZZ, var_name,
