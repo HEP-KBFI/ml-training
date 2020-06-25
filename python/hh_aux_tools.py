@@ -72,6 +72,14 @@ def normalize_hh_dataframe(
             ww_weights = data.loc[data['key'] == 'WW', [weight]]
             ww_factor = preferences['WWdatacard']/ww_weights.sum()
             data.loc[data['key'] == 'WW', [weight]] *= ww_factor
+        if "evtLevelSUM_HH_3l_1tau_res" in bdt_type:
+            zz_samples = ['ZZTo', 'ggZZTo']
+            zz_weights = data.loc[data['key'].isin(zz_samples), [weight]]
+            zz_factor = preferences['ZZdatacard']/zz_weights.sum()
+            data.loc[data['key'].isin(zz_samples), [weight]] *= zz_factor
+            wz_weights = data.loc[data['key'] == 'WZTo', [weight]]
+            wz_factor = preferences['WZdatacard']/wz_weights.sum()
+            data.loc[data['key'] == 'WZTo', [weight]] *= wz_factor
         for mass in range(len(preferences['masses'])):
             condition_mass = data['gen_mHH'].astype(int) == int(
                 preferences['masses'][mass])
@@ -544,6 +552,49 @@ def BuildTHstack(
                 4, 'TTbar',
                 weights
             )  # TT
+    if(channel == "3l_1tau"):
+        zz_samples = ['ZZTo', 'ggZZTo']
+        data_copy_ZZ = data.loc[
+            (data['key'].isin(zz_samples))]  # ZZ
+        data_copy_WZ = data.loc[
+            (data['key'] == 'WZTo')]  # WZ
+        ttbar_samples = ['TTTo2L2Nu', 'TTToSemiLeptonic']
+        data_copy_TT = data.loc[
+            (data['key'].isin(ttbar_samples))]  # TTbar
+        data_copy_DY = data.loc[
+            (data['key'] == 'DY')]  # DY
+        if not(data_copy_DY.empty):
+            AddHistToStack(
+                data_copy_DY, var_name,
+                hstack, nbins,
+                X_min, X_max,
+                2, 'DY',
+                weights
+            )  # Red
+        if not(data_copy_TT.empty):
+            AddHistToStack(
+                data_copy_TT, var_name,
+                hstack, nbins,
+                X_min, X_max,
+                4, 'TTbar',
+                weights
+            )  # TT
+        if not(data_copy_ZZ.empty):
+            AddHistToStack(
+                data_copy_ZZ, var_name,
+                hstack, nbins,
+                X_min, X_max,
+                4, 'ZZ',
+                weights
+            )  # Blue
+        if not(data_copy_WZ.empty):
+            AddHistToStack(
+                data_copy_WZ, var_name,
+                hstack, nbins,
+                X_min, X_max,
+                2, 'WZ',
+                weights
+            )  # Red
     else:
         print("Please implement settings for your own channel")
 

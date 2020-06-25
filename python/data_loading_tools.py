@@ -409,14 +409,36 @@ def get_all_paths(input_path, folder_name, bdt_type):
                     input_path, folder_name + '*', '*.root')
                 paths = glob.glob(wild_card_path)
     else:
-        wild_card_path = os.path.join(
-            input_path, folder_name + '*', 'central', '*.root')
-        paths = glob.glob(wild_card_path)
-        if len(paths) == 0:
+        paths = []
+        sample_categories = [{}]
+        if 'HH' in bdt_type:  # hardcoded path
+            catfile = os.path.join(
+                os.path.expandvars('$CMSSW_BASE'),
+                'src/machineLearning/machineLearning/info',
+                'HH',
+                'sample_categories.json'
+            )
+            sample_categories = ut.read_parameters(catfile)
+        if (folder_name in sample_categories[0].keys()):
+            for fname in sample_categories[0][folder_name]:
+                wild_card_path = os.path.join(
+                    input_path, fname + '*', 'central', '*.root')
+                addpaths = glob.glob(wild_card_path)
+                if len(addpaths) == 0:
+                    wild_card_path = os.path.join(
+                        input_path, fname + '*', '*.root')
+                    addpaths = glob.glob(wild_card_path)
+                paths.extend(addpaths)
+            paths = list(dict.fromkeys(paths))
+        else:
             wild_card_path = os.path.join(
-                input_path, folder_name + '*', '*.root')
+                input_path, folder_name + '*', 'central', '*.root')
             paths = glob.glob(wild_card_path)
-    paths = [path for path in paths if 'hadd' not in path]
+            if len(paths) == 0:
+                wild_card_path = os.path.join(
+                    input_path, folder_name + '*', '*.root')
+                paths = glob.glob(wild_card_path)
+        paths = [path for path in paths if 'hadd' not in path]
     return paths
 
 
