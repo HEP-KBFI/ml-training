@@ -1,3 +1,4 @@
-{"tauID_training": "dR03mvaLoose", "inputPath": "/hdfs/local/ram/hhAnalysis/2017/2019Feb4_2l_2tau_forBDTtraining_dR03mvaLoose_w_mTauTau/histograms/hh_2l_2tau/forBDTtraining_sumOS/"}
-{"tauID_training": "dR03mvaVLoose", "inputPath": "/hdfs/local/ram/hhAnalysis/2017/2019Feb4_2l_2tau_forBDTtraining_dR03mvaVLoose_w_mTauTau/histograms/hh_2l_2tau/forBDTtraining_sumOS/"}
-{"tauID_training": "dR03mvaVVLoose", "inputPath": "/hdfs/local/ram/hhAnalysis/2017/2019Feb4_2l_2tau_forBDTtraining_dR03mvaVVLoose_w_mTauTau/histograms/hh_2l_2tau/forBDTtraining_sumOS/"}
+{"tauID_training": "deepVSjLoose", "inputPath": "/hdfs/local/ram/hhAnalysis/2017/2020Feb18_BDTtraining_2017_deepVSjLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/"}
+{"tauID_training": "deepVSjVLoose", "inputPath": "/hdfs/local/ram/hhAnalysis/2017/2020Feb18_BDTtraining_2017_deepVSjVLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/"}
+{"tauID_training": "deepVSjVVLoose", "inputPath": "/hdfs/local/ram/hhAnalysis/2017/2020May19_BDTtraining_wNewTauFR_2017_deepVSjVVLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/"}
+{"tauID_training": "deepVSjVVVLoose", "inputPath": "/hdfs/local/ram/hhAnalysis/2017/2020May19_BDTtraining_wNewTauFR_2017_deepVSjVVVLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/"}

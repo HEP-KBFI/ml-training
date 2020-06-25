@@ -1,10 +1,11 @@
 diHiggsMass
 diHiggsVisMass
-tau1_pt
-nBJet_medium
-gen_mHH
-nElectron
-dr_lep_tau_min_SS
 met_LD
-tau2_pt
+gen_mHH
 dr_lep_tau_min_OS
+mT_lep1
+mT_lep2
+max_tau_eta
+max_lep_eta
+dr_taus
+tau1_pt
