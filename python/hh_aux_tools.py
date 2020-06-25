@@ -57,21 +57,21 @@ def normalize_hh_dataframe(
             w_factor = preferences['Wdatacard']/w_weights.sum()
             data.loc[data['key'] == 'W', [weight]] *= w_factor
         if "evtLevelSUM_HH_2l_2tau_res" in bdt_type:
-            ttz_weights = data.loc[data['key'] == 'TTZJets', [weight]]
-            ttz_factor = preferences['TTZdatacard']/ttz_weights.sum()
-            data.loc[data['key'] == 'TTZJets', [weight]] *= ttz_factor
-            ttw_weights = data.loc[data['key'] == 'TTWJets', [weight]]
-            ttw_factor = preferences['TTWdatacard']/ttw_weights.sum()
-            data.loc[data['key'] == 'TTWJets', [weight]] *= ttw_factor
+            #ttz_weights = data.loc[data['key'] == 'TTZJets', [weight]]
+            #ttz_factor = preferences['TTZdatacard']/ttz_weights.sum()
+            #data.loc[data['key'] == 'TTZJets', [weight]] *= ttz_factor
+            #ttw_weights = data.loc[data['key'] == 'TTWJets', [weight]]
+            #ttw_factor = preferences['TTWdatacard']/ttw_weights.sum()
+            #data.loc[data['key'] == 'TTWJets', [weight]] *= ttw_factor
             zz_weights = data.loc[data['key'] == 'ZZ', [weight]]
             zz_factor = preferences['ZZdatacard']/zz_weights.sum()
             data.loc[data['key'] == 'ZZ', [weight]] *= zz_factor
-            wz_weights = data.loc[data['key'] == 'WZ', [weight]]
-            wz_factor = preferences['WZdatacard']/wz_weights.sum()
-            data.loc[data['key'] == 'WZ', [weight]] *= wz_factor
-            ww_weights = data.loc[data['key'] == 'WW', [weight]]
-            ww_factor = preferences['WWdatacard']/ww_weights.sum()
-            data.loc[data['key'] == 'WW', [weight]] *= ww_factor
+            #wz_weights = data.loc[data['key'] == 'WZ', [weight]]
+            #wz_factor = preferences['WZdatacard']/wz_weights.sum()
+            #data.loc[data['key'] == 'WZ', [weight]] *= wz_factor
+            #ww_weights = data.loc[data['key'] == 'WW', [weight]]
+            #ww_factor = preferences['WWdatacard']/ww_weights.sum()
+            #data.loc[data['key'] == 'WW', [weight]] *= ww_factor
         for mass in range(len(preferences['masses'])):
             condition_mass = data['gen_mHH'].astype(int) == int(
                 preferences['masses'][mass])
