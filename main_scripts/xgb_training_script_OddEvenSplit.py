@@ -215,8 +215,20 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         global_settings, weight='totalWeight'
     )
     print("SPLITTING DATAFRAME INTO ODD-EVEN HALVES")
-    Even_df = data.loc[(data["event"].values % 2 == 0)]
-    Odd_df = data.loc[~(data["event"].values % 2 == 0)]
+    # exclude background samples from splitting
+    # if the background is estimated from data
+    # to gain more training statistics
+    keysNotToSplit = []
+    if ("3l_1tau" in global_settings['channel']):
+        keysNotToSplit = ['WZTo', 'DY']
+        print "These keys are excluded from splitting: ", keysNotToSplit
+    else:
+        print "PLEASE IMPLEMENT SETTINGS FOR YOUR CHANNEL"
+    evtNotToSplit = (data['key'].isin(keysNotToSplit))
+    evtEven = (data["event"].values % 2 == 0)
+    evtOdd = ~(data["event"].values % 2 == 0)
+    Even_df = data.loc[np.logical_or(evtEven, evtNotToSplit)]
+    Odd_df = data.loc[np.logical_or(evtOdd, evtNotToSplit)]
     df_list = [Odd_df, Even_df]
 
     if not StrToBool(skipInterpolStudy):
