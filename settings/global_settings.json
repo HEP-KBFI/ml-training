@@ -1,10 +1,10 @@
-{"output_dir": "$HOME/foobar"}
+{"output_dir": "$HOME/foobar_tauID_application_deepVSjMedium_tauID_Training_deepVSjVVVLoose_AllInputVars_kappa2p5_Npar50_Niter50_spin2"}
 {"optimization_algo": "pso"}
 {"ml_method": "xgb"}
 {"process": "HH"}
 {"bdtType": "evtLevelSUM_HH_2l_2tau_res"}
 {"trainvar": "finalVars_allMasses"}
-{"tauID_training": "dR03mvaVLoose"}
+{"tauID_training": "deepVSjVVVLoose"}
 {"bkg_mass_rand": "oversampling"}
 {"channel": "2l_2tau"}
 {"fitness_fn": "d_roc"}
@@ -12,4 +12,4 @@
 {"num_classes": 2}
 {"nthread": 8}
 {"trainvar_opt": 0}
-{"kappa": 1.5}
+{"kappa": 2.5}
