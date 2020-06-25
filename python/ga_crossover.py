@@ -115,7 +115,7 @@ def group_crossover(parents, parameters, mutation_chance=0):
     for i, group in enumerate(parent1):
         cointoss = random.random()
         if cointoss < 0.5:
-            if cointoss < (mutation_chance/2):
+            if cointoss < (float(mutation_chance)/2):
                 mutated = group_mutate(
                     group,
                     mutation_chance,
@@ -157,8 +157,11 @@ def chromosome_mutate(chromosome, mutation_chance):
     mutated_chromosome : string
         A mutated chromosome
     '''
+    ch_len = len(chromosome)
     mutated_chromosome = ''
-    for gene in chromosome:
+    for i, gene in enumerate(chromosome):
+        power = ch_len - i
+        modified_chance = mutation_chance * 0.95**power
         if random.random() < mutation_chance:
             try:
                 mutated_chromosome += str(abs(int(gene) - 1))
@@ -343,6 +346,7 @@ def encode_parent(parent, parameters):
     encoded_parent = {}
     for parameter in parameters:
         key = parameter['p_name']
+        maximum_allowed = parameter['range_end']
         try:
             true_int = parameter['true_int']
         except KeyError:
@@ -351,7 +355,16 @@ def encode_parent(parent, parameters):
             encoded_parent[key] = int_encoding(parent[key])
         else:
             encoded_parent[key] = float_encoding(parent[key])
+            maximum_length = get_encoded_max(maximum_allowed)
+            to_cut = len(encoded_parent[key]) - maximum_length
+            encoded_parent[key] = encoded_parent[key][to_cut:]
     return encoded_parent
+
+
+def get_encoded_max(maximum_allowed):
+    encoded_maximum = float_encoding(maximum_allowed)
+    shortened_max = encoded_maximum.lstrip('0')
+    return len(shortened_max)
 
 
 def decode_offspring(offspring, parameters):

@@ -3,6 +3,7 @@ import numpy as np
 import pandas
 from sklearn.model_selection import KFold
 from sklearn.model_selection import train_test_split
+import sklearn.metrics as skm
 
 
 def kfold_cv(
@@ -126,98 +127,42 @@ def calculate_d_score(train_score, test_score, kappa=1.5):
         Score based on D-score and AUC
     '''
     difference = max(0, train_score - test_score)
-    weighed_difference = kappa * (1 - difference)
-    denominator = kappa + 1
-    d_score = (test_score + weighed_difference) / denominator
+    d_score = test_score + kappa * (1 - difference)
     return d_score
 
 
-########################################################
-
-
-def roc(labels, pred_vectors):
-    '''Calculate the ROC values using the method used in Dianas thesis.
-
-    Parameters:
-    ----------
-    labels : list
-        List of true labels
-    pred_vectors: list of lists
-        List of lists that contain the probabilities for an event to belong to
-        a certain label
-
-    Returns:
-    -------
-    false_positive_rate : list
-        List of false positives for given thresholds
-    true_positive_rate : list
-        List of true positives for given thresholds
-    '''
-    thresholds = np.arange(0, 1, 0.01)
-    number_bg = len(pred_vectors[0]) - 1
-    true_positive_rate = []
-    false_positive_rate = []
-    for threshold in thresholds:
-        signal = []
-        for vector in pred_vectors:
-            sig_vector = np.array(vector) > threshold
-            sig_vector = sig_vector.tolist()
-            result = []
-            for i, element in enumerate(sig_vector):
-                if element:
-                    result.append(i)
-            signal.append(result)
-        pairs = list(zip(labels, signal))
-        sig_score = 0
-        bg_score = 0
-        for pair in pairs:
-            for i in pair[1]:
-                if pair[0] == i:
-                    sig_score += 1
-                else:
-                    bg_score += 1
-        true_positive_rate.append(float(sig_score)/len(labels))
-        false_positive_rate.append(float(bg_score)/(number_bg*len(labels)))
-    return false_positive_rate, true_positive_rate
-
-
-def calculate_auc(data_dict, pred_train, pred_test):
-    '''Calculates the area under curve for training and testing dataset using
-    the predicted labels
+def calculate_auc(data_dict, prediction, data_class, weights):
+    ''' Calculates the ROC curve AUC using sklearn.metrics package.
 
     Parameters:
     ----------
     data_dict : dict
         Dictionary that contains the labels for testing and training. Keys are
         called 'testing_labels' and 'training_labels'
-    pred_train : list of lists
-        Predicted labels of the training dataset
-    pred_test : list of lists
-        Predicted labels of the testing dataset
-
-    Returns:
-    -------
-    train_auc : float
-        Area under curve for training dataset
-    test_aud : float
-        Area under curve for testing dataset
+    prediction : lists of lists
+        Predicted labels of train/test data set.
+    data_class : str
+        Type of the data. ('train' or 'test')
+    [weights] : str
+        [Default: 'totalWeight'] data label to be used as the weight.
     '''
-    x_train, y_train = roc(
-        np.array(data_dict['training_labels']), pred_train)
-    x_test, y_test = roc(
-        np.array(data_dict['testing_labels']), pred_test)
-    test_auc = (-1) * np.trapz(y_test, x_test)
-    train_auc = (-1) * np.trapz(y_train, x_train)
-    info = {
-        'x_train': x_train,
-        'y_train': y_train,
-        'x_test': x_test,
-        'y_test': y_test
-    }
-    return train_auc, test_auc, info
+    label_type = data_class + 'ing_labels'
+    fpr, tpr, thresholds_train = skm.roc_curve(
+        np.array(data_dict[label_type]),
+        prediction[:,1],
+        sample_weight=(data_dict[data_class][weights].astype(np.float64))
+    )
+    auc_score = skm.auc(fpr, tpr, reorder=True)
+    return auc_score
 
 
-def calculate_d_roc(data_dict, pred_train, pred_test, kappa=1.5):
+def calculate_d_roc(
+        data_dict,
+        pred_train,
+        pred_test,
+        weights='totalWeight',
+        kappa=1.5
+):
     '''Calculates the d_roc score
 
     Parameters:
@@ -235,7 +180,8 @@ def calculate_d_roc(data_dict, pred_train, pred_test, kappa=1.5):
     d_roc : float
         the AUC calculated using the d_score function
     '''
-    train_auc, test_auc = calculate_auc(data_dict, pred_train, pred_test)[:2]
+    test_auc = calculate_auc(data_dict, pred_test, 'test', weights)
+    train_auc = calculate_auc(data_dict, pred_train, 'train', weights)
     d_roc = calculate_d_score(train_auc, test_auc, kappa)
     return d_roc
 
@@ -256,7 +202,13 @@ def ams(s, b):
         return np.sqrt(radicand)
 
 
-def try_different_thresholds(predicted, data_dict, label_type, threshold=None):
+def try_different_thresholds(
+        predicted,
+        data_dict,
+        label_type,
+        weights,
+        threshold=None
+):
     '''Tries different thresholds if no threshold given to find out the maximum
     AMS score.
 
@@ -283,7 +235,7 @@ def try_different_thresholds(predicted, data_dict, label_type, threshold=None):
         for finding the biggest ams_score
     '''
     label_key = label_type + 'ing_labels'
-    weights = data_dict[label_type]['evtWeight']
+    weights = data_dict[label_type][weights]
     thresholds = np.arange(0, 1, 0.001)
     ams_scores = []
     signals = []
@@ -356,6 +308,7 @@ def calculate_d_ams(
         pred_train,
         pred_test,
         data_dict,
+        weights='totalWeight',
         kappa=1.5
 ):
     '''Calculates the d_ams score
@@ -376,14 +329,13 @@ def calculate_d_ams(
         the ams score calculated using the d_score function
     '''
     train_ams, best_threshold = try_different_thresholds(
-        pred_train, data_dict, 'train')
+        pred_train, data_dict, 'train', weights)
+    print(train_ams)
     test_ams = try_different_thresholds(
-        pred_test, data_dict, 'test', threshold=best_threshold)
+        pred_test, data_dict, 'test', weights, threshold=best_threshold)
+    print(test_ams)
     d_ams = calculate_d_score(train_ams, test_ams, kappa)
     return d_ams
-
-
-###############################################################3
 
 
 def calculate_compactness(parameter_dicts):

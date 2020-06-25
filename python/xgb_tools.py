@@ -149,9 +149,11 @@ def evaluate_model(data_dict, global_settings, model):
     pred_test = model.predict(data_dict['dtest'])
     kappa = global_settings['kappa']
     if global_settings['fitness_fn'] == 'd_roc':
-        score = et.calculate_d_roc(data_dict, pred_train, pred_test, kappa)
+        score = et.calculate_d_roc(
+            data_dict, pred_train, pred_test, kappa=kappa)
     elif global_settings['fitness_fn'] == 'd_ams':
-        score = et.calculate_d_ams(pred_train, pred_test, data_dict, kappa)
+        score = et.calculate_d_ams(
+            pred_train, pred_test, data_dict, kappa=kappa)
     else:
         print('This fitness_fn is not implemented')
     return score, pred_train, pred_test
