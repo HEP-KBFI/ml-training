@@ -18,7 +18,8 @@ def load_data(
         channel,
         keys,
         masses=[],
-        mass_randomization='default'
+        mass_randomization='default',
+        remove_neg_weights=True
 ):
     '''Loads the all the necessary data
 
@@ -79,6 +80,9 @@ def load_data(
     print('For ' + channel_in_tree + ':')
     print('\t Signal: ' + str(nS))
     print('\t Background: ' + str(nB))
+    if remove_neg_weights:
+        print('Removing events with negative weights')
+        data = remove_negative_weight_events(data, weights='totalWeight')
     return data
 
 
@@ -856,3 +860,22 @@ def create_input_tree_path(filename, channel_in_tree):
     input_tree = os.path.join(
         channel_in_tree, 'sel/evtntuple', name, 'evtTree')
     return str(input_tree)
+
+
+def remove_negative_weight_events(data, weights='totalWeight'):
+    '''Removes negative weight events from the data dataframe
+
+    Parameters:
+    ----------
+    data : pandas DataFrame
+        The data that was loaded
+    weights : str
+        The name of the column in the dataframe to be used as the weight.
+
+    Returns:
+    -------
+    new_data : pandas DataFrame
+        Data that was loaded without negative weight events
+    '''
+    new_data = data.loc[data[weights] >= 0]
+    return new_data
