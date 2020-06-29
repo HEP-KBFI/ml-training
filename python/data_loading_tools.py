@@ -18,7 +18,8 @@ def load_data(
         channel,
         keys,
         masses=[],
-        mass_randomization='default'
+        mass_randomization='default',
+        remove_neg_weights=True
 ):
     '''Loads the all the necessary data
 
@@ -79,6 +80,9 @@ def load_data(
     print('For ' + channel_in_tree + ':')
     print('\t Signal: ' + str(nS))
     print('\t Background: ' + str(nB))
+    if remove_neg_weights:
+        print('Removing events with negative weights')
+        data = remove_negative_weight_events(data, weights='totalWeight')
     return data
 
 
@@ -624,6 +628,7 @@ def reweigh_dataframe(
 def get_hh_parameters(
         channel,
         tau_id_training,
+        channel_dir
 ):
     '''Reads the parameters for HH data loading
 
@@ -633,20 +638,14 @@ def get_hh_parameters(
         The name of the channel (e.g. 2l_2tau)
     tau_id_training : str
         Tau ID for training
-
-
+    channel_dir : str
+        Path to the "info" firectory of the current run
 
     Returns:
     --------
     parameters : dict
         The necessary info for loading data
     '''
-    channel_dir = os.path.join(
-        os.path.expandvars('$CMSSW_BASE'),
-        'src/machineLearning/machineLearning/info',
-        'HH',
-        channel
-    )
     info_path = os.path.join(channel_dir, 'info.json')
     keys_path = os.path.join(channel_dir, 'keys.txt')
     tau_id_application_path = os.path.join(
@@ -669,7 +668,7 @@ def get_hh_parameters(
     return parameters
 
 
-def get_tth_parameters(channel, bdt_type):
+def get_tth_parameters(channel, bdt_type, channel_dir):
     '''Reads the parameters for the tth channel
 
     Parameters:
@@ -678,18 +677,14 @@ def get_tth_parameters(channel, bdt_type):
         Name of the channel for which the parameters will be loaded
     bdt_type : str
         Name of the bdtType
+    channel_dir : str
+        Path to the "info" directory for the run
 
     Returns:
     -------
     parameters : dict
         Necessary info for loading and weighing the data
     '''
-    channel_dir = os.path.join(
-        os.path.expandvars('$CMSSW_BASE'),
-        'src/machineLearning/machineLearning/info',
-        'ttH',
-        channel
-    )
     parameters = {}
     keys_path = os.path.join(channel_dir, 'keys.txt')
     info_path = os.path.join(channel_dir, 'info.json')
@@ -865,3 +860,22 @@ def create_input_tree_path(filename, channel_in_tree):
     input_tree = os.path.join(
         channel_in_tree, 'sel/evtntuple', name, 'evtTree')
     return str(input_tree)
+
+
+def remove_negative_weight_events(data, weights='totalWeight'):
+    '''Removes negative weight events from the data dataframe
+
+    Parameters:
+    ----------
+    data : pandas DataFrame
+        The data that was loaded
+    weights : str
+        The name of the column in the dataframe to be used as the weight.
+
+    Returns:
+    -------
+    new_data : pandas DataFrame
+        Data that was loaded without negative weight events
+    '''
+    new_data = data.loc[data[weights] >= 0]
+    return new_data
