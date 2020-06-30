@@ -50,8 +50,8 @@ def kfold_cv(
             'traindataset': np.array(train[trainvars].values),
             'testdataset': np.array(test[trainvars].values),
             'training_labels': train['target'].astype(int),
-            'testing_labels': test['target'].astype(int)
-            'train_weights': train[weight].astype(float)
+            'testing_labels': test['target'].astype(int),
+            'train_weights': train[weight].astype(float),
             'test_weights': test[weight].astype(float)
         }
         score = evaluation(hyperparameters, data_dict, global_settings)[0]
@@ -105,8 +105,8 @@ def get_evaluation(
         'traindataset': np.array(train[trainvars].values),
         'testdataset': np.array(test[trainvars].values),
         'training_labels': train['target'].astype(int),
-        'testing_labels': test['target'].astype(int)
-        'train_weights': train[weight].astype(float)
+        'testing_labels': test['target'].astype(int),
+        'train_weights': train[weight].astype(float),
         'test_weights': test[weight].astype(float)
     }
     score, pred_train, pred_test = evaluation(
