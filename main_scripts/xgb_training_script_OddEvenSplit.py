@@ -151,7 +151,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
     dlt.reweigh_dataframe(
         data,
         preferences['weight_dir'],
-        preferences['trainvars'],
+        preferences['trainvar_info'],
         ['gen_mHH'],
         preferences['masses']
     )
