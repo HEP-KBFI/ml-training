@@ -114,7 +114,7 @@ def read_parameters(param_file):
     value_dicts = []
     with open(param_file, 'rt') as file:
         for line in file:
-            json_dict = json.loads(line)
+            json_dict = json.loads(line, object_hook=_decode_dict)
             value_dicts.append(json_dict)
     return value_dicts
 
@@ -176,3 +176,39 @@ def read_multiline_json_to_dict(file_path):
     parameter_list = read_parameters(file_path)
     json_dict = to_one_dict(parameter_list)
     return json_dict
+
+
+def _decode_list(data):
+    '''Together with _decode_dict are meant to avoid unicode key and value
+    pairs, due to the problem of ROOT not being able to load the parth when it
+    is unicode. See https://stackoverflow.com/questions/956867/how-to-get-string-objects-instead-of-unicode-from-json
+    '''
+    rv = []
+    for item in data:
+        if isinstance(item, unicode):
+            item = item.encode('utf-8')
+        elif isinstance(item, list):
+            item = _decode_list(item)
+        elif isinstance(item, dict):
+            item = _decode_dict(item)
+        rv.append(item)
+    return rv
+
+
+def _decode_dict(data):
+    '''Together with _decode_list are meant to avoid unicode key and value
+    pairs, due to the problem of ROOT not being able to load the parth when it
+    is unicode. See https://stackoverflow.com/questions/956867/how-to-get-string-objects-instead-of-unicode-from-json
+    '''
+    rv = {}
+    for key, value in data.iteritems():
+        if isinstance(key, unicode):
+            key = key.encode('utf-8')
+        if isinstance(value, unicode):
+            value = value.encode('utf-8')
+        elif isinstance(value, list):
+            value = _decode_list(value)
+        elif isinstance(value, dict):
+            value = _decode_dict(value)
+        rv[key] = value
+    return rv
