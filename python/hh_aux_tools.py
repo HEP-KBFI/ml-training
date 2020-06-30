@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('agg')
 from ROOT import TCanvas, TFile, TProfile
 from ROOT import TH1D, THStack, TF1
 from ROOT import gPad, TFitResultPtr
