@@ -115,13 +115,15 @@ def create_xgb_data_dict(data_dict, nthread):
         data_dict['traindataset'],
         label=data_dict['training_labels'],
         nthread=nthread,
-        feature_names=data_dict['trainvars']
+        feature_names=data_dict['trainvars'],
+        weights=data_dict['train_weights']
     )
     dtest = xgb.DMatrix(
         data_dict['testdataset'],
         label=data_dict['testing_labels'],
         nthread=nthread,
-        feature_names=data_dict['trainvars']
+        feature_names=data_dict['trainvars'],
+        weights=data_dict['test_weights']
     )
     data_dict['dtrain'] = dtrain
     data_dict['dtest'] = dtest
