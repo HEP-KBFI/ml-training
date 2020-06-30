@@ -624,9 +624,8 @@ def reweigh_dataframe(
         for mass in masses:
             data.loc[
                 data['gen_mHH'] == mass, [trainvar]] /= function.Eval(mass)
-            if bool(trainvar_info[trainvar]):
-                data.loc[data['gen_mHH'] == mass, [trainvar]] = np.round(
-                    data.loc[data['gen_mHH'] == mass, [trainvar]]).astype(int)
+        if bool(trainvar_info[trainvar]):
+            data[trainvar] = np.round(data[trainvar]).astype(int)
         tfile.Close()
 
 
