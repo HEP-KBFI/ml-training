@@ -12,6 +12,7 @@ def kfold_cv(
         trainvars,
         global_settings,
         hyperparameters,
+        weight='totalWeight'
 ):
     ''' Splits the dataset into 5 parts that are to be used in all combinations
     as training and testing sets
@@ -50,6 +51,8 @@ def kfold_cv(
             'testdataset': np.array(test[trainvars].values),
             'training_labels': train['target'].astype(int),
             'testing_labels': test['target'].astype(int)
+            'train_weights': train[weight].astype(float)
+            'test_weights': test[weight].astype(float)
         }
         score = evaluation(hyperparameters, data_dict, global_settings)[0]
         scores.append(score)
@@ -65,6 +68,7 @@ def get_evaluation(
         trainvars,
         global_settings,
         hyperparameters,
+        weight='totalWeight'
 ):
     ''' Splits the data to test (20%) and train (80%) respectively
 
@@ -102,6 +106,8 @@ def get_evaluation(
         'testdataset': np.array(test[trainvars].values),
         'training_labels': train['target'].astype(int),
         'testing_labels': test['target'].astype(int)
+        'train_weights': train[weight].astype(float)
+        'test_weights': test[weight].astype(float)
     }
     score, pred_train, pred_test = evaluation(
         hyperparameters, data_dict, global_settings)

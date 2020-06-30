@@ -588,7 +588,7 @@ def signal_background_calc(data, bdt_type, folder_name):
 def reweigh_dataframe(
         data,
         weight_files_dir,
-        trainvars,
+        trainvar_info,
         cancelled_trainvars,
         masses
 ):
@@ -600,8 +600,9 @@ def reweigh_dataframe(
         Data to be reweighed
     weighed_files_dir : str
         Path to the directory where the reweighing files are
-    trainvars : list
-        list of all training variables to be used in the training
+    trainvar_info : dict
+        Dictionary containing trainvar info (e.g is the trainvar supposed to
+        be an integer or not)
     cancelled_trainvars :list
         list of trainvars not to include
     masses : list
@@ -611,6 +612,7 @@ def reweigh_dataframe(
     -------
     Nothing
     '''
+    trainvars = list(trainvar_info.keys())
     for trainvar in trainvars:
         if trainvar in cancelled_trainvars:
             continue
@@ -622,6 +624,9 @@ def reweigh_dataframe(
         for mass in masses:
             data.loc[
                 data['gen_mHH'] == mass, [trainvar]] /= function.Eval(mass)
+            if bool(trainvar_info[trainvar]):
+                data.loc[data['gen_mHH'] == mass, [trainvar]] = np.round(
+                    data.loc[data['gen_mHH'] == mass, [trainvar]]).astype(int)
         tfile.Close()
 
 
@@ -651,7 +656,7 @@ def get_hh_parameters(
     tau_id_application_path = os.path.join(
         channel_dir, 'tauID_application.json')
     tau_id_training_path = os.path.join(channel_dir, 'tauID_training.json')
-    trainvars_path = os.path.join(channel_dir, 'trainvars.txt')
+    trainvars_path = os.path.join(channel_dir, 'trainvars.json')
     info_dict = ut.read_multiline_json_to_dict(info_path)
     tau_id_trainings = ut.read_parameters(tau_id_training_path)
     tau_id_applications = ut.read_parameters(tau_id_application_path)
@@ -663,7 +668,9 @@ def get_hh_parameters(
     parameters['inputPath'] = find_correct_dict(
         'tauID_training', tau_id_training, tau_id_trainings)['inputPath']
     parameters['keys'] = read_list(keys_path)
-    parameters['trainvars'] = read_list(trainvars_path)
+    trainvar_info = read_trainvar_info(trainvars_path)
+    parameters['trainvars'] = list(trainvar_info.keys())
+    parameters['trainvar_info'] = trainvar_info
     parameters.update(info_dict)
     return parameters
 
@@ -879,3 +886,24 @@ def remove_negative_weight_events(data, weights='totalWeight'):
     '''
     new_data = data.loc[data[weights] >= 0]
     return new_data
+
+
+def read_trainvar_info(path):
+    '''Reads the trainvar info
+
+    Parameters:
+    -----------
+    path : str
+        Path to the training file
+
+    Returns:
+    -------
+    trainvar_info : dict
+        Dictionary containing trainvar info (e.g is the trainvar supposed to
+        be an integer or not)
+    '''
+    trainvar_info = {}
+    info_dicts = ut.read_parameters(path)
+    for single_dict in info_dicts:
+        trainvar_info[single_dict['key']] = single_dict['true_int']
+    return trainvar_info
