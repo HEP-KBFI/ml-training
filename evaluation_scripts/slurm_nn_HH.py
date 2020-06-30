@@ -48,7 +48,7 @@ def main(hyperparameter_file, output_dir):
     dlt.reweigh_dataframe(
         data,
         preferences['weight_dir'],
-        preferences['trainvars'],
+        preferences['trainvar_info'],
         ['gen_mHH'],
         preferences['masses']
     )
