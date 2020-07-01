@@ -10,4 +10,4 @@
 {"key": "dr_taus", "true_int": 0}
 {"key": "tau1_pt", "true_int": 0}
 {"key": "nElectron", "true_int": 1}
-{"key": "nBjet_medium", "true_int": 1}
+{"key": "nBJet_medium", "true_int": 1}
