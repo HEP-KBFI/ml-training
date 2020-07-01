@@ -70,7 +70,8 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
     print("global_settings[tauID_training] = ", global_settings['tauID_training'])
     preferences = dlt.get_hh_parameters(
         global_settings['channel'],
-        global_settings['tauID_training']
+        global_settings['tauID_training'],
+        channel_dir
     )
     data = dlt.load_data(
         preferences['inputPath'],
