@@ -590,7 +590,8 @@ def reweigh_dataframe(
         weight_files_dir,
         trainvar_info,
         cancelled_trainvars,
-        masses
+        masses,
+        skip_int_vars=True
 ):
     '''Reweighs the dataframe
 
@@ -621,12 +622,12 @@ def reweigh_dataframe(
         tfile = ROOT.TFile.Open(file_path)
         fit_function_name = '_'.join(['fitFunction', trainvar])
         function = tfile.Get(fit_function_name)
+        if bool(trainvar_info[trainvar]) and skip_int_vars:
+            data[trainvar] = data[trainvar].astype(int)
+            continue
         for mass in masses:
             data.loc[
                 data['gen_mHH'] == mass, [trainvar]] /= function.Eval(mass)
-        if bool(trainvar_info[trainvar]):
-            data[trainvar] = data[trainvar].astype(float)
-            data[trainvar] = np.round(data[trainvar]).astype(int)
         tfile.Close()
 
 
