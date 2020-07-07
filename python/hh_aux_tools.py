@@ -1,18 +1,19 @@
-import matplotlib
-matplotlib.use('agg')
 from ROOT import TCanvas, TFile, TProfile
 from ROOT import TH1D, THStack, TF1
 from ROOT import gPad, TFitResultPtr
 from machineLearning.machineLearning import data_loading_tools as dlt
 from sklearn.metrics import roc_curve, auc
-import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 import numpy as np
 import pandas as pd
+import xgboost as xgb
 import math
 import copy
 import os
 import ROOT
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 ROOT.gROOT.SetBatch(True)
 
 
@@ -88,6 +89,40 @@ def normalize_hh_dataframe(
         data.loc[condition_sig, [weight]] *= sig_factor
         bkg_factor = 100000./data.loc[condition_bkg, [weight]].sum()
         data.loc[condition_bkg, [weight]] *= bkg_factor
+
+
+def PDfToDMatConverter(
+        data,
+        trainvars,
+        nthread=2,
+        target='target',
+        weights='totalWeight'
+):
+    '''Convert Pandas Dataframe into DMatrix
+    Parameters:
+    -----------
+    data : pandas dataframe
+       Input dataframe
+    trainvars: list
+       List of training variables
+    nthread : int
+       No. of threads
+    target : string
+       Name of the column in the dataframe to be used for label
+    weights : str
+       Name of the column in the dataframe to be used for evt weights
+    Returns
+    --------
+    XGB DMatrix
+    '''
+    dMatrix = xgb.DMatrix(
+        np.array(data[trainvars].values),
+        label=data[target].astype(int),
+        nthread=nthread,
+        feature_names=trainvars,
+        weight=np.array(data[weights].values)
+        )
+    return dMatrix
 
 
 def BkgLabelMaker(
@@ -644,6 +679,7 @@ def MakeHisto(
             PlotTitle = var_name
             Histo_Dict = dlt.find_correct_dict(
                 'Variable', str(var_name), histo_dicts)
+            print("Histo_Dict :", Histo_Dict)
             histo1D = TH1D(
                 'histo1D', PlotTitle,
                 Histo_Dict["nbins"],
@@ -904,7 +940,6 @@ def PlotFeaturesImportance(
         output_dir,
         channel,
         cls,
-        trainvars,
         label=""
 ):
     '''Plot Importance of Input Variables
@@ -914,24 +949,16 @@ def PlotFeaturesImportance(
              Path to the output directory
     channel : str
              Label for the channel
-    cls : XGBClassifier
-        Classifier obtained by fitting to the train dataset
-    trainvars : list
-             List of names of training variables
+    cls : XGB Booster
+        Booster obtained by training on the train dMatrix
     label : str
          Label for the output plot name
     Returns:
     -----------
     Nothing
     '''
-    fig, ax = plt.subplots()
-    f_score_dict = cls.get_booster().get_fscore()
-    fig, ax = plt.subplots()
-    f_score_dict = cls.get_booster().get_fscore()
-    f_score_dict = {trainvars[int(k[1:])]: v for k, v in f_score_dict.items()}
-    feat_imp = pd.Series(f_score_dict).sort_values(ascending=True)
-    feat_imp.plot(kind='barh', title='Feature Importances')
-    fig.tight_layout()
+    fig, ax = plt.subplots(figsize=(12, 18))
+    xgb.plot_importance(cls, max_num_features=50, height=0.8, ax=ax)
     nameout = "{}/{}_{}_InputVar_Importance.pdf".format(
         output_dir, channel, label)
     fig.savefig(nameout)
@@ -995,7 +1022,8 @@ def PlotClassifier(
         train,
         test,
         trainvars,
-        label=""
+        label="",
+        weights="totalWeight"
 ):
     '''Makes plot for Classifier output for train and test data
     Parameters:
@@ -1004,8 +1032,8 @@ def PlotClassifier(
              Path to the output directory
     global_settings : dict
               Preferences for the data, model creation and optimization
-    cls : XGBClassifier
-        Classifier obtained by fitting to the train dataset
+    cls : XGB Booster
+        Booster object obtained by training on the train dMatrix
     train : pandas dataframe
          Training dataset
     test : pandas dataframe
@@ -1014,6 +1042,9 @@ def PlotClassifier(
              List of names of training variables
     label : str
          Label for the output plot name
+    weights : str
+           pandas dataframe column name to be used for weights
+
     Returns:
     -----------
     Nothing
@@ -1022,37 +1053,74 @@ def PlotClassifier(
 
     channel = global_settings["channel"]
     bdtType = global_settings["bdtType"]
+    nthread = global_settings["nthread"]
 
     hist_params = {'normed': True, 'bins': 10, 'histtype': 'step', "lw": 2}
-    plt.clf()
-    y_pred_train = cls.predict_proba(
-        train.ix[train.target.values == 0,
-                 trainvars].values)[:, 1]
-    y_predS_train = cls.predict_proba(
-        train.ix[train.target.values == 1,
-                 trainvars].values)[:, 1]
-    y_pred_test = cls.predict_proba(
-        test.ix[test.target.values == 0,
-                trainvars].values)[:, 1]
-    y_predS_test = cls.predict_proba(
-        test.ix[test.target.values == 1,
-                trainvars].values)[:, 1]
+    dMatrix_pred_test = PDfToDMatConverter(
+            test.loc[(test['target'].values == 0)],
+            trainvars,
+            nthread,
+            target='target',
+            weights='totalWeight'
+    )
+    y_pred_test = cls.predict(dMatrix_pred_test)[:, 1]
+    y_pred_test_weights = test.loc[
+        (test['target'].values == 0)
+    ][weights]
+    dMatrix_predS_test = PDfToDMatConverter(
+        test.loc[(test['target'].values == 1)],
+        trainvars,
+        nthread,
+        target='target',
+        weights='totalWeight'
+    )
+    y_predS_test = cls.predict(dMatrix_predS_test)[:, 1]
+    y_predS_test_weights = test.loc[
+        (test['target'].values == 1)
+    ][weights]
+    dMatrix_pred_train = PDfToDMatConverter(
+        train.loc[(train['target'].values == 0)],
+        trainvars,
+        nthread,
+        target='target',
+        weights='totalWeight'
+    )
+    y_pred_train = cls.predict(dMatrix_pred_train)[:, 1]
+    y_pred_train_weights = train.loc[
+        (train['target'].values == 0)
+    ][weights]
+    dMatrix_predS_train = PDfToDMatConverter(
+        train.loc[(train['target'].values == 1)],
+        trainvars,
+        nthread,
+        target='target',
+        weights='totalWeight'
+    )
+    y_predS_train = cls.predict(dMatrix_predS_train)[:, 1]
+    y_predS_train_weights = train.loc[
+        (train['target'].values == 1)
+    ][weights]
+
     plt.figure('XGB', figsize=(6, 6))
     PlotLabel_Bkg_train = labelBKG+' (train)'
     PlotLabel_sig_train = 'signal (train)'
     PlotLabel_Bkg_test = labelBKG+' (test)'
     PlotLabel_sig_test = 'signal (test)'
     values, bins, _ = plt.hist(
-        y_pred_train, ls="-", color='g',
+        y_pred_train, weights=y_pred_train_weights,
+        ls="-", color='g',
         label=PlotLabel_Bkg_train, **hist_params)
     values, bins, _ = plt.hist(
-        y_predS_train, ls="-", color='r',
+        y_predS_train, weights=y_predS_train_weights,
+        ls="-", color='r',
         label=PlotLabel_sig_train, **hist_params)
     values, bins, _ = plt.hist(
-        y_pred_test, ls="--", color='b',
+        y_pred_test, weights=y_pred_test_weights,
+        ls="--", color='b',
         label=PlotLabel_Bkg_test, **hist_params)
     values, bins, _ = plt.hist(
-        y_predS_test, ls="--", color='magenta',
+        y_predS_test, weights=y_predS_test_weights,
+        ls="--", color='magenta',
         label=PlotLabel_sig_test, **hist_params)
     plt.legend(loc='best')
     plt.savefig(
@@ -1060,6 +1128,7 @@ def PlotClassifier(
         '_InputVars_' + str(len(trainvars)) + '_' +
         label + '_XGBclassifier.pdf'
     )
+    plt.close()
 
 
 def PlotCorrelation(
@@ -1152,6 +1221,7 @@ def PlotROCByMass(
     '''
     bdtType = global_settings['bdtType']
     channel = global_settings['channel']
+    nthread = global_settings['nthread']
     test_masses = preferences["masses_test"]
     estimator = cls_list
     order_train = df_list
@@ -1168,12 +1238,19 @@ def PlotROCByMass(
                 val_data = 1
             else:
                 val_data = 0
-            proba = estimator[dd].predict_proba(
-                data_do.loc[(data_do["gen_mHH"].astype(np.int) == int(mass)),
-                            trainvars].values)
+
+            dMatrix_train = PDfToDMatConverter(
+                data_do.loc[
+                    (data_do["gen_mHH"].astype(np.int) == int(mass))],
+                trainvars,
+                nthread,
+                target='target',
+                weights='totalWeight'
+            )
+            proba_train = estimator[dd].predict(dMatrix_train)
             fpr, tpr, thresholds = roc_curve(
                 data_do.loc[(data_do["gen_mHH"].astype(np.int) == int(mass)),
-                            target].astype(np.bool), proba[:, 1],
+                            target].astype(np.bool), proba_train[:, 1],
                 sample_weight=(data_do.loc[
                     (data_do["gen_mHH"].astype(np.int) == int(mass)),
                     weights].astype(np.float64))
@@ -1181,14 +1258,21 @@ def PlotROCByMass(
             train_auc = auc(fpr, tpr, reorder=True)
             print("train set auc " + str(train_auc) +
                   " (mass = " + str(mass) + ")")
-            proba = estimator[dd].predict_proba(
+
+            dMatrix_test = PDfToDMatConverter(
                 order_train[val_data].loc[
                     (order_train[val_data]["gen_mHH"].astype(np.int)
-                     == int(mass)), trainvars].values)
+                     == int(mass))],
+                trainvars,
+                nthread,
+                target='target',
+                weights='totalWeight'
+            )
+            proba_test = estimator[dd].predict(dMatrix_test)
             fprt, tprt, thresholds = roc_curve(
                 order_train[val_data].loc[
                     (order_train[val_data]["gen_mHH"].astype(np.int)
-                     == int(mass)), target].astype(np.bool), proba[:, 1],
+                     == int(mass)), target].astype(np.bool), proba_test[:, 1],
                 sample_weight=(order_train[val_data].loc[
                     (order_train[val_data]["gen_mHH"].astype(np.int)
                      == int(mass)), weights].astype(np.float64))
@@ -1260,6 +1344,7 @@ def PlotClassifierByMass(
     '''
     bdtType = global_settings['bdtType']
     channel = global_settings['channel']
+    nthread = global_settings['nthread']
     test_masses = preferences["masses_test"]
     labelBKG = BkgLabelMaker(global_settings)
     estimator = cls_list
@@ -1277,49 +1362,94 @@ def PlotClassifierByMass(
                 val_data = 1
             else:
                 val_data = 0
-            y_pred = estimator[dd].predict_proba(
+
+            dMatrix_pred_test = PDfToDMatConverter(
                 order_train[val_data].loc[
                     (order_train[val_data][target].values == 0) &
                     (order_train[val_data]["gen_mHH"].astype(np.int)
-                     == int(mass)), trainvars].values)[:, 1]
-            y_predS = estimator[dd].predict_proba(
+                     == int(mass))],
+                trainvars,
+                nthread,
+                target='target',
+                weights='totalWeight'
+            )
+            y_pred_test = estimator[dd].predict(dMatrix_pred_test)[:, 1]
+            dMatrix_predS_test = PDfToDMatConverter(
                 order_train[val_data].loc[
                     (order_train[val_data][target].values == 1) &
                     (order_train[val_data]["gen_mHH"].astype(np.int)
-                     == int(mass)), trainvars].values)[:, 1]
-            y_pred_train = estimator[dd].predict_proba(
-                data_do.ix[(data_do[target].values == 0) &
-                           (data_do["gen_mHH"].astype(np.int)
-                            == int(mass)), trainvars].values)[:, 1]
-            y_predS_train = estimator[dd].predict_proba(
-                data_do.ix[(data_do[target].values == 1) &
-                           (data_do["gen_mHH"].astype(np.int)
-                            == int(mass)), trainvars].values)[:, 1]
+                     == int(mass))],
+                trainvars,
+                nthread,
+                target='target',
+                weights='totalWeight'
+            )
+            y_predS_test = estimator[dd].predict(dMatrix_predS_test)[:, 1]
+            dMatrix_pred_train = PDfToDMatConverter(
+                data_do.ix[
+                    (data_do[target].values == 0) &
+                    (data_do["gen_mHH"].astype(np.int)
+                     == int(mass))],
+                trainvars,
+                nthread,
+                target='target',
+                weights='totalWeight'
+            )
+            y_pred_train = estimator[dd].predict(dMatrix_pred_train)[:, 1]
+            dMatrix_predS_train = PDfToDMatConverter(
+                data_do.ix[
+                    (data_do[target].values == 1) &
+                    (data_do["gen_mHH"].astype(np.int)
+                     == int(mass))],
+                trainvars,
+                nthread,
+                target='target',
+                weights='totalWeight'
+            )
+            y_predS_train = estimator[dd].predict(dMatrix_predS_train)[:, 1]
+
+            y_pred_test_weights = order_train[val_data].loc[
+                (order_train[val_data][target].values == 0) &
+                (order_train[val_data]["gen_mHH"].astype(np.int)
+                 == int(mass))][weights]
+            y_predS_test_weights = order_train[val_data].loc[
+                (order_train[val_data][target].values == 1) &
+                (order_train[val_data]["gen_mHH"].astype(np.int)
+                 == int(mass))][weights]
+            y_pred_train_weights = data_do.ix[
+                (data_do[target].values == 0) &
+                (data_do["gen_mHH"].astype(np.int)
+                 == int(mass))][weights]
+            y_predS_train_weights = data_do.ix[
+                (data_do[target].values == 1) &
+                (data_do["gen_mHH"].astype(np.int)
+                 == int(mass))][weights]
+
             dict_plot = [
-                [y_pred, "-", colorcold[dd],
+                [y_pred_test, y_pred_test_weights, "-", colorcold[dd],
                  order_train_name[dd] + " test " + labelBKG],
-                [y_predS, "-", colorhot[dd],
+                [y_predS_test, y_predS_test_weights, "-", colorhot[dd],
                  order_train_name[dd] + " test signal"],
-                [y_pred_train, "--", colorcold[dd],
+                [y_pred_train, y_pred_train_weights, "--", colorcold[dd],
                  order_train_name[dd] + " train " + labelBKG],
-                [y_predS_train, "--", colorhot[dd],
+                [y_predS_train, y_predS_train_weights, "--", colorhot[dd],
                  order_train_name[dd] + " train signal"]
             ]
             for item in dict_plot:
                 values1, bins, _ = ax.hist(
-                    item[0],
-                    ls=item[1], color=item[2],
-                    label=item[3],
+                    item[0], weights=item[1],
+                    ls=item[2], color=item[3],
+                    label=item[4],
                     **hist_params
                 )
-                normed = sum(y_pred)
+                normed = sum(y_pred_test)
                 mid = 0.5*(bins[1:] + bins[:-1])
                 err = np.sqrt(values1*normed)/normed
                 plt.errorbar(
                     mid, values1,
                     yerr=err, fmt='none',
-                    color=item[2], ecolor=item[2],
-                    edgecolor=item[2], lw=2
+                    color=item[3], ecolor=item[3],
+                    edgecolor=item[3], lw=2
                 )
         ax.legend(loc='upper center',
                   title="mass = "+str(mass)+" GeV", fontsize='small')
