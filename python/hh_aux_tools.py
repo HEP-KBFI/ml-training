@@ -12,7 +12,7 @@ import copy
 import os
 import ROOT
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 ROOT.gROOT.SetBatch(True)
 
@@ -939,7 +939,7 @@ def MakeTProfile(
 def PlotFeaturesImportance(
         output_dir,
         channel,
-        cls,
+        model,
         label=""
 ):
     '''Plot Importance of Input Variables
@@ -949,7 +949,7 @@ def PlotFeaturesImportance(
              Path to the output directory
     channel : str
              Label for the channel
-    cls : XGB Booster
+    model : XGB Booster
         Booster obtained by training on the train dMatrix
     label : str
          Label for the output plot name
@@ -958,7 +958,7 @@ def PlotFeaturesImportance(
     Nothing
     '''
     fig, ax = plt.subplots(figsize=(12, 18))
-    xgb.plot_importance(cls, max_num_features=50, height=0.8, ax=ax)
+    xgb.plot_importance(model, max_num_features=50, height=0.8, ax=ax)
     nameout = "{}/{}_{}_InputVar_Importance.pdf".format(
         output_dir, channel, label)
     fig.savefig(nameout)
@@ -1018,7 +1018,7 @@ def PlotROC(
 def PlotClassifier(
         output_dir,
         global_settings,
-        cls,
+        model,
         train,
         test,
         trainvars,
@@ -1032,7 +1032,7 @@ def PlotClassifier(
              Path to the output directory
     global_settings : dict
               Preferences for the data, model creation and optimization
-    cls : XGB Booster
+    model : XGB Booster
         Booster object obtained by training on the train dMatrix
     train : pandas dataframe
          Training dataset
@@ -1063,7 +1063,7 @@ def PlotClassifier(
             target='target',
             weights='totalWeight'
     )
-    y_pred_test = cls.predict(dMatrix_pred_test)[:, 1]
+    y_pred_test = model.predict(dMatrix_pred_test)[:, 1]
     y_pred_test_weights = test.loc[
         (test['target'].values == 0)
     ][weights]
@@ -1074,7 +1074,7 @@ def PlotClassifier(
         target='target',
         weights='totalWeight'
     )
-    y_predS_test = cls.predict(dMatrix_predS_test)[:, 1]
+    y_predS_test = model.predict(dMatrix_predS_test)[:, 1]
     y_predS_test_weights = test.loc[
         (test['target'].values == 1)
     ][weights]
@@ -1085,7 +1085,7 @@ def PlotClassifier(
         target='target',
         weights='totalWeight'
     )
-    y_pred_train = cls.predict(dMatrix_pred_train)[:, 1]
+    y_pred_train = model.predict(dMatrix_pred_train)[:, 1]
     y_pred_train_weights = train.loc[
         (train['target'].values == 0)
     ][weights]
@@ -1096,7 +1096,7 @@ def PlotClassifier(
         target='target',
         weights='totalWeight'
     )
-    y_predS_train = cls.predict(dMatrix_predS_train)[:, 1]
+    y_predS_train = model.predict(dMatrix_predS_train)[:, 1]
     y_predS_train_weights = train.loc[
         (train['target'].values == 1)
     ][weights]
@@ -1190,7 +1190,7 @@ def PlotROCByMass(
         output_dir,
         global_settings,
         preferences,
-        cls_list,
+        model_list,
         df_list,
         trainvars,
         label_list=["", ""],
@@ -1206,8 +1206,8 @@ def PlotROCByMass(
                    Preferences for the data, model creation and optimization
     preferences : dict
                Preferences for the data choice and data manipulation
-    cls_list : list
-            List of XGBClassifiers obtained by fitting to Odd-Even dataframe
+    model_list : list
+            List of XGB Boosters obtained by training the Odd-Even dMatrices
             pair and vice-versa
     df_list : list
            List of pandas dataframes for evaluation
@@ -1223,7 +1223,7 @@ def PlotROCByMass(
     channel = global_settings['channel']
     nthread = global_settings['nthread']
     test_masses = preferences["masses_test"]
-    estimator = cls_list
+    estimator = model_list
     order_train = df_list
     order_train_name = label_list
 
@@ -1313,7 +1313,7 @@ def PlotClassifierByMass(
         output_dir,
         global_settings,
         preferences,
-        cls_list,
+        model_list,
         df_list,
         trainvars,
         label_list=["", ""],
@@ -1329,8 +1329,8 @@ def PlotClassifierByMass(
                    Preferences for the data, model creation and optimization
     preferences : dict
                Preferences for the data choice and data manipulation
-    cls_list : list
-            List of XGBClassifiers obtained by fitting to Odd-Even dataframe
+    model_list : list
+            List of XGB Boosters obtained by training on the Odd-Even dMatrices
             pair and vice-versa
     df_list : list
            List of pandas dataframes for evaluation
@@ -1347,7 +1347,7 @@ def PlotClassifierByMass(
     nthread = global_settings['nthread']
     test_masses = preferences["masses_test"]
     labelBKG = BkgLabelMaker(global_settings)
-    estimator = cls_list
+    estimator = model_list
     order_train = df_list
     order_train_name = label_list
 

@@ -37,9 +37,6 @@ import copy
 import pickle
 import shutil
 import pandas as pd
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
 
 def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
@@ -420,22 +417,11 @@ def Evaluate(
     )
     data_dict['dtrain'] = dtrain
     data_dict['dtest'] = dtest
-
-    parameters = hyperparameters[0].copy()
-    num_boost_round = parameters.pop('num_boost_round')
-    params = {
-        'silent': 1,
-        'objective': 'multi:softprob',
-        'num_class': num_class,
-        'nthread': nthread,
-        'seed': 1,
-    }
-    parameters.update(params)
-    model = xgb.train(
-        parameters,
-        data_dict['dtrain'],
-        num_boost_round=int(num_boost_round),
-        verbose_eval=False
+    model = xt.create_model(
+        hyperparameters[0],
+        dtrain,
+        nthread,
+        num_class
     )
     if(savePKL):
         channel = global_settings['channel']
