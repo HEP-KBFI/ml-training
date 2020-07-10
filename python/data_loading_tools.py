@@ -11,6 +11,31 @@ from root_numpy import tree2array
 
 
 def load_data(
+        preferences,
+        global_settings,
+        remove_neg_weights=True
+):
+    eras = preferences['included_eras']
+    total_data = pandas.DataFrame({})
+    for era in eras:
+        input_path_key = 'inputPath' + era
+        input_path = preferences[input_path_key]
+        data = load_data_from_one_era(
+            preferences['inputPath'],
+            preferences['channelInTree'],
+            preferences['trainvars'],
+            global_settings['bdtType'],
+            global_settings['channel'],
+            preferences['keys'],
+            preferences['masses'],
+            global_settings['bkg_mass_rand'],
+        )
+        data['era'] = era
+        total_data = total_data.append(data)
+    return total_data
+
+
+def load_data_from_one_era(
         input_path,
         channel_in_tree,
         variables,
