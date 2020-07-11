@@ -691,14 +691,45 @@ def get_hh_parameters(
         info_dict['default_tauID_application'],
         tau_id_applications
     )
-    parameters['inputPath'] = find_correct_dict(
-        'tauID_training', tau_id_training, tau_id_trainings)['inputPath']
+    parameters.update(find_input_paths(
+        info_dict, tau_id_trainings, tau_id_training))
     parameters['keys'] = read_list(keys_path)
     trainvar_info = read_trainvar_info(trainvars_path)
     parameters['trainvars'] = list(trainvar_info.keys())
     parameters['trainvar_info'] = trainvar_info
     parameters.update(info_dict)
     return parameters
+
+
+def find_input_paths(
+        info_dict,
+        tau_id_trainings,
+        tau_id_training,
+):
+    '''Finds era-wise inputPaths
+
+    Parameters:
+    ----------
+    info_dict : dict
+        Dict from info.json file
+    tau_id_trainings : list of dicts
+        info about all tau_id_training for inputPaths
+    tau_id_training : str
+        Value of tau_id_training node
+
+    Returns:
+    -------
+    input_paths_dict : dict
+        Dict conaining the inputPaths for all eras
+    '''
+    eras = info_dict['included_eras']
+    input_paths_dict = {}
+    correct_dict = find_correct_dict(
+        'tauID_training', tau_id_training, tau_id_trainings)
+    for era in eras:
+        key = 'inputPath' + era
+        input_paths_dict[key] = correct_dict[key]
+    return input_paths_dict
 
 
 def get_tth_parameters(channel, bdt_type, channel_dir):
