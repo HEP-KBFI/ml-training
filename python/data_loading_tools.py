@@ -15,6 +15,23 @@ def load_data(
         global_settings,
         remove_neg_weights=True
 ):
+    '''
+    Loads the data for all wanted eras
+
+    Parameters:
+    ----------
+    preferences : dict
+        dictionary conaining the preferences
+    global_settings : dict
+        global settings for the training
+    [remove_neg_weights = True] : bool
+        Whether to remove negative weight events from the data
+
+    Returns:
+    -------
+    data : pandas DataFrame
+        DataFrame containing the data from all the wanted eras
+    '''
     eras = preferences['included_eras']
     total_data = pandas.DataFrame({})
     for era in eras:
