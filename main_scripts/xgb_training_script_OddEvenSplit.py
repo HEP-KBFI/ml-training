@@ -74,14 +74,8 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         channel_dir
     )
     data = dlt.load_data(
-        preferences['inputPath'],
-        preferences['channelInTree'],
-        preferences['trainvars'],
-        global_settings['bdtType'],
-        global_settings['channel'],
-        preferences['keys'],
-        preferences['masses'],
-        global_settings['bkg_mass_rand']
+        preferences,
+        global_settings
     )
     BDTvariables = preferences['trainvars']
     print("BDTvariables: ", BDTvariables)
