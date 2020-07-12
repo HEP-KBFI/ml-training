@@ -38,7 +38,7 @@ def load_data(
         input_path_key = 'inputPath' + era
         input_path = preferences[input_path_key]
         data = load_data_from_one_era(
-            preferences['inputPath'],
+            input_path,
             preferences['channelInTree'],
             preferences['trainvars'],
             global_settings['bdtType'],
