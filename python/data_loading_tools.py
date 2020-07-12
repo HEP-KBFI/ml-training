@@ -961,7 +961,6 @@ def remove_negative_weight_events(data, weights='totalWeight'):
     new_data = data.loc[data[weights] >= 0]
     return new_data
 
-
 def read_trainvar_info(path):
     '''Reads the trainvar info
 
@@ -981,3 +980,4 @@ def read_trainvar_info(path):
     for single_dict in info_dicts:
         trainvar_info[single_dict['key']] = single_dict['true_int']
     return trainvar_info
+
