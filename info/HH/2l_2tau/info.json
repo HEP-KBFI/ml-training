@@ -7,3 +7,4 @@
 {"channelInTree": "hh_2l_2tau_sumOS_forBDTtraining"}
 {"default_tauID_application": "deepVSjMedium"}
 {"weight_dir": "/hdfs/local/ram/MVA_fit_funcs/2017/2l_2tau/Resonant/tauID_application_deepVSjMedium_tauID_training_deepVSjVVVLoose_spin2"}
+{"included_eras": ["16", "17", "18"]}

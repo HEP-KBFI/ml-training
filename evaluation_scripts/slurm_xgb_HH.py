@@ -36,14 +36,8 @@ def main(hyperparameter_file, output_dir):
         channel_dir
     )
     data = dlt.load_data(
-        preferences['inputPath'],
-        preferences['channelInTree'],
-        preferences['trainvars'],
-        global_settings['bdtType'],
-        global_settings['channel'],
-        preferences['keys'],
-        preferences['masses'],
-        global_settings['bkg_mass_rand'],
+        preferences,
+        global_settings
     )
     dlt.reweigh_dataframe(
         data,
