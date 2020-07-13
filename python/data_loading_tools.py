@@ -11,6 +11,48 @@ from root_numpy import tree2array
 
 
 def load_data(
+        preferences,
+        global_settings,
+        remove_neg_weights=True
+):
+    '''
+    Loads the data for all wanted eras
+
+    Parameters:
+    ----------
+    preferences : dict
+        dictionary conaining the preferences
+    global_settings : dict
+        global settings for the training
+    [remove_neg_weights = True] : bool
+        Whether to remove negative weight events from the data
+
+    Returns:
+    -------
+    data : pandas DataFrame
+        DataFrame containing the data from all the wanted eras
+    '''
+    eras = preferences['included_eras']
+    total_data = pandas.DataFrame({})
+    for era in eras:
+        input_path_key = 'inputPath' + era
+        input_path = preferences[input_path_key]
+        data = load_data_from_one_era(
+            input_path,
+            preferences['channelInTree'],
+            preferences['trainvars'],
+            global_settings['bdtType'],
+            global_settings['channel'],
+            preferences['keys'],
+            preferences['masses'],
+            global_settings['bkg_mass_rand'],
+        )
+        data['era'] = era
+        total_data = total_data.append(data)
+    return total_data
+
+
+def load_data_from_one_era(
         input_path,
         channel_in_tree,
         variables,
@@ -666,14 +708,45 @@ def get_hh_parameters(
         info_dict['default_tauID_application'],
         tau_id_applications
     )
-    parameters['inputPath'] = find_correct_dict(
-        'tauID_training', tau_id_training, tau_id_trainings)['inputPath']
+    parameters.update(find_input_paths(
+        info_dict, tau_id_trainings, tau_id_training))
     parameters['keys'] = read_list(keys_path)
     trainvar_info = read_trainvar_info(trainvars_path)
     parameters['trainvars'] = list(trainvar_info.keys())
     parameters['trainvar_info'] = trainvar_info
     parameters.update(info_dict)
     return parameters
+
+
+def find_input_paths(
+        info_dict,
+        tau_id_trainings,
+        tau_id_training,
+):
+    '''Finds era-wise inputPaths
+
+    Parameters:
+    ----------
+    info_dict : dict
+        Dict from info.json file
+    tau_id_trainings : list of dicts
+        info about all tau_id_training for inputPaths
+    tau_id_training : str
+        Value of tau_id_training node
+
+    Returns:
+    -------
+    input_paths_dict : dict
+        Dict conaining the inputPaths for all eras
+    '''
+    eras = info_dict['included_eras']
+    input_paths_dict = {}
+    correct_dict = find_correct_dict(
+        'tauID_training', tau_id_training, tau_id_trainings)
+    for era in eras:
+        key = 'inputPath' + era
+        input_paths_dict[key] = correct_dict[key]
+    return input_paths_dict
 
 
 def get_tth_parameters(channel, bdt_type, channel_dir):
@@ -888,7 +961,6 @@ def remove_negative_weight_events(data, weights='totalWeight'):
     new_data = data.loc[data[weights] >= 0]
     return new_data
 
-
 def read_trainvar_info(path):
     '''Reads the trainvar info
 
@@ -908,3 +980,4 @@ def read_trainvar_info(path):
     for single_dict in info_dicts:
         trainvar_info[single_dict['key']] = single_dict['true_int']
     return trainvar_info
+

@@ -21,9 +21,12 @@ Options:
   -s --skipInterpolStudy=BOOL  [default: True]
        Skip mass interpolation studies ? True or False
 '''
+
 from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_aux_tools as hhat
+from machineLearning.machineLearning import evaluation_tools as et
+from machineLearning.machineLearning import xgb_tools as xt
 from sklearn.metrics import roc_curve, auc, accuracy_score
 import xgboost as xgb
 import numpy as np
@@ -33,6 +36,7 @@ import json
 import copy
 import pickle
 import shutil
+import pandas as pd
 
 
 def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
@@ -67,21 +71,14 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
     )
     histo_dicts_json = os.path.join(channel_dir, 'histo_dict.json')
     histo_dicts = ut.read_parameters(histo_dicts_json)
-    print("global_settings[tauID_training] = ", global_settings['tauID_training'])
     preferences = dlt.get_hh_parameters(
         global_settings['channel'],
         global_settings['tauID_training'],
         channel_dir
     )
     data = dlt.load_data(
-        preferences['inputPath'],
-        preferences['channelInTree'],
-        preferences['trainvars'],
-        global_settings['bdtType'],
-        global_settings['channel'],
-        preferences['keys'],
-        preferences['masses'],
-        global_settings['bkg_mass_rand']
+        preferences,
+        global_settings
     )
     BDTvariables = preferences['trainvars']
     print("BDTvariables: ", BDTvariables)
@@ -98,7 +95,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         data,
         BDTvariables,
         histo_dicts,
-        "bef_rewt",
+        label="bef_rewt",
         weights="totalWeight"
     )
     hhat.MakeTHStack(
@@ -146,8 +143,6 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         TrainMode=0,
         weights="totalWeight"
     )
-
-    
     print("REWEIGHING ENTIRE DATAFRAME")
     dlt.reweigh_dataframe(
         data,
@@ -156,7 +151,6 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         ['gen_mHH'],
         preferences['masses']
     )
-
     print("MAKING POST-REWEIGHING PLOTS")
     hhat.MakeHisto(
         save_dir,
@@ -164,7 +158,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         data,
         BDTvariables,
         histo_dicts,
-        "aft_rewt",
+        label="aft_rewt",
         weights="totalWeight"
     )
     hhat.MakeTHStack(
@@ -292,7 +286,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
             BDTvariables,
             label_list=model_label_list
         )
-    
+
 
 def PlotInputVar(
         data,
@@ -369,6 +363,8 @@ def Evaluate(
          Training dataset
     test : pandas dataframe
          Testing dataset
+    trainvars: list
+         List of training variables
     global_settings : dict
         Preferences for the data, model creation and optimization
     hyperparameters : dict
@@ -386,22 +382,40 @@ def Evaluate(
     XGBClassifier object
     '''
     PlotLabel = label
-    model = xgb.XGBClassifier(
-               n_estimators=hyperparameters[0]["num_boost_round"],
-               max_depth=hyperparameters[0]["max_depth"],
-               min_child_weight=hyperparameters[0]["min_child_weight"],
-               learning_rate=hyperparameters[0]["learning_rate"],
-               gamma=hyperparameters[0]["gamma"],
-               subsample=hyperparameters[0]["subsample"],
-               colsample_bytree=hyperparameters[0]["colsample_bytree"],
-               nthread=global_settings["nthread"],
-               num_class=global_settings["num_classes"],
-               objective="multi:softprob"
+    data_dict = {
+        'trainvars': trainvars,
+        'train': train,
+        'test': test,
+        'traindataset': np.array(train[trainvars].values),
+        'testdataset': np.array(test[trainvars].values),
+        'training_labels': train['target'].astype(int),
+        'testing_labels': test['target'].astype(int),
+        'weight_train': np.array(train[weights].values),
+        'weight_test': np.array(test[weights].values),
+    }
+    nthread = global_settings["nthread"]
+    num_class = global_settings["num_classes"]
+    dtrain = hhat.PDfToDMatConverter(
+        data_dict['train'],
+        data_dict['trainvars'],
+        nthread,
+        target='target',
+        weights='totalWeight'
     )
-    model.fit(
-        train[trainvars].values,
-        train['target'].astype(np.bool),
-        sample_weight=(train[weights].astype(np.float64))
+    dtest = hhat.PDfToDMatConverter(
+        data_dict['test'],
+        data_dict['trainvars'],
+        nthread,
+        target='target',
+        weights='totalWeight'
+    )
+    data_dict['dtrain'] = dtrain
+    data_dict['dtest'] = dtest
+    model = xt.create_model(
+        hyperparameters[0],
+        dtrain,
+        nthread,
+        num_class
     )
     if(savePKL):
         channel = global_settings['channel']
@@ -422,7 +436,7 @@ def Evaluate(
         print("No .pkl file will be saved")
 
     if(makePlots):
-        proba_train = model.predict_proba(train[trainvars].values)
+        proba_train = model.predict(data_dict['dtrain'])
         fpr, tpr, thresholds_train = roc_curve(
             train['target'].astype(np.bool),
             proba_train[:, 1],
@@ -436,7 +450,7 @@ def Evaluate(
                      "train_auc": train_auc
         }]
         print("XGBoost train set auc - {}".format(train_auc))
-        proba_test = model.predict_proba(test[trainvars].values)
+        proba_test = model.predict(data_dict['dtest'])
         fprt, tprt, thresholds_test = roc_curve(
             test['target'].astype(np.bool),
             proba_test[:, 1],
@@ -450,12 +464,12 @@ def Evaluate(
                     "test_auc": test_auc
         }]
         print("XGBoost test set auc - {}".format(test_auc))
+
         # --- PLOTTING FEATURE IMPORTANCES AND ROCs ---#
         hhat.PlotFeaturesImportance(
             output_dir,
             global_settings['channel'],
             model,
-            trainvars,
             label=PlotLabel
         )
         hhat.PlotROC(
@@ -472,7 +486,8 @@ def Evaluate(
             train,
             test,
             trainvars,
-            label=PlotLabel
+            label=PlotLabel,
+            weights="totalWeight"
         )
         hhat.PlotCorrelation(
             output_dir,
