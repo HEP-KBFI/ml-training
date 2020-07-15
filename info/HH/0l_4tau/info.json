@@ -4,7 +4,7 @@
 {"masses_test_low": [300]}
 {"masses_high": [450,500,550,600,650,700,750,800,850,900,1000]}
 {"masses_test_high": [500, 800]}
-{"channelInTree": "hh_0l_4tau_sumOS_forBDTtraining"}
+{"channelInTree": "hh_0l_4tau_OS_forBDTtraining"}
 {"default_tauID_application": "deepVSjLoose"}
 {"weight_dir": "none"}
 {"included_eras": ["17"]}
