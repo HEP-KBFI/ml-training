@@ -1,7 +1,10 @@
 DY
 TT
 ZZ
+VH
 WZ
+TTZJets
+ttH
 signal_ggf_spin0_250_hh_4t
 signal_ggf_spin0_260_hh_4t
 signal_ggf_spin0_270_hh_4t
