@@ -61,7 +61,7 @@ def load_data_from_one_era(
         channel,
         keys,
         masses=[],
-        nonResScenarios = [],
+        nonResScenarios=[],
         mass_randomization='default',
         remove_neg_weights=True,
 ):
@@ -189,7 +189,7 @@ def data_main_loop(
     paths = get_all_paths(input_path, folder_name, bdt_type)
     for path in paths:
         node_x = 'NonNode'
-        if 'HH_nonres' in bdt_type and 'nonresonant' in path:
+        if 'nonres' in bdt_type and 'nonresonant' in path:
             target = 1
             sample_name = 'HH_nonres_decay'
             input_tree = create_input_tree_path(path, channel_in_tree)
@@ -265,7 +265,7 @@ def load_data_from_tfile(
             chunk_df = pandas.DataFrame(
                 chunk_arr)
             tfile.Close()
-        except:
+        except Exception:
             print(
                 'Error: Failed to load TTree in the file ' + str(tfile))
         else:
@@ -364,7 +364,8 @@ def define_new_variables(
         chunk_df["sum_lep_charge"] = sum(
             [chunk_df["lep1_charge"], chunk_df["lep2_charge"]]
         )
-    if "HH" in bdt_type and "gen_mHH" in variables and "nonres" not in bdt_type:
+    HHRes = ('HH' in bdt_type) and 'nonres' not in bdt_type
+    if HHRes and "gen_mHH":
         if target == 1:
             for mass in masses:
                 if str(mass) in folder_name:
@@ -390,7 +391,9 @@ def define_new_variables(
             chunk_df_node['nodeXname'] = scenario
             if target == 1:
                 if scenario is not "SM":
-                    chunk_df_node['totalWeight'] *= chunk_df_node['weight_' + scenario]/chunk_df_node['weight_SM']
+                    nodeWeight = chunk_df_node['weight_' + scenario]
+                    nodeWeight /= chunk_df_node['weight_SM']
+                    chunk_df_node['totalWeight'] *= nodeWeight
             data = data.append(chunk_df_node, ignore_index=True, sort=False)
         return data
     case1 = mass_randomization != "oversampling"
@@ -419,11 +422,11 @@ def read_root_tree(path, input_tree):
     '''
     try:
         tfile = ROOT.TFile(path)
-    except:
+    except Exception:
         print('Error: No ".root" file with the path ' + str(path))
     try:
         tree = tfile.Get(input_tree)
-    except:
+    except Exception:
         print('Error: Failed to read TTree ' + str(input_tree))
     return tree, tfile
 
@@ -450,7 +453,8 @@ def get_all_paths(input_path, folder_name, bdt_type):
     if 'TTH' in bdt_type:
         if folder_name == 'ttHToNonbb':
             wild_card_path = os.path.join(
-                input_path, folder_name + '_M125_powheg', folder_name + '*.root'
+                input_path, folder_name + '_M125_powheg',
+                folder_name + '*.root'
             )
             paths = glob.glob(wild_card_path)
         elif ('TTW' in folder_name) or ('TTZ' in folder_name):
@@ -542,7 +546,9 @@ def advanced_sample_name(bdt_type, folder_name, masses):
                 sample_name = sample_name + 'hh_bbvv'
             target = 1
     elif 'HH' in bdt_type:
-        if 'signal_ggf_spin0' in folder_name or 'signal_ggf_spin2' in folder_name:
+        isSpin0 = 'signal_ggf_spin0' in folder_name
+        isSpin2 = 'signal_ggf_spin2' in folder_name
+        if isSpin0 or isSpin2:
             if 'signal_ggf_spin0' in folder_name:
                 sample_name = 'signal_ggf_spin0_'
             elif 'signal_ggf_spin2' in folder_name:
@@ -573,7 +579,7 @@ def advanced_sample_name(bdt_type, folder_name, masses):
             sample_name = sample_name + '_hh_wwww'
         if '_2v2t' in folder_name:
             sample_name = sample_name + '_hh_wwtt'
-        #sample_name = 'HH_nonres_decay'
+        #  sample_name = 'HH_nonres_decay'
     sample_dict = {
         'sampleName': sample_name,
         'target': target
@@ -808,8 +814,9 @@ def get_tth_parameters(channel, bdt_type, channel_dir):
                     multidict = dictionary
                 else:
                     print(
-'''Warning: Multiple choices with the given bdtType. Using %s as bdtType'''
-                     % (multidict['bdtType']))
+                        '''Warning: Multiple choices with the
+                        given bdtType. Using %s as bdtType'''
+                        % (multidict['bdtType']))
         parameters.update(multidict)
     parameters['HTT_var'] = read_list(htt_var_path)
     parameters['trainvars'] = read_list(trainvar_path)
@@ -988,6 +995,7 @@ def remove_negative_weight_events(data, weights='totalWeight'):
     new_data = data.loc[data[weights] >= 0]
     return new_data
 
+
 def read_trainvar_info(path):
     '''Reads the trainvar info
 
@@ -1007,4 +1015,3 @@ def read_trainvar_info(path):
     for single_dict in info_dicts:
         trainvar_info[single_dict['key']] = single_dict['true_int']
     return trainvar_info
-
