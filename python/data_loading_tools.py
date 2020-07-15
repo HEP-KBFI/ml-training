@@ -365,7 +365,7 @@ def define_new_variables(
             [chunk_df["lep1_charge"], chunk_df["lep2_charge"]]
         )
     HHRes = ('HH' in bdt_type) and 'nonres' not in bdt_type
-    if HHRes and "gen_mHH":
+    if HHRes and "gen_mHH" in variables:
         if target == 1:
             for mass in masses:
                 if str(mass) in folder_name:
