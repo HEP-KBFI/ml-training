@@ -45,7 +45,8 @@ def load_data(
             global_settings['channel'],
             preferences['keys'],
             preferences['masses'],
-            global_settings['bkg_mass_rand'],
+            preferences['nonResScenarios'],
+            global_settings['bkg_mass_rand']
         )
         data['era'] = era
         total_data = total_data.append(data)
@@ -60,8 +61,9 @@ def load_data_from_one_era(
         channel,
         keys,
         masses=[],
+        nonResScenarios = [],
         mass_randomization='default',
-        remove_neg_weights=True
+        remove_neg_weights=True,
 ):
     '''Loads the all the necessary data
 
@@ -109,6 +111,7 @@ def load_data_from_one_era(
             samplename_info,
             channel_in_tree,
             masses,
+            nonResScenarios,
             input_path,
             bdt_type,
             data,
@@ -133,6 +136,7 @@ def data_main_loop(
         samplename_info,
         channel_in_tree,
         masses,
+        nonResScenarios,
         input_path,
         bdt_type,
         data,
@@ -190,7 +194,7 @@ def data_main_loop(
             sample_name = 'HH_nonres_decay'
             input_tree = create_input_tree_path(path, channel_in_tree)
             node_x = get_node_nr(path)
-        print("Loading from: " + path)
+        print('Loading from: ' + path)
         tree, tfile = read_root_tree(path, input_tree)
         data = load_data_from_tfile(
             tree,
@@ -201,6 +205,7 @@ def data_main_loop(
             bdt_type,
             masses,
             mass_randomization,
+            nonResScenarios,
             data,
             variables,
             node_x
@@ -217,6 +222,7 @@ def load_data_from_tfile(
         bdt_type,
         masses,
         mass_randomization,
+        nonResScenarios,
         data,
         variables,
         node_x
@@ -271,6 +277,7 @@ def load_data_from_tfile(
                 bdt_type,
                 masses,
                 mass_randomization,
+                nonResScenarios,
                 data,
                 variables,
                 node_x
@@ -288,6 +295,7 @@ def define_new_variables(
         bdt_type,
         masses,
         mass_randomization,
+        nonResScenarios,
         data,
         variables,
         node_x
@@ -356,7 +364,7 @@ def define_new_variables(
         chunk_df["sum_lep_charge"] = sum(
             [chunk_df["lep1_charge"], chunk_df["lep2_charge"]]
         )
-    if "HH" in bdt_type and "gen_mHH" in variables:
+    if "HH" in bdt_type and "gen_mHH" in variables and "nonres" not in bdt_type:
         if target == 1:
             for mass in masses:
                 if str(mass) in folder_name:
@@ -374,6 +382,17 @@ def define_new_variables(
                     'Cannot use ', mass_randomization, "as mass_randomization")
         else:
             raise ValueError('Cannot use ', target, 'as target')
+    elif "nonres" in bdt_type:
+        for i in range(len(nonResScenarios)):
+            chunk_df_node = chunk_df.copy()
+            scenario = nonResScenarios[i]
+            chunk_df_node['nodeX'] = i
+            chunk_df_node['nodeXname'] = scenario
+            if target == 1:
+                if scenario is not "SM":
+                    chunk_df_node['totalWeight'] *= chunk_df_node['weight_' + scenario]/chunk_df_node['weight_SM']
+            data = data.append(chunk_df_node, ignore_index=True, sort=False)
+        return data
     case1 = mass_randomization != "oversampling"
     case2 = mass_randomization == "oversampling" and target == 1
     if case1 or case2:
@@ -545,9 +564,16 @@ def advanced_sample_name(bdt_type, folder_name, masses):
         else:
             target = 1
             sample_name = 'ttH'  # changed from 'signal'
-    if 'HH_nonres' in bdt_type:
+    if 'nonres' in bdt_type:
         target = 1
-        sample_name = 'HH_nonres_decay'
+        sample_name = "signal_ggf_nonresonant"
+        if '_4t' in folder_name:
+            sample_name = sample_name + '_hh_tttt'
+        if '_4v' in folder_name:
+            sample_name = sample_name + '_hh_wwww'
+        if '_2v2t' in folder_name:
+            sample_name = sample_name + '_hh_wwtt'
+        #sample_name = 'HH_nonres_decay'
     sample_dict = {
         'sampleName': sample_name,
         'target': target
@@ -594,7 +620,7 @@ def signal_background_calc(data, bdt_type, folder_name):
     Nothing
     '''
     if len(data) == 0:
-        print("Error: No data (!!!)")
+        print('Error: No data (!!!)')
     if 'evtLevelSUM_HH_bb2l' in bdt_type and folder_name == 'TTTo2L2Nu':
         data.drop(data.tail(6000000).index, inplace=True)
     elif 'evtLevelSUM_HH_bb1l' in bdt_type:
@@ -714,6 +740,7 @@ def get_hh_parameters(
     trainvar_info = read_trainvar_info(trainvars_path)
     parameters['trainvars'] = list(trainvar_info.keys())
     parameters['trainvar_info'] = trainvar_info
+    print(info_dict)
     parameters.update(info_dict)
     return parameters
 

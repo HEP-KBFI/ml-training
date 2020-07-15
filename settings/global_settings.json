@@ -1,12 +1,12 @@
-{"output_dir": "$HOME/foobar"}
+{"output_dir": "$HOME/ML_nonRestest"}
 {"optimization_algo": "pso"}
 {"ml_method": "xgb"}
 {"process": "HH"}
-{"bdtType": "evtLevelSUM_HH_2l_2tau_res"}
-{"trainvar": "finalVars_allMasses"}
-{"tauID_training": "dR03mvaVLoose"}
+{"bdtType": "evtLevelSUM_HH_3l_1tau_nonres"}
+{"trainvar": "testVars_allMasses"}
+{"tauID_training": "deepVSJVVVLoose_lepLoose"}
 {"bkg_mass_rand": "oversampling"}
-{"channel": "2l_2tau"}
+{"channel": "3l_1tau_nonRes"}
 {"fitness_fn": "d_roc"}
 {"use_kfold": 1}
 {"num_classes": 2}

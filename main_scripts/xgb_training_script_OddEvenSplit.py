@@ -2,24 +2,26 @@
 '''
 Final Training script for the HH analysis
 using the Odd-Even method taking PSO
-optmized hyper-para.s as input
+optmized hyper-paras as input
 Call with 'python3'
 
 Usage:
     xgb_training_script_OddEvenSplit.py \
-        --best_hyper_paras_file_path=BEST_HYP_DIR_PTH   \
+        --hyperparas_file=BEST_HYP_DIR_PTH   \
         --output_dir=$HOME/TrainDir \
-        --skipInterpolStudy=<BOOL>
+        --skipInterpolStudy=<BOOL> \
+        --settingsFolder=$CMSSW_BASE/src/machineLearning/machineLearning/settings/ 
+    xgb_training_script_OddEvenSplit.py --output_dir=$HOME/TrainDir 
 
 Options:
-  -p --best_hyper_paras_file_path=BEST_HYP_DIR_PTH
-       Path to the directory containing the
-       "best_hyperparameters.json" file
-       containing the best hyper-para.s given by PSO
+  -p --hyperparas_file=FILE
+       location of your hyper parameter file [default: info/process/channel/]
   -o --output_dir=$HOME/TrainDir
        output Directory for storing final training results
-  -s --skipInterpolStudy=BOOL  [default: True]
+  -i --skipInterpolStudy=BOOL  [default: True]
        Skip mass interpolation studies ? True or False
+  -s --settingsFolder=FILE
+       Path to your global settings folder [default: $CMSSW_BASE/src/machineLearning/machineLearning/settings/]
 '''
 
 from machineLearning.machineLearning import data_loading_tools as dlt
@@ -39,25 +41,19 @@ import shutil
 import pandas as pd
 
 
-def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
-    print("skipInterpolStudy: ", StrToBool(skipInterpolStudy))
+def main(hyperparas_file, output_dir, skipInterpolStudy, settingsFolder):
+    print('skipInterpolStudy: ', StrToBool(skipInterpolStudy))
     if not StrToBool(skipInterpolStudy):
-        print("DOING MASS INTERPOL. STUDIES FOR THE HALVES")
+        print('DOING MASS INTERPOL. STUDIES FOR THE HALVES')
     else:
-        print("RUNNING SEPERATE BDT TRAINING FOR THE HALVES")
-
-    assert os.path.isdir(best_hyper_paras_file_path), "Directory doesn't exist"
+        print('RUNNING SEPERATE BDT TRAINING FOR THE HALVES')
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
     else:
         shutil.rmtree(output_dir)  # delete the old directory
         os.makedirs(output_dir)
-    hyperparameter_file = os.path.join(
-        best_hyper_paras_file_path, 'best_hyperparameters.json')
-    hyperparameters = ut.read_parameters(hyperparameter_file)
-    print("Best Hyper-Para.s: ", hyperparameters)
-    settings_dir = os.path.join(best_hyper_paras_file_path, 'run_settings')
-    global_settings = ut.read_settings(settings_dir, 'global')
+    print(settingsFolder)
+    global_settings = ut.read_settings(settingsFolder, 'global')
     num_classes = global_settings['num_classes']
     nthread = global_settings['nthread']
     save_dir = str(output_dir)
@@ -69,6 +65,12 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         global_settings['process'],
         global_settings['channel']
     )
+    if hyperparas_file == 'info/process/channel/':
+        hyperparas_file=os.path.join(channel_dir,'hyperparameters.json')
+    assert os.path.exists(hyperparas_file), hyperparas_file + " doesn't exist"
+    hyperparameters = ut.read_parameters(hyperparas_file)
+    print('Hyper-Para.s: ', hyperparameters)
+
     histo_dicts_json = os.path.join(channel_dir, 'histo_dict.json')
     histo_dicts = ut.read_parameters(histo_dicts_json)
     preferences = dlt.get_hh_parameters(
@@ -81,14 +83,23 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         global_settings
     )
     BDTvariables = preferences['trainvars']
-    print("BDTvariables: ", BDTvariables)
-
-    # Removing gen_mHH from the list of input variables
     BDTvariables_wo_gen_mHH = copy.deepcopy(BDTvariables)
-    BDTvariables_wo_gen_mHH.remove("gen_mHH")
-    print("BDTvariables_wo_gen_mHH", BDTvariables_wo_gen_mHH)
 
-    print("MAKING PRE-REWEIGHING PLOTS")
+    evalmode = ''
+    if( "nonres" in global_settings['bdtType']):
+        #Adding nodeX to the list of input variables (if necessary)
+        if 'nodeX' not in BDTvariables:
+            BDTvariables.append("nodeX")
+        evalmode = 'byNode'
+        print('BDTvariables_w_nodeX', BDTvariables)
+        print('MAKING INPUTVAR PLOTS')
+    else:
+        # Removing gen_mHH from the list of input variables
+        BDTvariables_wo_gen_mHH.remove("gen_mHH")
+        evalmode = 'byMass'
+        print('BDTvariables_wo_gen_mHH', BDTvariables_wo_gen_mHH)
+        print('MAKING PRE-REWEIGHING PLOTS')
+
     hhat.MakeHisto(
         save_dir,
         global_settings['channel'],
@@ -105,19 +116,6 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         BDTvariables,
         histo_dicts,
         label="bef_rewt",
-        weights="totalWeight"
-    )
-    hhat.MakeTProfile(
-        save_dir,
-        preferences['masses'],
-        global_settings['channel'],
-        data,
-        BDTvariables_wo_gen_mHH,
-        histo_dicts,
-        Target=0,
-        doFit=False,
-        label="bef_rewt",
-        TrainMode=0,
         weights="totalWeight"
     )
     PlotInputVar(
@@ -126,99 +124,116 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
         global_settings,
         save_dir,
         label="bef_rewt_BDT",
-        weights="totalWeight"
+        weights="totalWeight",
+        mode=evalmode
     )
-
-    print("MAKING THE FITS FOR REWEIGHING")
-    hhat.MakeTProfile(
-        save_dir,
-        preferences['masses'],
-        global_settings['channel'],
-        data,
-        BDTvariables_wo_gen_mHH,
-        histo_dicts,
-        Target=1,
-        doFit=True,
-        label="bef_rewt",
-        TrainMode=0,
-        weights="totalWeight"
-    )
-    print("REWEIGHING ENTIRE DATAFRAME")
-    dlt.reweigh_dataframe(
-        data,
-        preferences['weight_dir'],
-        preferences['trainvar_info'],
-        ['gen_mHH'],
-        preferences['masses']
-    )
-    print("MAKING POST-REWEIGHING PLOTS")
-    hhat.MakeHisto(
-        save_dir,
-        global_settings['channel'],
-        data,
-        BDTvariables,
-        histo_dicts,
-        label="aft_rewt",
-        weights="totalWeight"
-    )
-    hhat.MakeTHStack(
-        save_dir,
-        global_settings['channel'],
-        data,
-        BDTvariables,
-        histo_dicts,
-        label="aft_rewt",
-        weights="totalWeight"
-    )
-    hhat.MakeTProfile(
-        save_dir,
-        preferences['masses'],
-        global_settings['channel'],
-        data,
-        BDTvariables_wo_gen_mHH,
-        histo_dicts,
-        Target=1,
-        doFit=False,
-        label="aft_rewt",
-        TrainMode=0,
-        weights="totalWeight"
-    )
-    hhat.MakeTProfile(
-        save_dir,
-        preferences['masses'],
-        global_settings['channel'],
-        data,
-        BDTvariables_wo_gen_mHH,
-        histo_dicts,
-        Target=0,
-        doFit=False,
-        label="aft_rewt",
-        TrainMode=0,
-        weights="totalWeight"
-    )
-    PlotInputVar(
-        data,
-        preferences,
-        global_settings,
-        save_dir,
-        label="aft_rewt_BDT",
-        weights="totalWeight"
-    )
-    print("NORMALIZING DATAFRAME")
+    # for nonRes training the reweighting is not yet implemented
+    if( "nonres" not in global_settings['bdtType']):    
+        hhat.MakeTProfile(
+            save_dir,
+            preferences['masses'],
+            global_settings['channel'],
+            data,
+            BDTvariables_wo_gen_mHH,
+            histo_dicts,
+            Target=0,
+            doFit=False,
+            label="bef_rewt",
+            TrainMode=0,
+            weights="totalWeight"
+        )
+        print('MAKING THE FITS FOR REWEIGHING')
+        hhat.MakeTProfile(
+            save_dir,
+            preferences['masses'],
+            global_settings['channel'],
+            data,
+            BDTvariables_wo_gen_mHH,
+            histo_dicts,
+            Target=1,
+            doFit=True,
+            label="bef_rewt",
+            TrainMode=0,
+            weights="totalWeight"
+        )
+        print('REWEIGHING ENTIRE DATAFRAME')
+        dlt.reweigh_dataframe(
+            data,
+            preferences['weight_dir'],
+            preferences['trainvar_info'],
+            ['gen_mHH'],
+            preferences['masses']
+        )
+        print('MAKING POST-REWEIGHING PLOTS')
+        hhat.MakeHisto(
+            save_dir,
+            global_settings['channel'],
+            data,
+            BDTvariables,
+            histo_dicts,
+            label="aft_rewt",
+            weights="totalWeight"
+        )
+        hhat.MakeTHStack(
+            save_dir,
+            global_settings['channel'],
+            data,
+            BDTvariables,
+            histo_dicts,
+            label="aft_rewt",
+            weights="totalWeight"
+        )
+        hhat.MakeTProfile(
+            save_dir,
+            preferences['masses'],
+            global_settings['channel'],
+            data,
+            BDTvariables_wo_gen_mHH,
+            histo_dicts,
+            Target=1,
+            doFit=False,
+            label="aft_rewt",
+            TrainMode=0,
+            weights="totalWeight"
+        )
+        hhat.MakeTProfile(
+            save_dir,
+            preferences['masses'],
+            global_settings['channel'],
+            data,
+            BDTvariables_wo_gen_mHH,
+            histo_dicts,
+            Target=0,
+            doFit=False,
+            label="aft_rewt",
+            TrainMode=0,
+            weights="totalWeight"
+        )
+        PlotInputVar(
+            data,
+            preferences,
+            global_settings,
+            save_dir,
+            label="aft_rewt_BDT",
+            weights="totalWeight",
+            mode=evalmode
+        )
+    print('NORMALIZING DATAFRAME')
     hhat.normalize_hh_dataframe(
         data, preferences,
         global_settings, weight='totalWeight'
     )
-    print("SPLITTING DATAFRAME INTO ODD-EVEN HALVES")
+    print('SPLITTING DATAFRAME INTO ODD-EVEN HALVES')
     # exclude background samples from splitting
     # if the background is estimated from data
     # to gain more training statistics
     keysNotToSplit = []
+    print global_settings['channel']
     if ("3l_1tau" in global_settings['channel']):
         keysNotToSplit = ['WZTo', 'DY']
-        print "These keys are excluded from splitting: ", keysNotToSplit
+        print('These keys are excluded from splitting: ', keysNotToSplit)
     else:
-        print "PLEASE IMPLEMENT SETTINGS FOR YOUR CHANNEL"
+        print('PLEASE IMPLEMENT SETTINGS FOR YOUR CHANNEL')
     evtNotToSplit = (data['key'].isin(keysNotToSplit))
     evtEven = (data["event"].values % 2 == 0)
     evtOdd = ~(data["event"].values % 2 == 0)
@@ -227,7 +242,7 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
     df_list = [Odd_df, Even_df]
 
     if not StrToBool(skipInterpolStudy):
-        print("DOING MASS INTERPOL. STUDIES FOR THE HALVES")
+        print('DOING MASS INTERPOL. STUDIES FOR THE HALVES')
         InterpolTest(
              output_dir,
              global_settings,
@@ -241,60 +256,62 @@ def main(best_hyper_paras_file_path, output_dir, skipInterpolStudy):
              target='target'
         )
     else:
-        print("RUNNING SEPERATE BDT TRAINING FOR THE HALVES")
+        print('RUNNING SEPERATE BDT TRAINING FOR THE HALVES')
         model_Even_train_Odd_test = Evaluate(
-                                    output_dir,
-                                    Even_df,
-                                    Odd_df,
-                                    BDTvariables,
-                                    global_settings,
-                                    hyperparameters,
-                                    savePKL=True,
-                                    makePlots=True,
-                                    label="Even_train_Odd_test",
-                                    weights='totalWeight'
-        )
+            output_dir,
+            Even_df,
+            Odd_df,
+            BDTvariables,
+            global_settings,
+            hyperparameters,
+            savePKL=True,
+            makePlots=True,
+            label="Even_train_Odd_test",
+            weights='totalWeight'
+            )
         model_Odd_train_Even_test = Evaluate(
-                                    output_dir,
-                                    Odd_df,
-                                    Even_df,
-                                    BDTvariables,
-                                    global_settings,
-                                    hyperparameters,
-                                    savePKL=True,
-                                    makePlots=True,
-                                    label="Odd_train_Even_test",
-                                    weights='totalWeight'
+            output_dir,
+            Odd_df,
+            Even_df,
+            BDTvariables,
+            global_settings,
+            hyperparameters,
+            savePKL=True,
+            makePlots=True,
+            label="Odd_train_Even_test",
+            weights='totalWeight'
         )
         model_list = [model_Odd_train_Even_test, model_Even_train_Odd_test]
-        model_label_list = ["Odd_train_Even_test", "Even_train_Odd_test"]
-        hhat.PlotROCByMass(
+        model_label_list = ["odd", "even"]
+        hhat.PlotROCByX(
             output_dir,
             global_settings,
             preferences,
             model_list,
             df_list,
             BDTvariables,
-            label_list=model_label_list
+            label_list=model_label_list,
+            mode=evalmode
         )
-        hhat.PlotClassifierByMass(
+        hhat.PlotClassifierByX(
             output_dir,
             global_settings,
             preferences,
             model_list,
             df_list,
             BDTvariables,
-            label_list=model_label_list
+            label_list=model_label_list,
+            mode=evalmode
         )
-
 
 def PlotInputVar(
         data,
         preferences,
         global_settings,
         output_dir,
-        label="",
-        weights='totalWeight'
+        label='',
+        weights='totalWeight',
+        mode = 'byNode'
 ):
     '''Make Input Var plots for a given dataframe
     Parameters:
@@ -311,6 +328,9 @@ def PlotInputVar(
          Label for plot name
     weights : str
            Name of the column in the dataframe to be used as event weight
+    mode: str
+         evaluation mode to distinguish between Res training featuring
+         gen_mHH and nonRes training featuring nodeX
     Returns
     --------
     Nothing
@@ -338,7 +358,7 @@ def PlotInputVar(
         data.ix[data.target.values == 1], 'Signal', colorFastT,
         plotName, printmin,
         plotResiduals, test_masses,
-        mass_list, weights
+        mass_list, weights, mode
     )
 
 
@@ -426,14 +446,14 @@ def Evaluate(
             output_dir, channel, trainvar,
             bdtType, VarNos, label
         )
-        pickle.dump(model, open(pklFileName+".pkl", 'wb'))
+        pickle.dump(model, open(pklFileName+'.pkl', 'wb'))
         file = open(pklFileName + "pkl.log", "w")
         file.write(str(trainvars) + "\n")
         file.close()
-        print("Saved ", pklFileName+".pkl")
-        print("Variables are: ", pklFileName + "_pkl.log")
+        print('Saved ', pklFileName+'.pkl')
+        print('Variables are: ', pklFileName + '_pkl.log')
     else:
-        print("No .pkl file will be saved")
+        print('No .pkl file will be saved')
 
     if(makePlots):
         proba_train = model.predict(data_dict['dtrain'])
@@ -449,7 +469,7 @@ def Evaluate(
                      "tpr": tpr,
                      "train_auc": train_auc
         }]
-        print("XGBoost train set auc - {}".format(train_auc))
+        print('XGBoost train set auc - {}'.format(train_auc))
         proba_test = model.predict(data_dict['dtest'])
         fprt, tprt, thresholds_test = roc_curve(
             test['target'].astype(np.bool),
@@ -463,7 +483,7 @@ def Evaluate(
                     "tprt": tprt,
                     "test_auc": test_auc
         }]
-        print("XGBoost test set auc - {}".format(test_auc))
+        print('XGBoost test set auc - {}'.format(test_auc))
 
         # --- PLOTTING FEATURE IMPORTANCES AND ROCs ---#
         hhat.PlotFeaturesImportance(
@@ -479,6 +499,7 @@ def Evaluate(
             roc_test,
             label=PlotLabel
         )
+
         hhat.PlotClassifier(
             output_dir,
             global_settings,
@@ -487,7 +508,7 @@ def Evaluate(
             test,
             trainvars,
             label=PlotLabel,
-            weights="totalWeight"
+            weights='totalWeight'
         )
         hhat.PlotCorrelation(
             output_dir,
@@ -496,8 +517,9 @@ def Evaluate(
             trainvars,
             label=PlotLabel
         )
+            #        if( "nonres" not in global_settings['bdtType']):
     else:
-        print("No plots will be made")
+        print('No plots will be made')
     return model
 
 
@@ -527,7 +549,7 @@ def InterpolTest(
         df_list,
         mass_list,
         test_masses,
-        label_list=["Odd", "Even"],
+        label_list=['Odd', 'Even'],
         weights='totalWeight',
         target='target'
 ):
@@ -559,17 +581,17 @@ def InterpolTest(
     Nothing
     '''
     BDTvariables = preferences['trainvars']
-    print("BDTvariables: ", BDTvariables)
+    print('BDTvariables: ', BDTvariables)
 
     # Removing gen_mHH from the list of input variables
     BDTvariables_wo_gen_mHH = copy.deepcopy(BDTvariables)
     BDTvariables_wo_gen_mHH.remove("gen_mHH")
-    print("BDTvariables_wo_gen_mHH", BDTvariables_wo_gen_mHH)
+    print('BDTvariables_wo_gen_mHH', BDTvariables_wo_gen_mHH)
 
     channel = global_settings['channel']
     Bkg_mass_rand = global_settings['bkg_mass_rand']
     for mm, mass in enumerate(test_masses):  # Loop over the test masses
-        print("Performing interpol. test for mass: ", mass)
+        print('Performing interpol. test for mass: ', mass)
         MASS_STR = "{}".format(int(mass))
         logFile = "{}/{}_InterpolMass_{}.json".format(
             output_dir, channel, MASS_STR
@@ -579,8 +601,8 @@ def InterpolTest(
                 val_data = 1
             else:
                 val_data = 0
-            print("Bkg_mass_rand: ", Bkg_mass_rand)
-            if(Bkg_mass_rand == "default"):
+            print('Bkg_mass_rand: ', Bkg_mass_rand)
+            if(Bkg_mass_rand == 'default'):
                 traindataset1 = data_do.loc[
                     ~((data_do["gen_mHH"] == mass) &
                       (data_do[target] == 1))
@@ -976,13 +998,14 @@ if __name__ == '__main__':
     try:
         arguments = docopt.docopt(__doc__)
         print(arguments)
-        best_hyper_paras_file_path = arguments['--best_hyper_paras_file_path']
+        hyperparas_file = os.path.expandvars(arguments['--hyperparas_file'])
         output_dir = arguments['--output_dir']
         skipInterpolStudy = arguments['--skipInterpolStudy']
         if arguments['--skipInterpolStudy'] == 'True':
-            print("Perfoming the final training")
+            print('Perfoming the final training')
         else:
-            print("Performing mass interpolation studies")
-        main(best_hyper_paras_file_path, output_dir, skipInterpolStudy)
+            print('Performing mass interpolation studies')
+        settingsFolder = os.path.expandvars(arguments['--settingsFolder'])
+        main(hyperparas_file, output_dir, skipInterpolStudy, settingsFolder)
     except docopt.DocoptExit as e:
         print(e)
