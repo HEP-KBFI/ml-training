@@ -45,13 +45,18 @@ def main(hyperparameter_file, output_dir):
         preferences['masses'],
         global_settings['bkg_mass_rand'],
     )
-    dlt.reweigh_dataframe(
-        data,
-        preferences['weight_dir'],
-        preferences['trainvar_info'],
-        ['gen_mHH'],
-        preferences['masses']
-    )
+    if( "nonres" not in global_settings['bdtType']):
+        dlt.reweigh_dataframe(
+            data,
+            preferences['weight_dir'],
+            preferences['trainvar_info'],
+            ['gen_mHH'],
+            preferences['masses']
+        )
+    elif 'nodeX' not in preferences['trainvars']:
+        preferences['trainvars'].append('nodeX')
+
+
     hhat.normalize_hh_dataframe(data, preferences, global_settings)
     if bool(global_settings['use_kfold']):
         score = et.kfold_cv(
