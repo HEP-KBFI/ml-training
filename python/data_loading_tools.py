@@ -45,7 +45,8 @@ def load_data(
             global_settings['channel'],
             preferences['keys'],
             preferences['masses'],
-            global_settings['bkg_mass_rand'],
+            preferences['nonResScenarios'],
+            global_settings['bkg_mass_rand']
         )
         data['era'] = era
         total_data = total_data.append(data)
@@ -60,8 +61,9 @@ def load_data_from_one_era(
         channel,
         keys,
         masses=[],
+        nonResScenarios=[],
         mass_randomization='default',
-        remove_neg_weights=True
+        remove_neg_weights=True,
 ):
     '''Loads the all the necessary data
 
@@ -109,6 +111,7 @@ def load_data_from_one_era(
             samplename_info,
             channel_in_tree,
             masses,
+            nonResScenarios,
             input_path,
             bdt_type,
             data,
@@ -133,6 +136,7 @@ def data_main_loop(
         samplename_info,
         channel_in_tree,
         masses,
+        nonResScenarios,
         input_path,
         bdt_type,
         data,
@@ -185,12 +189,12 @@ def data_main_loop(
     paths = get_all_paths(input_path, folder_name, bdt_type)
     for path in paths:
         node_x = 'NonNode'
-        if 'HH_nonres' in bdt_type and 'nonresonant' in path:
+        if 'nonres' in bdt_type and 'nonresonant' in path:
             target = 1
             sample_name = 'HH_nonres_decay'
             input_tree = create_input_tree_path(path, channel_in_tree)
             node_x = get_node_nr(path)
-        print("Loading from: " + path)
+        print('Loading from: ' + path)
         tree, tfile = read_root_tree(path, input_tree)
         data = load_data_from_tfile(
             tree,
@@ -201,6 +205,7 @@ def data_main_loop(
             bdt_type,
             masses,
             mass_randomization,
+            nonResScenarios,
             data,
             variables,
             node_x
@@ -217,6 +222,7 @@ def load_data_from_tfile(
         bdt_type,
         masses,
         mass_randomization,
+        nonResScenarios,
         data,
         variables,
         node_x
@@ -259,7 +265,7 @@ def load_data_from_tfile(
             chunk_df = pandas.DataFrame(
                 chunk_arr)
             tfile.Close()
-        except:
+        except Exception:
             print(
                 'Error: Failed to load TTree in the file ' + str(tfile))
         else:
@@ -271,6 +277,7 @@ def load_data_from_tfile(
                 bdt_type,
                 masses,
                 mass_randomization,
+                nonResScenarios,
                 data,
                 variables,
                 node_x
@@ -288,6 +295,7 @@ def define_new_variables(
         bdt_type,
         masses,
         mass_randomization,
+        nonResScenarios,
         data,
         variables,
         node_x
@@ -356,7 +364,8 @@ def define_new_variables(
         chunk_df["sum_lep_charge"] = sum(
             [chunk_df["lep1_charge"], chunk_df["lep2_charge"]]
         )
-    if "HH" in bdt_type and "gen_mHH" in variables:
+    HHRes = ('HH' in bdt_type) and 'nonres' not in bdt_type
+    if HHRes and "gen_mHH" in variables:
         if target == 1:
             for mass in masses:
                 if str(mass) in folder_name:
@@ -374,6 +383,19 @@ def define_new_variables(
                     'Cannot use ', mass_randomization, "as mass_randomization")
         else:
             raise ValueError('Cannot use ', target, 'as target')
+    elif "nonres" in bdt_type:
+        for i in range(len(nonResScenarios)):
+            chunk_df_node = chunk_df.copy()
+            scenario = nonResScenarios[i]
+            chunk_df_node['nodeX'] = i
+            chunk_df_node['nodeXname'] = scenario
+            if target == 1:
+                if scenario is not "SM":
+                    nodeWeight = chunk_df_node['weight_' + scenario]
+                    nodeWeight /= chunk_df_node['weight_SM']
+                    chunk_df_node['totalWeight'] *= nodeWeight
+            data = data.append(chunk_df_node, ignore_index=True, sort=False)
+        return data
     case1 = mass_randomization != "oversampling"
     case2 = mass_randomization == "oversampling" and target == 1
     if case1 or case2:
@@ -400,11 +422,11 @@ def read_root_tree(path, input_tree):
     '''
     try:
         tfile = ROOT.TFile(path)
-    except:
+    except Exception:
         print('Error: No ".root" file with the path ' + str(path))
     try:
         tree = tfile.Get(input_tree)
-    except:
+    except Exception:
         print('Error: Failed to read TTree ' + str(input_tree))
     return tree, tfile
 
@@ -431,7 +453,8 @@ def get_all_paths(input_path, folder_name, bdt_type):
     if 'TTH' in bdt_type:
         if folder_name == 'ttHToNonbb':
             wild_card_path = os.path.join(
-                input_path, folder_name + '_M125_powheg', folder_name + '*.root'
+                input_path, folder_name + '_M125_powheg',
+                folder_name + '*.root'
             )
             paths = glob.glob(wild_card_path)
         elif ('TTW' in folder_name) or ('TTZ' in folder_name):
@@ -523,7 +546,9 @@ def advanced_sample_name(bdt_type, folder_name, masses):
                 sample_name = sample_name + 'hh_bbvv'
             target = 1
     elif 'HH' in bdt_type:
-        if 'signal_ggf_spin0' in folder_name or 'signal_ggf_spin2' in folder_name:
+        isSpin0 = 'signal_ggf_spin0' in folder_name
+        isSpin2 = 'signal_ggf_spin2' in folder_name
+        if isSpin0 or isSpin2:
             if 'signal_ggf_spin0' in folder_name:
                 sample_name = 'signal_ggf_spin0_'
             elif 'signal_ggf_spin2' in folder_name:
@@ -545,9 +570,16 @@ def advanced_sample_name(bdt_type, folder_name, masses):
         else:
             target = 1
             sample_name = 'ttH'  # changed from 'signal'
-    if 'HH_nonres' in bdt_type:
+    if 'nonres' in bdt_type:
         target = 1
-        sample_name = 'HH_nonres_decay'
+        sample_name = "signal_ggf_nonresonant"
+        if '_4t' in folder_name:
+            sample_name = sample_name + '_hh_tttt'
+        if '_4v' in folder_name:
+            sample_name = sample_name + '_hh_wwww'
+        if '_2v2t' in folder_name:
+            sample_name = sample_name + '_hh_wwtt'
+        #  sample_name = 'HH_nonres_decay'
     sample_dict = {
         'sampleName': sample_name,
         'target': target
@@ -594,7 +626,7 @@ def signal_background_calc(data, bdt_type, folder_name):
     Nothing
     '''
     if len(data) == 0:
-        print("Error: No data (!!!)")
+        print('Error: No data (!!!)')
     if 'evtLevelSUM_HH_bb2l' in bdt_type and folder_name == 'TTTo2L2Nu':
         data.drop(data.tail(6000000).index, inplace=True)
     elif 'evtLevelSUM_HH_bb1l' in bdt_type:
@@ -714,6 +746,7 @@ def get_hh_parameters(
     trainvar_info = read_trainvar_info(trainvars_path)
     parameters['trainvars'] = list(trainvar_info.keys())
     parameters['trainvar_info'] = trainvar_info
+    print(info_dict)
     parameters.update(info_dict)
     return parameters
 
@@ -781,8 +814,9 @@ def get_tth_parameters(channel, bdt_type, channel_dir):
                     multidict = dictionary
                 else:
                     print(
-'''Warning: Multiple choices with the given bdtType. Using %s as bdtType'''
-                     % (multidict['bdtType']))
+                        '''Warning: Multiple choices with the
+                        given bdtType. Using %s as bdtType'''
+                        % (multidict['bdtType']))
         parameters.update(multidict)
     parameters['HTT_var'] = read_list(htt_var_path)
     parameters['trainvars'] = read_list(trainvar_path)
@@ -961,6 +995,7 @@ def remove_negative_weight_events(data, weights='totalWeight'):
     new_data = data.loc[data[weights] >= 0]
     return new_data
 
+
 def read_trainvar_info(path):
     '''Reads the trainvar info
 
@@ -980,4 +1015,3 @@ def read_trainvar_info(path):
     for single_dict in info_dicts:
         trainvar_info[single_dict['key']] = single_dict['true_int']
     return trainvar_info
-

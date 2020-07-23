@@ -43,7 +43,12 @@ def normalize_hh_dataframe(
     ttbar_samples = ['TTToSemiLeptonic', 'TTTo2L2Nu']
     condition_sig = data['target'] == 1
     condition_bkg = data['target'] == 0
-    if 'oversampling' in bkg_mass_rand:
+    if 'nonres' in bdt_type:
+        data.loc[(data['target'] == 1), [weight]] *= 1./float(
+           len(preferences['nonResScenarios']))
+        data.loc[(data['target'] == 0), [weight]] *= 1./float(
+           len(preferences['nonResScenarios']))
+    elif 'oversampling' in bkg_mass_rand:
         data.loc[(data['target'] == 1), [weight]] *= 1./float(
             len(preferences['masses']))
         data.loc[(data['target'] == 0), [weight]] *= 1./float(
@@ -71,19 +76,39 @@ def normalize_hh_dataframe(
             wz_weights = data.loc[data['key'] == 'WZTo', [weight]]
             wz_factor = preferences['WZdatacard']/wz_weights.sum()
             data.loc[data['key'] == 'WZTo', [weight]] *= wz_factor
-        for mass in range(len(preferences['masses'])):
-            condition_mass = data['gen_mHH'].astype(int) == int(
-                preferences['masses'][mass])
-            mass_sig_weight = data.loc[
-                condition_sig & condition_mass, [weight]]
-            sig_mass_factor = 100000./mass_sig_weight.sum()
-            data.loc[
-                condition_sig & condition_mass, [weight]] *= sig_mass_factor
-            mass_bkg_weight = data.loc[
-                condition_bkg & condition_mass, [weight]]
-            bkg_mass_factor = 100000./mass_bkg_weight.sum()
-            data.loc[
-                condition_bkg & condition_mass, [weight]] *= bkg_mass_factor
+        if 'nonres' in bdt_type:
+            for node in range(len(preferences['nonResScenarios'])):
+                condition_node = data['nodeXname'].astype(str) == str(
+                    preferences['nonResScenarios'][node])
+                node_sig_weight = data.loc[
+                    condition_sig & condition_node, [weight]]
+                sig_node_factor = 100000./node_sig_weight.sum()
+                data.loc[
+                    condition_sig & condition_node,
+                    [weight]] *= sig_node_factor
+                node_bkg_weight = data.loc[
+                    condition_bkg & condition_node, [weight]]
+                bkg_node_factor = 100000./node_bkg_weight.sum()
+                data.loc[
+                    condition_bkg & condition_node,
+                    [weight]] *= bkg_node_factor
+        else:
+            for mass in range(len(preferences['masses'])):
+                condition_mass = data['gen_mHH'].astype(int) == int(
+                    preferences['masses'][mass])
+                mass_sig_weight = data.loc[
+                    condition_sig & condition_mass, [weight]]
+                sig_mass_factor = 100000./mass_sig_weight.sum()
+                data.loc[
+                    condition_sig & condition_mass,
+                    [weight]] *= sig_mass_factor
+                mass_bkg_weight = data.loc[
+                    condition_bkg & condition_mass, [weight]]
+                bkg_mass_factor = 100000./mass_bkg_weight.sum()
+                data.loc[
+                    condition_bkg & condition_mass,
+                    [weight]] *= bkg_mass_factor
+
     else:
         sig_factor = 100000./data.loc[condition_sig, [weight]].sum()
         data.loc[condition_sig, [weight]] *= sig_factor
@@ -142,6 +167,8 @@ def BkgLabelMaker(
     channel = global_settings['channel']
     if 'evtLevelSUM_HH_2l_2tau_res' in bdtType:
         labelBKG = "TT+DY+VV"
+    elif '3l_1tau' in bdtType:
+        labelBKG = "ZZ+WZ+TT"
     elif 'evtLevelSUM' in bdtType:
         labelBKG = "SUM BKG"
         if channel in ["3l_0tau_HH"]:
@@ -152,7 +179,7 @@ def BkgLabelMaker(
         labelBKG = "DY"
     elif 'evtLevelTT' in bdtType:
         labelBKG = "TT"
-    print("labelBKG: ", labelBKG)
+    print('labelBKG: ', labelBKG)
     return labelBKG
 
 
@@ -163,9 +190,10 @@ def make_plots(
         plotname,
         printmin,
         plotResiduals,
-        masses=[],
-        masses_all=[],
-        weights="totalWeight"
+        nodes_test=[],
+        nodes_all=[],
+        weights="totalWeight",
+        mode="byNode"
 ):
     '''Makes plots of the Input Training Variables
     Parameters:
@@ -192,10 +220,14 @@ def make_plots(
             Handle to minimize verbosity of the plotting function
     plotResiduals : bool
                  Handle to plot Residuals = (Sig - Bkg)/Bkg
-    masses : list
-          list of input signal masses to plot
-    masses_all : list
-          list of all input signal masses (Needed to plot gen_mHH histo.)
+    nodes_test : list
+          list of input signal test nodes to plot
+    nodes_all : list
+          list of all input signal nodes (mass or BM)
+          (Needed to plot gen_mHH/nodeX histo.)
+    mode: string
+          evaluation mode to distinguish between Res training featuring
+          gen_mHH and nonRes training featuring nodeX
     Returns:
     -------
     Plot of input training variables in .pdf format
@@ -233,10 +265,10 @@ def make_plots(
         print('min_value2: %s' % (min_value2))
         print('max_value2: %s' % (max_value2))
         if feature == "gen_mHH":
-            nbin_local = 10*len(masses_all)
+            nbin_local = 10*len(nodes_all)
             range_local = [
-                masses_all[0]-20,
-                masses_all[len(masses_all)-1]+20
+                nodes_all[0]-20,
+                nodes_all[len(nodes_all)-1]+20
             ]
         else:
             nbin_local = nbin
@@ -269,7 +301,7 @@ def make_plots(
                 mid, values1, yerr=err, fmt='none', color=color1,
                 ecolor=color1, edgecolor=color1, lw=2
             )
-        if len(masses) == 0:  # 'gen_mHH' not in feature
+        if len(nodes_test) == 0:  # 'gen_mHH' not in feature
             values2, bins, _ = plt.hist(
                 data2[feature].values,
                 weights=data2[weights].values.astype(
@@ -296,28 +328,45 @@ def make_plots(
                 'fill': False,
                 'lw': 3
             }
-            colors_mass = [
+            colors_node = [
                 'm', 'b', 'k', 'r', 'g',  'y', 'c',
                 'chocolate', 'teal', 'pink', 'darkkhaki',
                 'maroon', 'slategray', 'orange', 'silver',
                 'aquamarine', 'lavender', 'goldenrod', 'salmon',
                 'tan', 'lime', 'lightcoral'
             ]
-            for mm, mass in enumerate(masses):
-                gen_mHH_mass = data2["gen_mHH"].astype(np.int)
-                plot_features = data2.loc[(gen_mHH_mass == int(mass)),
-                                          feature].values
-                plot_weights = data2.loc[(gen_mHH_mass == int(mass)),
-                                         weights].values
+            for nn, node in enumerate(nodes_test):
+                plot_features = []
+                plot_weights = []
+                plot_label = ''
+                if mode == 'byMass':
+                    gen_mHH_mass = data2["gen_mHH"].astype(np.int)
+                    plot_features = data2.loc[
+                        (data2["gen_mHH"].astype(np.int) == int(node)),
+                        feature].values
+                    plot_weights = data2.loc[
+                        (data2["gen_mHH"].astype(np.int) == int(node)),
+                        weights].values
+                    plot_label = label2 + "gen_mHH = " + str(node)
+                elif mode == 'byNode':
+                    plot_features = data2.loc[
+                        (data2['nodeXname'].astype(str) == str(node)),
+                        feature].values
+                    plot_weights = data2.loc[
+                        (data2['nodeXname'].astype(str) == str(node)),
+                        weights].values
+                    plot_label = label2 + "node = " + str(node)
+                else:
+                    raise ValueError(
+                        'Please use a valid mode!')
                 plot_wt_float = plot_weights.astype(np.float64)
-                plot_label = label2 + "gen_mHH = " + str(mass)
                 values2, bins, _ = plt.hist(
                                        plot_features,
                                        weights=plot_wt_float,
                                        range=range_local,
                                        bins=nbin_local,
-                                       edgecolor=colors_mass[mm],
-                                       color=colors_mass[mm],
+                                       edgecolor=colors_node[nn],
+                                       color=colors_node[nn],
                                        label=plot_label,
                                        **hist_params
                 )
@@ -331,8 +380,8 @@ def make_plots(
                     err = np.sqrt(values2*normed)/normed  # deno. as norm. plot
                     plt.errorbar(
                         mid, values2, yerr=err, fmt='none',
-                        color=colors_mass[mm], ecolor=colors_mass[mm],
-                        edgecolor=colors_mass[mm], lw=2
+                        color=colors_node[nn], ecolor=colors_node[nn],
+                        edgecolor=colors_node[nn], lw=2
                     )
         if(plotResiduals):
             residuals = residuals + [(plot1[0] - plot2[0])/(plot1[0])]
@@ -577,7 +626,7 @@ def BuildTHstack(
                 4, 'TTbar',
                 weights
             )  # TT
-    if(channel == "3l_1tau"):
+    if(channel == "3l_1tau" or channel == "3l_1tau_nonRes"):
         zz_samples = ['ZZTo', 'ggZZTo']
         data_copy_ZZ = data.loc[
             (data['key'].isin(zz_samples))]  # ZZ
@@ -621,7 +670,7 @@ def BuildTHstack(
                 weights
             )  # Red
     else:
-        print("Please implement settings for your own channel")
+        print('Please implement settings for your own channel')
 
 
 def MakeHisto(
@@ -659,7 +708,7 @@ def MakeHisto(
     data_copy = data.copy(deep=True)  # Making a deep copy of dataframe
     data_copy = data_copy.loc[(data_copy['target'] == 0)]  # df backgrounds
     for var_name in var_name_list:
-        print("Variable Name: {}".format(var_name))
+        print('Variable Name: {}'.format(var_name))
         data_X = np.array(data_copy[var_name].values, dtype=np.float)
         data_wt = np.array(data_copy[weights].values, dtype=np.float)
 
@@ -667,7 +716,7 @@ def MakeHisto(
         N_wt = len(data_wt)
 
         if(N_x == N_wt):
-            print("Plotting Histogram: {}".format(var_name))
+            print('Plotting Histogram: {}'.format(var_name))
 
             # Create a new canvas, and customize it.
             c1 = TCanvas('c1', 'Histogram', 200, 10, 700, 500)
@@ -679,7 +728,7 @@ def MakeHisto(
             PlotTitle = var_name
             Histo_Dict = dlt.find_correct_dict(
                 'Variable', str(var_name), histo_dicts)
-            print("Histo_Dict :", Histo_Dict)
+            print('Histo_Dict :', Histo_Dict)
             histo1D = TH1D(
                 'histo1D', PlotTitle,
                 Histo_Dict["nbins"],
@@ -699,7 +748,7 @@ def MakeHisto(
             c1.SaveAs(FileName)
         else:
             print('Arrays not of same length')
-            print("N_x: {}, N_wt: {}".format(N_x, N_wt))
+            print('N_x: {}, N_wt: {}'.format(N_x, N_wt))
 
 
 def MakeTHStack(
@@ -738,7 +787,7 @@ def MakeTHStack(
     data_copy = data_copy.loc[(data_copy['target'] == 0)]  # df backgrounds
 
     for var_name in var_name_list:
-        print("Variable Name: {}".format(var_name))
+        print('Variable Name: {}'.format(var_name))
         data_X = np.array(data_copy[var_name].values, dtype=np.float)
         data_wt = np.array(data_copy[weights].values, dtype=np.float)
 
@@ -746,7 +795,7 @@ def MakeTHStack(
         N_wt = len(data_wt)
 
         if(N_x == N_wt):
-            print("Plotting Histogram: {}".format(var_name))
+            print('Plotting Histogram: {}'.format(var_name))
 
             # Create a new canvas, and customize it.
             c1 = TCanvas('c1', 'Stack plot', 200, 10, 700, 500)
@@ -784,7 +833,7 @@ def MakeTHStack(
             c1.SaveAs(FileName)
         else:
             print('Arrays not of same length')
-            print("N_x: {}, N_wt: {}".format(N_x, N_wt))
+            print('N_x: {}, N_wt: {}'.format(N_x, N_wt))
 
 
 def MakeTProfile(
@@ -843,22 +892,22 @@ def MakeTProfile(
     c1.GetFrame().SetBorderMode(-1)
 
     for var_name in var_name_list_wo_gen_mHH:
-        print("Variable Name: {}".format(var_name))
-        FileName = ""
-        Fit_Func_FileName = ""
+        print('Variable Name: {}'.format(var_name))
+        FileName = ''
+        Fit_Func_FileName = ''
         if(Target == 1):
-            FileName = "{}/{}_{}_{}.root".format(
+            FileName = '{}/{}_{}_{}.root'.format(
                 output_dir, "TProfile_signal",
                 str(var_name), label
             )
             if(doFit):
-                Fit_Func_FileName = "{}/{}_{}.root".format(
+                Fit_Func_FileName = '{}/{}_{}.root'.format(
                     output_dir,
-                    "TProfile_signal_fit_func",
+                    'TProfile_signal_fit_func',
                     var_name
                 )
         else:
-            FileName = "{}/{}_{}_{}.root".format(
+            FileName = '{}/{}_{}_{}.root'.format(
                 output_dir, "TProfile",
                 str(var_name), label
             )
@@ -870,7 +919,7 @@ def MakeTProfile(
         N_wt = len(data_wt)
 
         if((N_x == N_y) and (N_y == N_wt)):
-            print("N_x: {}, N_y: {}, N_wt: {}".format(N_x, N_y, N_wt))
+            print('N_x: {}, N_y: {}, N_wt: {}'.format(N_x, N_y, N_wt))
             PlotTitle = 'Profile of '+str(var_name)+' vs gen_mHH'
             Histo_Dict = dlt.find_correct_dict(
                 'Variable', str(var_name), histo_dicts)
@@ -897,7 +946,7 @@ def MakeTProfile(
                 fitFuncName = "fitFunction_" + str(var_name)
                 mass_low = float(mass_list[0])
                 mass_high = float(mass_list[(len(mass_list) - 1)])
-                print("f_Name: %s, m_l: %f, m_h: %f",
+                print('f_Name: %s, m_l: %f, m_h: %f',
                       (fitFuncName, mass_low, mass_high))
                 if(TrainMode == 0):  # All masses used in the training
                     fit_poly_order = Histo_Dict["fitFunc_AllMassTraining"]
@@ -929,11 +978,11 @@ def MakeTProfile(
                 f_old.Write()
                 FuncFile.Close()
             else:
-                print("No fit will be performed")
+                print('No fit will be performed')
                 c1.SaveAs(FileName)
         else:
             print('Arrays not of same length')
-            print("N_x: {}, N_y: {}, N_wt: {}".format(N_x, N_y, N_wt))
+            print('N_x: {}, N_y: {}, N_wt: {}'.format(N_x, N_y, N_wt))
 
 
 def PlotFeaturesImportance(
@@ -962,6 +1011,17 @@ def PlotFeaturesImportance(
     nameout = "{}/{}_{}_InputVar_Importance.pdf".format(
         output_dir, channel, label)
     fig.savefig(nameout)
+
+
+def getPred(data, trainvars, nthread, targetName, weightsName, estimator):
+    dMatrix_pred = PDfToDMatConverter(
+        data,
+        trainvars,
+        nthread,
+        target=targetName,
+        weights=weightsName
+    )
+    return estimator.predict(dMatrix_pred)[:, 1]
 
 
 def PlotROC(
@@ -1022,8 +1082,9 @@ def PlotClassifier(
         train,
         test,
         trainvars,
-        label="",
-        weights="totalWeight"
+        label='',
+        target='target',
+        weights='totalWeight'
 ):
     '''Makes plot for Classifier output for train and test data
     Parameters:
@@ -1042,8 +1103,10 @@ def PlotClassifier(
              List of names of training variables
     label : str
          Label for the output plot name
-    weights : str
-           pandas dataframe column name to be used for weights
+    target: string
+           name of the target column in the data frame
+    weights: string
+           name of the weights column in the data frame
 
     Returns:
     -----------
@@ -1055,74 +1118,70 @@ def PlotClassifier(
     bdtType = global_settings["bdtType"]
     nthread = global_settings["nthread"]
 
-    hist_params = {'normed': True, 'bins': 10, 'histtype': 'step', "lw": 2}
-    dMatrix_pred_test = PDfToDMatConverter(
-            test.loc[(test['target'].values == 0)],
-            trainvars,
-            nthread,
-            target='target',
-            weights='totalWeight'
-    )
-    y_pred_test = model.predict(dMatrix_pred_test)[:, 1]
-    y_pred_test_weights = test.loc[
-        (test['target'].values == 0)
-    ][weights]
-    dMatrix_predS_test = PDfToDMatConverter(
-        test.loc[(test['target'].values == 1)],
-        trainvars,
-        nthread,
-        target='target',
-        weights='totalWeight'
-    )
-    y_predS_test = model.predict(dMatrix_predS_test)[:, 1]
-    y_predS_test_weights = test.loc[
-        (test['target'].values == 1)
-    ][weights]
-    dMatrix_pred_train = PDfToDMatConverter(
-        train.loc[(train['target'].values == 0)],
-        trainvars,
-        nthread,
-        target='target',
-        weights='totalWeight'
-    )
-    y_pred_train = model.predict(dMatrix_pred_train)[:, 1]
-    y_pred_train_weights = train.loc[
-        (train['target'].values == 0)
-    ][weights]
-    dMatrix_predS_train = PDfToDMatConverter(
-        train.loc[(train['target'].values == 1)],
-        trainvars,
-        nthread,
-        target='target',
-        weights='totalWeight'
-    )
-    y_predS_train = model.predict(dMatrix_predS_train)[:, 1]
-    y_predS_train_weights = train.loc[
-        (train['target'].values == 1)
-    ][weights]
+    hist_params = {'normed': True, 'bins': 10,
+                   'histtype': 'step', 'lw': 2, 'range': [0, 1]}
 
-    plt.figure('XGB', figsize=(6, 6))
-    PlotLabel_Bkg_train = labelBKG+' (train)'
-    PlotLabel_sig_train = 'signal (train)'
-    PlotLabel_Bkg_test = labelBKG+' (test)'
-    PlotLabel_sig_test = 'signal (test)'
-    values, bins, _ = plt.hist(
-        y_pred_train, weights=y_pred_train_weights,
-        ls="-", color='g',
-        label=PlotLabel_Bkg_train, **hist_params)
-    values, bins, _ = plt.hist(
-        y_predS_train, weights=y_predS_train_weights,
-        ls="-", color='r',
-        label=PlotLabel_sig_train, **hist_params)
-    values, bins, _ = plt.hist(
-        y_pred_test, weights=y_pred_test_weights,
-        ls="--", color='b',
-        label=PlotLabel_Bkg_test, **hist_params)
-    values, bins, _ = plt.hist(
-        y_predS_test, weights=y_predS_test_weights,
-        ls="--", color='magenta',
-        label=PlotLabel_sig_test, **hist_params)
-    plt.legend(loc='best')
+    pred_test_BKG = getPred(test.loc[(test[target].values == 0)],
+                            trainvars, nthread, target, weights, model)
+    weights_test_BKG = test.loc[(test[target].values == 0), [weights]]
+
+    pred_test_SIG = getPred(test.loc[(test[target].values == 1)],
+                            trainvars, nthread, target, weights, model)
+    weights_test_SIG = test.loc[(test[target].values == 1), [weights]]
+
+    pred_train_BKG = getPred(train.loc[(train[target].values == 0)],
+                             trainvars, nthread, target, weights, model)
+    weights_train_BKG = train.loc[(train[target].values == 0), [weights]]
+
+    pred_train_SIG = getPred(train.loc[(train[target].values == 1)],
+                             trainvars, nthread, target, weights, model)
+    weights_train_SIG = train.loc[(train[target].values == 1), [weights]]
+
+    fig, ax = plt.subplots(figsize=(6, 6))
+    PlotLabel_BKG_train = labelBKG+' (train)'
+    PlotLabel_SIG_train = 'signal (train)'
+    PlotLabel_BKG_test = labelBKG+' (test)'
+    PlotLabel_SIG_test = 'signal (test)'
+
+    dict_plot = [
+        [pred_train_BKG, weights_train_BKG, "-", 'g',
+         PlotLabel_BKG_train],
+        [pred_train_SIG, weights_train_SIG, "-", 'r',
+         PlotLabel_SIG_train],
+        [pred_test_BKG, weights_test_BKG, "-", 'b',
+         PlotLabel_BKG_test],
+        [pred_test_SIG, weights_test_SIG, "-", 'magenta',
+         PlotLabel_SIG_test],
+    ]
+    for item in dict_plot:
+        values, bins, _ = ax.hist(
+            item[0], weights=item[1],
+            ls=item[2], color=item[3],
+            label=item[4],
+            **hist_params
+        )
+        #  create unweighted and non normalized hist
+        #  to calculate proper per bin errors
+        values_unweighted, bins_unweighted = np.histogram(np.array(item[0]),
+                                                          bins=bins)
+        yerrs = []
+        for vv, value in enumerate(values_unweighted):
+            if value > 0:
+                bin_err = (math.sqrt(value)/value)*values[vv]
+            else:
+                bin_err = 0
+            yerrs.append(bin_err)
+        mid = 0.5*(bins[1:] + bins[:-1])
+        plt.errorbar(
+            mid, values,
+            yerr=yerrs, fmt='none',
+            color=item[3], ecolor=item[3],
+            edgecolor=item[3], lw=2
+        )
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05),
+              ncol=2, fancybox=True, shadow=True)
+    ax.set_xlabel('classifier output')
+    ax.yaxis.set_label_text('normalized entries')
     plt.savefig(
         output_dir + '/' + channel + '_' + bdtType +
         '_InputVars_' + str(len(trainvars)) + '_' +
@@ -1186,16 +1245,17 @@ def PlotCorrelation(
         )
 
 
-def PlotROCByMass(
+def PlotROCByX(
         output_dir,
         global_settings,
         preferences,
         model_list,
         df_list,
         trainvars,
-        label_list=["", ""],
-        weights="totalWeight",
-        target='target'
+        label_list=['', ''],
+        weights='totalWeight',
+        target='target',
+        mode='byNode'
 ):
     '''Make ROC curves as function of gen_mHH for test masses
     Parameters:
@@ -1215,6 +1275,13 @@ def PlotROCByMass(
              List of names of training variables
     label_list : list
               List of labels for the output plot name
+    weights: string
+           name of the weights column in the data frame
+    target: string
+           name of the target column in the data frame
+    mode: string
+          evaluation mode to distinguish between Res training featuring
+          gen_mHH and nonRes training featuring nodeX
     Returns:
     -----------
     Nothing
@@ -1222,103 +1289,126 @@ def PlotROCByMass(
     bdtType = global_settings['bdtType']
     channel = global_settings['channel']
     nthread = global_settings['nthread']
-    test_masses = preferences["masses_test"]
-    estimator = model_list
-    order_train = df_list
-    order_train_name = label_list
+    nodes = []
+    if mode == 'byMass':
+        nodes = preferences["masses_test"]
+        if('nonres' in global_settings['bdtType']):
+            raise ValueError(
+                'Please use this mode only with Res!')
+    elif mode == 'byNode':
+        nodes = preferences['nonResScenarios_test']
+        if('nonres' not in global_settings['bdtType']):
+            raise ValueError(
+                'Please use this mode only with nonRes!')
+    else:
+        raise ValueError(
+            'Please use a valid mode!')
 
-    # by mass ROC
     styleline = ['-', '--', '-.', ':']
-    colors_mass = ['m', 'b', 'k', 'r', 'g',  'y', 'c', ]
-    fig, ax = plt.subplots(figsize=(6, 6))
+    colors_nodes = ['m', 'b', 'k', 'r', 'g',  'y', 'c', ]
+    fig, ax = plt.subplots(figsize=(12, 6))
     sl = 0
-    for mm, mass in enumerate(test_masses):
-        for dd, data_do in enumerate(order_train):
-            if dd == 0:
-                val_data = 1
+    for nn, node in enumerate(nodes):
+        for dd in range(len(df_list)):
+            val_idx = int(abs(dd-1))
+            if mode == 'byMass':
+                val_data = df_list[val_idx].loc[
+                    df_list[val_idx]["gen_mHH"].astype(np.int) == int(node)]
+                train_data = df_list[dd].loc[
+                    df_list[dd]["gen_mHH"].astype(np.int) == int(node)]
             else:
-                val_data = 0
+                val_data = df_list[val_idx].loc[
+                    (df_list[val_idx]['nodeXname'].astype(str) == str(node))]
+                train_data = df_list[dd].loc[
+                    (df_list[dd]['nodeXname'].astype(str) == str(node))]
 
-            dMatrix_train = PDfToDMatConverter(
-                data_do.loc[
-                    (data_do["gen_mHH"].astype(np.int) == int(mass))],
-                trainvars,
-                nthread,
-                target='target',
-                weights='totalWeight'
-            )
-            proba_train = estimator[dd].predict(dMatrix_train)
-            fpr, tpr, thresholds = roc_curve(
-                data_do.loc[(data_do["gen_mHH"].astype(np.int) == int(mass)),
-                            target].astype(np.bool), proba_train[:, 1],
-                sample_weight=(data_do.loc[
-                    (data_do["gen_mHH"].astype(np.int) == int(mass)),
-                    weights].astype(np.float64))
-            )
-            train_auc = auc(fpr, tpr, reorder=True)
-            print("train set auc " + str(train_auc) +
-                  " (mass = " + str(mass) + ")")
+            pred_train = getPred(train_data, trainvars,
+                                 nthread, target, weights, model_list[dd])
+            weights_train = train_data[weights].astype(np.float64)
+            targets_train = train_data[target].astype(np.bool)
 
-            dMatrix_test = PDfToDMatConverter(
-                order_train[val_data].loc[
-                    (order_train[val_data]["gen_mHH"].astype(np.int)
-                     == int(mass))],
-                trainvars,
-                nthread,
-                target='target',
-                weights='totalWeight'
+            fpr_train, tpr_train, thresholds_train = roc_curve(
+                targets_train, pred_train, sample_weight=weights_train
             )
-            proba_test = estimator[dd].predict(dMatrix_test)
-            fprt, tprt, thresholds = roc_curve(
-                order_train[val_data].loc[
-                    (order_train[val_data]["gen_mHH"].astype(np.int)
-                     == int(mass)), target].astype(np.bool), proba_test[:, 1],
-                sample_weight=(order_train[val_data].loc[
-                    (order_train[val_data]["gen_mHH"].astype(np.int)
-                     == int(mass)), weights].astype(np.float64))
+            train_auc = auc(fpr_train, tpr_train, reorder=True)
+
+            if mode == 'byMass':
+                print('train set auc ' + str(train_auc) +
+                      ' (mass = ' + str(node) + ')')
+            else:
+                print('train set auc ' + str(train_auc) +
+                      ' (node = ' + str(node) + ")")
+
+            pred_val = getPred(val_data, trainvars,
+                               nthread, target, weights, model_list[dd])
+            weights_val = val_data[weights].astype(np.float64)
+            targets_val = val_data[target].astype(np.bool)
+
+            fpr_val, tpr_val, thresholds_val = roc_curve(
+                targets_val, pred_val, sample_weight=weights_val
             )
-            test_auct = auc(fprt, tprt, reorder=True)
-            print("test set auc " + str(test_auct) +
-                  " (mass = " + str(mass) + ")")
+            val_auc = auc(fpr_val, tpr_val, reorder=True)
+
+            if mode == 'byMass':
+                print('val set auc ' + str(val_auc) +
+                      ' (mass = ' + str(node) + ")")
+            else:
+                print('val set auc ' + str(val_auc) +
+                      ' (node = ' + str(node) + ')')
+            label_train, label_val = ['', '']
+
+            if mode == 'byMass':
+                label_train = label_list[dd] + ' training: ' + label_list[dd] + ' events (area = %0.3f)' % (train_auc) + ' (mass = ' + str(node) + ')'
+                label_val = label_list[dd] + ' training: ' + label_list[val_idx] + ' events (area = %0.3f)' % (val_auc) + ' (mass = ' + str(node) + ')'
+            else:
+                label_train = label_list[dd] + ' training: ' + label_list[dd] + ' events (area = %0.3f)' % (train_auc) + ' (node = ' + str(node) + ')'
+                label_val = label_list[dd] + ' training: ' + label_list[val_idx] + ' events (area = %0.3f)' % (val_auc) + ' (node = ' + str(node) + ')'
             ax.plot(
-                fpr, tpr,
+                fpr_train, tpr_train,
                 lw=2, linestyle=styleline[dd + dd*1],
-                color=colors_mass[mm],
-                label=order_train_name[dd] +
-                ' train (area = %0.3f)' % (train_auc) +
-                " (mass = " + str(mass) + ")"
+                color=colors_nodes[nn],
+                label=label_train
             )
             sl += 1
             ax.plot(
-                fprt, tprt,
+                fpr_val, tpr_val,
                 lw=2, linestyle=styleline[dd + 1 + + dd*1],
-                color=colors_mass[mm],
-                label=order_train_name[dd] +
-                ' test (area = %0.3f)' % (test_auct) +
-                " (mass = " + str(mass) + ")"
+                color=colors_nodes[nn],
+                label=label_val
             )
             sl += 1
+
     ax.set_ylim([0.0, 1.0])
     ax.set_xlim([0.0, 1.0])
     ax.set_xlabel('False Positive Rate')
     ax.set_ylabel('True Positive Rate')
-    ax.legend(loc="lower right", fontsize='small')
+
     ax.grid()
-    nameout = "{}/{}_{}_InputVars_{}_roc_by_mass.pdf".format(
-        output_dir, channel, bdtType, str(len(trainvars)))
+
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.5, box.height])
+    ax.legend(loc='center', bbox_to_anchor=(1.6, 0.5), fontsize='small')
+
+    if mode == 'byMass':
+        nameout = "{}/{}_{}_InputVars_{}_roc_by_mass.pdf".format(
+            output_dir, channel, bdtType, str(len(trainvars)))
+    else:
+        nameout = "{}/{}_{}_InputVars_{}_roc_by_node.pdf".format(
+            output_dir, channel, bdtType, str(len(trainvars)))
     fig.savefig(nameout)
 
 
-def PlotClassifierByMass(
+def PlotClassifierByX(
         output_dir,
         global_settings,
         preferences,
         model_list,
         df_list,
         trainvars,
-        label_list=["", ""],
-        weights="totalWeight",
-        target='target'
+        label_list=['', ''],
+        weights='totalWeight',
+        target='target',
+        mode='byNode'
 ):
     '''Make ROC curves as function of gen_mHH for test masses
     Parameters:
@@ -1337,7 +1427,14 @@ def PlotClassifierByMass(
     trainvars : list
              List of names of training variables
     label_list : list
-              List of labels for the output plot name
+              List of labels for the output plot nam
+    weights: string
+           name of the weights column in the data frame
+    target: string
+           name of the target column in the data frame
+    mode: string
+          evaluation mode to distinguish between Res training featuring
+          gen_mHH and nonRes training featuring nodeX
     Returns:
     -----------
     Nothing
@@ -1345,117 +1442,117 @@ def PlotClassifierByMass(
     bdtType = global_settings['bdtType']
     channel = global_settings['channel']
     nthread = global_settings['nthread']
-    test_masses = preferences["masses_test"]
     labelBKG = BkgLabelMaker(global_settings)
-    estimator = model_list
-    order_train = df_list
-    order_train_name = label_list
+    nodes = []
+    if mode == 'byMass':
+        nodes = preferences['masses_test']
+        if('nonres' in global_settings['bdtType']):
+            raise ValueError(
+                'Please use this mode only with Res!')
+    elif mode == 'byNode':
+        nodes = preferences['nonResScenarios_test']
+        if('nonres' not in global_settings['bdtType']):
+            raise ValueError(
+                'Please use this mode only with nonRes!')
+    else:
+        raise ValueError(
+            'Please use a valid mode!')
 
-    hist_params = {'normed': True, 'bins': 10, 'histtype': 'step', "lw": 2}
-    for mm, mass in enumerate(test_masses):
+    hist_params = {'normed': True, 'bins': 10, 'histtype': 'step',
+                   "lw": 2, 'range': [0, 1]}
+    for nn, node in enumerate(nodes):
         plt.clf()
         colorcold = ['g', 'b']
         colorhot = ['r', 'magenta']
-        fig, ax = plt.subplots(figsize=(6, 6))
-        for dd, data_do in enumerate(order_train):
-            if dd == 0:
-                val_data = 1
+        fig, ax = plt.subplots(figsize=(12, 6))
+        for dd in range(len(df_list)):
+            val_idx = int(abs(dd-1))
+            if mode == 'byMass':
+                val_data = df_list[val_idx].loc[
+                    df_list[val_idx]["gen_mHH"].astype(np.int) == int(node)]
+                train_data = df_list[dd].loc[
+                    df_list[dd]["gen_mHH"].astype(np.int) == int(node)]
             else:
-                val_data = 0
+                val_data = df_list[val_idx].loc[
+                    (df_list[val_idx]['nodeXname'].astype(str) == str(node))]
+                train_data = df_list[dd].loc[
+                    (df_list[dd]['nodeXname'].astype(str) == str(node))]
 
-            dMatrix_pred_test = PDfToDMatConverter(
-                order_train[val_data].loc[
-                    (order_train[val_data][target].values == 0) &
-                    (order_train[val_data]["gen_mHH"].astype(np.int)
-                     == int(mass))],
-                trainvars,
-                nthread,
-                target='target',
-                weights='totalWeight'
-            )
-            y_pred_test = estimator[dd].predict(dMatrix_pred_test)[:, 1]
-            dMatrix_predS_test = PDfToDMatConverter(
-                order_train[val_data].loc[
-                    (order_train[val_data][target].values == 1) &
-                    (order_train[val_data]["gen_mHH"].astype(np.int)
-                     == int(mass))],
-                trainvars,
-                nthread,
-                target='target',
-                weights='totalWeight'
-            )
-            y_predS_test = estimator[dd].predict(dMatrix_predS_test)[:, 1]
-            dMatrix_pred_train = PDfToDMatConverter(
-                data_do.ix[
-                    (data_do[target].values == 0) &
-                    (data_do["gen_mHH"].astype(np.int)
-                     == int(mass))],
-                trainvars,
-                nthread,
-                target='target',
-                weights='totalWeight'
-            )
-            y_pred_train = estimator[dd].predict(dMatrix_pred_train)[:, 1]
-            dMatrix_predS_train = PDfToDMatConverter(
-                data_do.ix[
-                    (data_do[target].values == 1) &
-                    (data_do["gen_mHH"].astype(np.int)
-                     == int(mass))],
-                trainvars,
-                nthread,
-                target='target',
-                weights='totalWeight'
-            )
-            y_predS_train = estimator[dd].predict(dMatrix_predS_train)[:, 1]
+            pred_BKG_test = getPred(val_data.loc[(val_data[target] == 0)],
+                                    trainvars, nthread, target,
+                                    weights, model_list[dd])
+            BKG_test_weights = val_data.loc[
+                (val_data[target] == 0), [weights]]
 
-            y_pred_test_weights = order_train[val_data].loc[
-                (order_train[val_data][target].values == 0) &
-                (order_train[val_data]["gen_mHH"].astype(np.int)
-                 == int(mass))][weights]
-            y_predS_test_weights = order_train[val_data].loc[
-                (order_train[val_data][target].values == 1) &
-                (order_train[val_data]["gen_mHH"].astype(np.int)
-                 == int(mass))][weights]
-            y_pred_train_weights = data_do.ix[
-                (data_do[target].values == 0) &
-                (data_do["gen_mHH"].astype(np.int)
-                 == int(mass))][weights]
-            y_predS_train_weights = data_do.ix[
-                (data_do[target].values == 1) &
-                (data_do["gen_mHH"].astype(np.int)
-                 == int(mass))][weights]
+            pred_SIG_test = getPred(val_data.loc[(val_data[target] == 1)],
+                                    trainvars, nthread, target,
+                                    weights, model_list[dd])
+            SIG_test_weights = val_data.loc[
+                (val_data[target] == 1), [weights]]
+
+            pred_BKG_train = getPred(train_data.loc[(train_data[target] == 0)],
+                                     trainvars, nthread, target,
+                                     weights, model_list[dd])
+            BKG_train_weights = train_data.loc[
+                (train_data[target] == 0), [weights]]
+
+            pred_SIG_train = getPred(train_data.loc[(train_data[target] == 1)],
+                                     trainvars, nthread, target,
+                                     weights, model_list[dd])
+            SIG_train_weights = train_data.loc[
+                (train_data[target] == 1), [weights]]
 
             dict_plot = [
-                [y_pred_test, y_pred_test_weights, "-", colorcold[dd],
-                 order_train_name[dd] + " test " + labelBKG],
-                [y_predS_test, y_predS_test_weights, "-", colorhot[dd],
-                 order_train_name[dd] + " test signal"],
-                [y_pred_train, y_pred_train_weights, "--", colorcold[dd],
-                 order_train_name[dd] + " train " + labelBKG],
-                [y_predS_train, y_predS_train_weights, "--", colorhot[dd],
-                 order_train_name[dd] + " train signal"]
+                [pred_BKG_test, BKG_test_weights, "-", colorcold[dd],
+                 label_list[dd] + " training: " + label_list[val_idx] + " events (BKG: " + labelBKG + " )"],
+                [pred_SIG_test, SIG_test_weights, "-", colorhot[dd],
+                 label_list[dd] + " training: " + label_list[val_idx] + " events (SIG)"],
+                [pred_BKG_train, BKG_train_weights, "--", colorcold[dd],
+                 label_list[dd] + " training: " + label_list[dd] + " events (BKG: " + labelBKG + " )"],
+                [pred_SIG_train, SIG_train_weights, "--", colorhot[dd],
+                 label_list[dd] + " training: " + label_list[dd] + " events (SIG)"],
             ]
             for item in dict_plot:
-                values1, bins, _ = ax.hist(
+                values, bins, _ = ax.hist(
                     item[0], weights=item[1],
                     ls=item[2], color=item[3],
                     label=item[4],
                     **hist_params
                 )
-                normed = sum(y_pred_test)
+                #  create unweighted and non normalized hist
+                #  to calculate proper per bin errors
+                values_unweighted, bins_unweighted = np.histogram(
+                    np.array(item[0]), bins=bins)
+                yerrs = []
+                for vv, value in enumerate(values_unweighted):
+                    if value > 0:
+                        bin_err = (math.sqrt(value)/value)*values[vv]
+                    else:
+                        bin_err = 0
+                    yerrs.append(bin_err)
                 mid = 0.5*(bins[1:] + bins[:-1])
-                err = np.sqrt(values1*normed)/normed
                 plt.errorbar(
-                    mid, values1,
-                    yerr=err, fmt='none',
+                    mid, values,
+                    yerr=yerrs, fmt='none',
                     color=item[3], ecolor=item[3],
                     edgecolor=item[3], lw=2
                 )
-        ax.legend(loc='upper center',
-                  title="mass = "+str(mass)+" GeV", fontsize='small')
-        nameout = "{}/{}_{}_{}InputVars_mass_{}GeV_XGBClassifier.pdf".format(
-            output_dir, channel,
-            bdtType, str(len(trainvars)),
-            str(mass)
-        )
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0, box.width * 0.6, box.height])
+        ax.legend(loc='center', bbox_to_anchor=(1.5, 0.5),
+                  title=str(node), fontsize='small')
+        ax.set_xlabel('classifier output')
+        ax.yaxis.set_label_text('normalized entries')
+        if mode == 'byMass':
+            nameout = "{}/{}_{}_{}InputVars_mass_{}_XGBClassifier.pdf".format(
+                output_dir, channel,
+                bdtType, str(len(trainvars)),
+                str(node)
+            )
+        else:
+            nameout = "{}/{}_{}_{}InputVars_node_{}_XGBClassifier.pdf".format(
+                output_dir, channel,
+                bdtType, str(len(trainvars)),
+                str(node)
+            )
         fig.savefig(nameout)
