@@ -8,3 +8,5 @@
 {"default_tauID_application": "deepVSjLoose"}
 {"weight_dir": "none"}
 {"included_eras": ["17"]}
+{"nonResScenarios": ["SM","BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"]}
+{"nonResScenarios_test": ["SM","BM4","BM7","BM12"]}
