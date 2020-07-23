@@ -131,12 +131,12 @@ def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
         fit_poly_order = histo_dict
         print('Fitfunction: ' + fit_function)
         print('Range: ' + '[' + str(mass_min) + ',' + str(mass_max) + ']')
+        print(profile)
+        print(function_TF1)
         function_TF1 = TF1(
             fit_function, fit_poly_order, mass_min, mass_max
         )
         result_ptr = TFitResultPtr()
-        print(profile)
-        print(function_TF1)
         result_ptr = profile.Fit(function_TF1, 'SF') # Fit with Minuit
         function_TF1.Draw('same')
         canvas.Modified()
