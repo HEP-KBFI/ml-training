@@ -113,6 +113,8 @@ def choose_file_name(weight_dir, dtype, label, trainvar):
 
 def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
     trainvars = list(get_all_trainvars(info_dir))
+    if 'gen_mHH' in trainvars:
+        trainvars.remove('gen_mHH')
     masses = find_masses(info_dir, global_settings, masses_type)
     histo_dicts_json = os.path.join(info_dir, 'histo_dict.json')
     histo_dicts = ut.read_parameters(histo_dicts_json)
@@ -128,14 +130,17 @@ def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
         masses = find_masses(info_dir, global_settings, masses_type)
         mass_min = min(masses)
         mass_max = max(masses)
-        fit_poly_order = histo_dict
         print('Fitfunction: ' + fit_function)
         print('Range: ' + '[' + str(mass_min) + ',' + str(mass_max) + ']')
         print(profile)
-        print(function_TF1)
+        print(fit_function)
+        print(fit_poly_order)
+        print(float(mass_min))
+        print(float(mass_max))
         function_TF1 = TF1(
-            fit_function, fit_poly_order, mass_min, mass_max
+            fit_function, fit_poly_order, float(mass_min), float(mass_max)
         )
+        print(function_TF1)
         result_ptr = TFitResultPtr()
         result_ptr = profile.Fit(function_TF1, 'SF') # Fit with Minuit
         function_TF1.Draw('same')
