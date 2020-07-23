@@ -132,11 +132,6 @@ def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
         mass_max = max(masses)
         print('Fitfunction: ' + fit_function)
         print('Range: ' + '[' + str(mass_min) + ',' + str(mass_max) + ']')
-        print(profile)
-        print(fit_function)
-        print(fit_poly_order)
-        print(float(mass_min))
-        print(float(mass_max))
         function_TF1 = TF1(
             fit_function, fit_poly_order, float(mass_min), float(mass_max)
         )
