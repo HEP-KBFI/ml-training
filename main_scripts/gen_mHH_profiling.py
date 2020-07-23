@@ -256,11 +256,6 @@ if __name__ == '__main__':
         weight_dir = arguments['--weight_dir']
         masses_type = arguments['--masses_type']
         create_profile = bool(int(arguments['--create_profile']))
-        # print('fit:' + str(fit))
-        # print('create_info:' + str(create_info))
-        # print('weight_dir:' + str(weight_dir))
-        # print('masses_type:' + str(masses_type))
-        # print('create_profile:' + str(create_profile))
         main(fit, create_info, weight_dir, masses_type, create_profile)
     except docopt.DocoptExit as e:
         print(e)
