@@ -135,7 +135,6 @@ def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
         function_TF1 = TF1(
             fit_function, fit_poly_order, float(mass_min), float(mass_max)
         )
-        print(function_TF1)
         result_ptr = TFitResultPtr()
         result_ptr = profile.Fit(function_TF1, 'SF') # Fit with Minuit
         function_TF1.Draw('same')
@@ -243,7 +242,7 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
                 )
             except ReferenceError:
                 print('No fit for variables found')
-                print()
+                print('Please fit the variables for plots after reweighing')
         if fit:
             do_fit(weight_dir, info_dir, global_settings, data, masses_type)
 
