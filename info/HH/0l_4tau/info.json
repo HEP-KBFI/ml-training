@@ -6,7 +6,7 @@
 {"masses_test_high": [500, 800]}
 {"channelInTree": "hh_0l_4tau_OS_forBDTtraining"}
 {"default_tauID_application": "deepVSjLoose"}
-{"weight_dir": "none"}
+{"weight_dir": "/hdfs/local/laurits/0l_4tau_gen_mHH_profiles/"}
 {"included_eras": ["17"]}
 {"nonResScenarios": []}
 {"nonResScenarios_test": []}
