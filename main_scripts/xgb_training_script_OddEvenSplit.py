@@ -107,7 +107,7 @@ def main(hyperparas_file, output_dir, skipInterpolStudy, settingsFolder):
         save_dir,
         global_settings['channel'],
         data,
-        BDTvariables,
+        BDTvariables_wo_gen_mHH,
         histo_dicts,
         label='bef_rewt',
         weights='totalWeight'
@@ -116,7 +116,7 @@ def main(hyperparas_file, output_dir, skipInterpolStudy, settingsFolder):
         save_dir,
         global_settings['channel'],
         data,
-        BDTvariables,
+        BDTvariables_wo_gen_mHH,
         histo_dicts,
         label='bef_rewt',
         weights='totalWeight'
@@ -131,96 +131,42 @@ def main(hyperparas_file, output_dir, skipInterpolStudy, settingsFolder):
         mode=evalmode
     )
     #  for nonRes training the reweighting is not yet implemented
-    if('nonres' not in global_settings['bdtType']):
-        hhat.MakeTProfile(
-            save_dir,
-            preferences['masses'],
-            global_settings['channel'],
-            data,
-            BDTvariables_wo_gen_mHH,
-            histo_dicts,
-            Target=0,
-            doFit=False,
-            label='bef_rewt',
-            TrainMode=0,
-            weights='totalWeight'
-        )
-        print('MAKING THE FITS FOR REWEIGHING')
-        hhat.MakeTProfile(
-            save_dir,
-            preferences['masses'],
-            global_settings['channel'],
-            data,
-            BDTvariables_wo_gen_mHH,
-            histo_dicts,
-            Target=1,
-            doFit=True,
-            label='bef_rewt',
-            TrainMode=0,
-            weights='totalWeight'
-        )
-        print('REWEIGHING ENTIRE DATAFRAME')
-        dlt.reweigh_dataframe(
-            data,
-            preferences['weight_dir'],
-            preferences['trainvar_info'],
-            ['gen_mHH'],
-            preferences['masses']
-        )
-        print('MAKING POST-REWEIGHING PLOTS')
-        hhat.MakeHisto(
-            save_dir,
-            global_settings['channel'],
-            data,
-            BDTvariables,
-            histo_dicts,
-            label='aft_rewt',
-            weights='totalWeight'
-        )
-        hhat.MakeTHStack(
-            save_dir,
-            global_settings['channel'],
-            data,
-            BDTvariables,
-            histo_dicts,
-            label='aft_rewt',
-            weights='totalWeight'
-        )
-        hhat.MakeTProfile(
-            save_dir,
-            preferences['masses'],
-            global_settings['channel'],
-            data,
-            BDTvariables_wo_gen_mHH,
-            histo_dicts,
-            Target=1,
-            doFit=False,
-            label='aft_rewt',
-            TrainMode=0,
-            weights='totalWeight'
-        )
-        hhat.MakeTProfile(
-            save_dir,
-            preferences['masses'],
-            global_settings['channel'],
-            data,
-            BDTvariables_wo_gen_mHH,
-            histo_dicts,
-            Target=0,
-            doFit=False,
-            label='aft_rewt',
-            TrainMode=0,
-            weights='totalWeight'
-        )
-        PlotInputVar(
-            data,
-            preferences,
-            global_settings,
-            save_dir,
-            label='aft_rewt_BDT',
-            weights='totalWeight',
-            mode=evalmode
-        )
+    print('REWEIGHING ENTIRE DATAFRAME')
+    dlt.reweigh_dataframe(
+        data,
+        preferences['weight_dir'],
+        preferences['trainvar_info'],
+        ['gen_mHH'],
+        preferences['masses']
+    )
+    print('MAKING POST-REWEIGHING PLOTS')
+    hhat.MakeHisto(
+        save_dir,
+        global_settings['channel'],
+        data,
+        BDTvariables_wo_gen_mHH,
+        histo_dicts,
+        label='aft_rewt',
+        weights='totalWeight'
+    )
+    hhat.MakeTHStack(
+        save_dir,
+        global_settings['channel'],
+        data,
+        BDTvariables_wo_gen_mHH,
+        histo_dicts,
+        label='aft_rewt',
+        weights='totalWeight'
+    )
+    PlotInputVar(
+        data,
+        preferences,
+        global_settings,
+        save_dir,
+        label='aft_rewt_BDT',
+        weights='totalWeight',
+        mode=evalmode
+    )
     print('NORMALIZING DATAFRAME')
     hhat.normalize_hh_dataframe(
         data, preferences,

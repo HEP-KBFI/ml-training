@@ -76,6 +76,19 @@ def normalize_hh_dataframe(
             wz_weights = data.loc[data['key'] == 'WZTo', [weight]]
             wz_factor = preferences['WZdatacard']/wz_weights.sum()
             data.loc[data['key'] == 'WZTo', [weight]] *= wz_factor
+        if "evtLevelSUM_HH_4tau_res" in bdt_type:
+            zz_weights = data.loc[data['key'] == 'ZZ', [weight]]
+            zz_factor = preferences['ZZdatacard']/zz_weights.sum()
+            data.loc[data['key'] == 'ZZ', [weight]] *= zz_factor
+            wz_weights = data.loc[data['key'] == 'WZ', [weight]]
+            wz_factor = preferences['WZdatacard']/wz_weights.sum()
+            data.loc[data['key'] == 'WZ', [weight]] *= wz_factor
+            ttt_weights = data.loc[data['key'] == 'TTT', [weight]]
+            ttt_factor = preferences['TTTdatacard']/ttt_weights.sum()
+            data.loc[data['key'] == 'TTT', [weight]] *= ttt_factor
+            dy_weights = data.loc[data['key'] == 'DY', [weight]]
+            dy_factor = preferences['DYdatacard']/dy_weights.sum()
+            data.loc[data['key'] == 'DY', [weight]] *= dy_factor
         if 'nonres' in bdt_type:
             for node in range(len(preferences['nonResScenarios'])):
                 condition_node = data['nodeXname'].astype(str) == str(
@@ -626,6 +639,77 @@ def BuildTHstack(
                 4, 'TTbar',
                 weights
             )  # TT
+    if(channel == "0l_4tau" or channel == "0l_4tau_nonRes"):
+        data_copy_ZZ = data.loc[
+            (data['key'] == 'ZZ')]  # ZZ
+        data_copy_WZ = data.loc[
+            (data['key'] == 'WZ')]  # WZ
+        data_copy_TT = data.loc[
+            (data['key'] == 'TTT')]  # TTbar
+        data_copy_DY = data.loc[
+            (data['key'] == 'DY')]  # DY
+        data_copy_ttH = data.loc[
+            (data['key'] == 'ttH')]
+        data_copy_VH = data.loc[
+            (data['key'] == 'VH')]
+        data_copy_TTZ = data.loc[
+            (data['key'] == 'TTZJets')]
+        if not(data_copy_DY.empty):
+            AddHistToStack(
+                data_copy_DY, var_name,
+                hstack, nbins,
+                X_min, X_max,
+                2, 'DY',
+                weights
+            )  # Red
+        if not(data_copy_TT.empty):
+            AddHistToStack(
+                data_copy_TT, var_name,
+                hstack, nbins,
+                X_min, X_max,
+                4, 'TTbar',
+                weights
+            )  # TT
+        if not(data_copy_ZZ.empty):
+            AddHistToStack(
+                data_copy_ZZ, var_name,
+                hstack, nbins,
+                X_min, X_max,
+                4, 'ZZ',
+                weights
+            )  # Blue
+        if not(data_copy_WZ.empty):
+            AddHistToStack(
+                data_copy_WZ, var_name,
+                hstack, nbins,
+                X_min, X_max,
+                2, 'WZ',
+                weights
+            )  # Red
+        if not(data_copy_ttH.empty):
+            AddHistToStack(
+                data_copy_ttH, var_name,
+                hstack, nbins,
+                X_min, X_max,
+                2, 'ttH',
+                weights
+            )  # Red
+        if not(data_copy_VH.empty):
+            AddHistToStack(
+                data_copy_VH, var_name,
+                hstack, nbins,
+                X_min, X_max,
+                2, 'VH',
+                weights
+            )  # Red
+        if not(data_copy_TTZ.empty):
+            AddHistToStack(
+                data_copy_TTZ, var_name,
+                hstack, nbins,
+                X_min, X_max,
+                2, 'TTZ',
+                weights
+            )  # Red
     if(channel == "3l_1tau" or channel == "3l_1tau_nonRes"):
         zz_samples = ['ZZTo', 'ggZZTo']
         data_copy_ZZ = data.loc[
