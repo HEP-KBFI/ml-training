@@ -141,7 +141,7 @@ def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
         canvas.Modified()
         canvas.Update()
         canvas.SaveAs(out_file)
-        tfile = TFile(filename, "RECREATE")
+        tfile = ROOT.TFile(filename, "RECREATE")
         function_TF1.Write()
         tfile.Close()
 
