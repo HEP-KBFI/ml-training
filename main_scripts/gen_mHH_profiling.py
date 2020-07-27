@@ -232,7 +232,7 @@ def choose_file_name(weight_dir, dtype, label, trainvar):
     return out_file
 
 
-###################################################################
+##################################################################
 
 def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
     ''' Fits the Data with a given order of polynomial
