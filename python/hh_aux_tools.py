@@ -281,7 +281,7 @@ def make_plots(
             print('min_value: ', min_value)
             print('max_value: ', max_value)
         values1, bins, _ = plt.hist(
-                                    data1[feature].values,
+                                    data1[feature].values.astype(float),
                                     weights=data1[weights].values.astype(
                                         np.float64),
                                     range=range_local,
@@ -303,7 +303,7 @@ def make_plots(
             )
         if len(nodes_test) == 0:  # 'gen_mHH' not in feature
             values2, bins, _ = plt.hist(
-                data2[feature].values,
+                data2[feature].values.astype(float),
                 weights=data2[weights].values.astype(
                     np.float64),
                 range=range_local,
@@ -361,7 +361,7 @@ def make_plots(
                         'Please use a valid mode!')
                 plot_wt_float = plot_weights.astype(np.float64)
                 values2, bins, _ = plt.hist(
-                                       plot_features,
+                                       plot_features.astype(float),
                                        weights=plot_wt_float,
                                        range=range_local,
                                        bins=nbin_local,
@@ -728,6 +728,8 @@ def MakeHisto(
             PlotTitle = var_name
             Histo_Dict = dlt.find_correct_dict(
                 'Variable', str(var_name), histo_dicts)
+            if Histo_Dict == {}:
+                continue
             print('Histo_Dict :', Histo_Dict)
             histo1D = TH1D(
                 'histo1D', PlotTitle,

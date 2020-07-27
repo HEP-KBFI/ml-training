@@ -23,6 +23,18 @@ from machineLearning.machineLearning import data_loading_tools as dlt
 
 
 def get_info_dir():
+    ''' Gets info directory path and returns it together with the global
+    settings
+
+    Parameters:
+    ----------
+    None
+
+    Returns:
+    -------
+    info_dir : str
+        Path to the info directory of the specified channel
+    '''
     package_dir = os.path.join(
         os.path.expandvars('$CMSSW_BASE'),
         'src/machineLearning/machineLearning/'
@@ -36,6 +48,19 @@ def get_info_dir():
 
 
 def get_all_trainvars(info_dir):
+    ''' Reads the trainvars from the provided info dir
+
+    Parameters:
+    ----------
+    info_dir : str
+        Path to the info_directory of the required channel
+
+    Returns:
+    -------
+    trainvars : list
+        List of the training variables that will be used to create the
+        TProfiles.
+    '''
     trainvar_path = os.path.join(info_dir, 'trainvars.json')
     trainvar_dicts = ut.read_parameters(trainvar_path)
     trainvars = [trainvar_dict['key'] for trainvar_dict in trainvar_dicts]
@@ -43,6 +68,20 @@ def get_all_trainvars(info_dir):
 
 
 def create_histo_info(trainvars):
+    '''Creates the histogram info for each trainvar
+
+    Parameters:
+    ----------
+    trainvars : list
+        List of the training variables that will be used to create the 
+        TProfiles
+
+    Returns:
+    -------
+    histo_infos : list of dicts
+        List of dictionaries containing the info for each trainvar TProfile
+        creation
+    '''
     template = {
         'Variable': '',
         'nbins': 55,
@@ -59,8 +98,21 @@ def create_histo_info(trainvars):
         histo_infos.append(histo_info)
     return histo_infos
 
-
+# Idea: Read in the old histo_dict & use its settings for the new. Only add / 
+# delete variables that are not present in the new list of trainvars?
 def create_histo_dict(info_dir):
+    ''' Creates the histo_dict.json. WARNING: Will overwrite the existing one
+    in the info_dir
+
+    Parameters:
+    ----------
+    info_dir : str
+        Path to the info_directory of the required channel
+
+    Returns:
+    -------
+    Nothing
+    '''
     histo_dict_path = os.path.join(info_dir, 'histo_dict.json')
     trainvars = get_all_trainvars(info_dir)
     histo_infos = create_histo_info(trainvars)
@@ -77,19 +129,70 @@ def create_TProfiles(
         info_dir, weight_dir, data,
         masses_type, global_settings, label
 ):
+    ''' Creates the TProfiles (without the fit) for all the trainvars vs
+    gen_mHH
+
+    Parameters:
+    -----------
+    info_dir : str
+        Path to the info_directory of the required channel
+    weight_dir : str
+        Path to the directory where the TProfiles will be saved
+    data : pandas DataFrame
+        Data to be used for creating the TProfiles
+    masses_type : str
+        Which masses type to use. 'low', 'high' or 'all'
+    global_settings : dict
+        Global settings (channel, bdtType etc.)
+    label : str
+        An optional string to be added to the end of the file name. For
+        example 'before weighing' and 'after weighing'
+
+    Returns:
+    --------
+    Nothing
+    '''
     trainvars = list(get_all_trainvars(info_dir))
     if 'gen_mHH' in trainvars:
         trainvars.remove('gen_mHH')
     for dtype in [0, 1]:
         type_data = data.loc[data['target'] == dtype]
         single_dtype_TProfile(
-            type_data, trainvars, dtype, label, info_dir, global_settings)
+            type_data, trainvars, dtype, label, info_dir, global_settings,
+            weight_dir)
 
 
 def single_dtype_TProfile(
         type_data, trainvars, dtype,
-        label, info_dir, global_settings
+        label, info_dir, global_settings,
+        weight_dir
 ):
+    '''
+
+    Parameters:
+    -----------
+    type_data : int
+        data for either signal or background only
+    trainvars : list
+        List of the training variables that will be used to create the 
+        TProfiles
+    dtype : str
+        Either 0 or 1. Will be added used to create the
+        filename.
+    label : str
+        An optional string to be added to the end of the file name. For
+        example 'before weighing' and 'after weighing'
+    info_dir : str
+        Path to the info_directory of the required channel
+    global_settings : dict
+        Global settings (channel, bdtType etc.)
+    weight_dir : str
+        Path to the directory where the TProfiles will be saved
+
+    Returns:
+    --------
+    Nothing
+    '''
     for trainvar in trainvars:
         print('Variable Name: ' + str(trainvar))
         filename = choose_file_name(weight_dir, dtype, label, trainvar)
@@ -100,7 +203,27 @@ def single_dtype_TProfile(
 
 
 def choose_file_name(weight_dir, dtype, label, trainvar):
-    if dtype == 'signal':
+    '''
+
+    Parameters:
+    -----------
+    weight_dir : str
+        Path to the directory where the TProfiles will be saved
+    dtype : str
+        Either 0 or 1. Will be added used to create the
+        filename.
+    label : str
+        An optional string to be added to the end of the file name. For
+        example 'before weighing' and 'after weighing'
+    trainvar : str
+        Name of the training variable for the TProfile file.
+
+    Returns:
+    --------
+    out_file : str
+        Path of the file to where TProfile will be saved.
+    '''
+    if dtype == 1:
         pre_str = 'TProfile_signal'
     else:
         pre_str = 'TProfile'
@@ -112,6 +235,25 @@ def choose_file_name(weight_dir, dtype, label, trainvar):
 ###################################################################
 
 def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
+    ''' Fits the Data with a given order of polynomial
+
+    Parameters:
+    -----------
+    weight_dir : str
+        Path to the directory where the TProfiles will be saved
+    info_dir : str
+        Path to the info_directory of the required channel
+    global_settings : dict
+        Global settings (channel, bdtType etc.)
+    data : pandas DataFrame
+        Data to be used for creating the TProfiles & fits
+    masses_type : str
+        Which masses type to use. 'low', 'high' or 'all'
+
+    Returns:
+    --------
+    Nothing
+    '''
     trainvars = list(get_all_trainvars(info_dir))
     if 'gen_mHH' in trainvars:
         trainvars.remove('gen_mHH')
@@ -147,12 +289,44 @@ def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
 
 
 def get_poly_order(histo_dict, masses_type):
+    ''' Reads the polynomial order to be used for the fit for a given trainvar
+    histo_dict
+
+    Parameters:
+    -----------
+    histo_dict : dict
+        Dictionary containing the info for plotting for a given trainvar
+    masses_type : str
+        'low', 'high' or 'all'. Used to find which key to use from the
+        histo_dict.
+
+    Returns:
+    --------
+    poly_order : int
+        Order of the polynomial to be used in the fit
+    '''
     key = 'fitFunc_' + masses_type.capitalize() + 'MassTraining'
     poly_order = histo_dict[key]
     return poly_order
 
 
 def find_masses(info_dir, global_settings, masses_type):
+    ''' Finds the masses to be used in the fit
+
+    Parameters:
+    -----------
+    info_dir : str
+        Path to the info_directory of the required channel
+    global_settings : dict
+        Global settings (channel, bdtType etc.)
+    masses_type : str
+        Which masses type to use. 'low', 'high' or 'all'
+
+    Returns:
+    --------
+    masses : list
+        List of masses to be used.
+    '''
     preferences = dlt.get_hh_parameters(
         global_settings['channel'],
         global_settings['tauID_training'],
@@ -166,6 +340,28 @@ def find_masses(info_dir, global_settings, masses_type):
 
 
 def plotting_init(data, trainvar, histo_dict, masses, weights='totalWeight'):
+    ''' Initializes the plotting
+
+    Parameters:
+    -----------
+    data : pandas DataFrame
+        Data to be used for creating the TProfiles
+    trainvar : str
+        Name of the training variable.
+    histo_dict : dict
+        Dictionary containing the info for plotting for a given trainvar
+    masses : list
+        List of masses to be used
+    [weights='totalWeight'] : str
+        What column to be used for weight in the data.
+
+    Returns:
+    --------
+    canvas : ROOT.TCanvas instance
+        canvas to be plotted on
+    profile : ROOT.TProfile instance
+        profile for the fitting
+    '''
     canvas = TCanvas('canvas', 'TProfile plot', 200, 10, 700, 500)
     canvas.GetFrame().SetBorderSize(6)
     canvas.GetFrame().SetBorderMode(-1)
@@ -204,6 +400,27 @@ def plotting_main(
         info_dir,
         global_settings
 ):
+    ''' Main function for plotting.
+
+    Parameters:
+    -----------
+    data : pandas DataFrame
+        Data to be used for creating the TProfiles
+    trainvar : str
+        Name of the training variable.
+    filename : str
+        Path to the file where the TProfile will be saved
+    masses_type : str
+        Type of the masses to be used. 'low', 'high' or 'all'
+    info_dir : str
+        Path to the info_directory of the required channel
+    global_settings : dict
+        Global settings (channel, bdtType etc.)
+
+    Returns:
+    --------
+    Nothing
+    '''
     masses = find_masses(info_dir, global_settings, masses_type)
     histo_dicts_json = os.path.join(info_dir, 'histo_dict.json')
     histo_dicts = ut.read_parameters(histo_dicts_json)
@@ -214,6 +431,26 @@ def plotting_main(
 
 
 def main(fit, create_info, weight_dir, masses_type, create_profile):
+    ''' Main function for operating the fitting, plotting and creation of
+    histo_dict
+
+    Parameters:
+    -----------
+    fit : bool
+        Whether to do a fit
+    create_info : bool
+        Wheter to create histo_dict from scratch
+    weight_dir : str
+        Path to the directory where the TProfile files will be saved
+    masses_type : str
+        Type of the masses to be used. 'low', 'high' or 'all'
+    create_profile : bool
+        Whether to create the TProfiles.
+
+    Returns:
+    --------
+    Nothing
+    '''
     info_dir, global_settings = get_info_dir()
     preferences = dlt.get_hh_parameters(
         global_settings['channel'],
