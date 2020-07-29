@@ -101,12 +101,6 @@ def create_histo_info(trainvars):
 
 
 def create_histo_dict(info_dir):
-    histo_dict_path = os.path.join(info_dir, 'histo_dict.json')
-    trainvars = get_all_trainvars(info_dir)
-    histo_infos = create_histo_info(trainvars)
-
-
-def create_histo_dict(info_dir):
     ''' Creates the histo_dict.json. WARNING: Will overwrite the existing one
     in the info_dir
 
@@ -259,7 +253,6 @@ def create_TProfiles(
             weight_dir)
 
 
-
 def single_dtype_TProfile(
         type_data, trainvars, dtype,
         label, info_dir, global_settings,
@@ -382,6 +375,9 @@ def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
         canvas.Modified()
         canvas.Update()
         canvas.SaveAs(out_file)
+        tfile = ROOT.TFile(out_file, "RECREATE")
+        function_TF1.Write()
+        tfile.Close()
 
 
 def get_fit_function(histo_dict, masses_type):
