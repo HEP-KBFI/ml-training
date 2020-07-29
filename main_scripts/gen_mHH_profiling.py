@@ -1,15 +1,16 @@
 '''
 Call with 'python'
 
-Usage: gen_mHH_profiling.py --fit=BOOL --create_info=BOOL --create_profile=BOOL \
-                            --weight_dir=DIR --masses_type=STR
+Usage:
+    gen_mHH_profiling.py
+    gen_mHH_profiling.py [--fit=BOOL --create_info=BOOL --create_profile=BOOL --weight_dir=DIR --masses_type=STR]
 
 Options:
-    -f --fit=BOOL                     Fit the TProfile
-    -i --create_info=BOOL             Create new histo_dict.json
-    -p --create_profile=BOOL .........Creates the TProfile without the fit.
-    -w --weight_dir=DIR               Directory where the weights will be saved
-    -m --masses_type=STR              'low', 'high' or 'all'
+    -f --fit=BOOL                     Fit the TProfile [default: 0]
+    -i --create_info=BOOL             Create new histo_dict.json [default: 0]
+    -p --create_profile=BOOL          Creates the TProfile without the fit. [default: 0]
+    -w --weight_dir=DIR               Directory where the weights will be saved [default: $HOME/gen_mHH_weight_dir]
+    -m --masses_type=STR              'low', 'high' or 'all' [default: all]
 '''
 import os
 import json
@@ -115,11 +116,102 @@ def create_histo_dict(info_dir):
     '''
     histo_dict_path = os.path.join(info_dir, 'histo_dict.json')
     trainvars = get_all_trainvars(info_dir)
-    histo_infos = create_histo_info(trainvars)
+    if os.path.exists(histo_dict_path):
+        histo_infos = update_histo_dict(trainvars)
+    else:
+        histo_infos = create_histo_info(trainvars)
     with open(histo_dict_path, 'wt') as out_file:
         for histo_info in histo_infos:
             json.dump(histo_info, out_file)
             out_file.write('\n')
+
+
+def update_histo_dict(trainvars, histo_dict_path):
+    '''Updates the current histo_dict.json according to the new trainvars
+
+    Parameters:
+    ----------
+    trainvars : list
+        List of trainvars to be present in the histo_dict.json
+    histo_dict_path : str
+        Path where the histo_dict.json is located
+
+    Returns:
+    -------
+    histo_infos : list of dicts
+        Updates info about each trainvar to be saved into histo_dict.json
+    '''
+    old_trainvars = read_trainvars_from_histo_dict(histo_dict_path)
+    missing_trainvars = list(set(trainvars) - set(old_trainvars))
+    redundant_trainvars = list(set(old_trainvars) - set(trainvars))
+    histo_infos = create_renewed_histo_dict(
+        missing_trainvars, redundant_trainvars, histo_dict_path
+    )
+    return histo_infos
+
+
+def create_renewed_histo_dict(
+        missing_trainvars,
+        redundant_trainvars,
+        histo_dict_path
+):
+    ''' Creates renewed list of histogram infos.
+
+    Parameters:
+    -----------
+    missing_trainvars : list
+        List of new trainvars not present in the old histo_dict.json
+    redundant_trainvars : list
+        List of trainvars in the old histo_dict.json not present in the new
+        trainvars.json
+    histo_dict_path : str
+        Path where the histo_dict.json is located
+
+    Returns:
+    -------
+    new_histo_infos : list of dicts
+        List of histo_infos to be saved into the renewed histo_dict.json
+    '''
+    old_histo_dicts = ut.read_parameters(histo_dict_path)
+    new_histo_infos = []
+    template = {
+        'Variable': '',
+        'nbins': 55,
+        'min': 0.0,
+        'max': 1100.0,
+        'fitFunc_AllMassTraining': 'pol1',
+        'fitFunc_LowMassTraining': 'pol1',
+        'fitFunc_HighMassTraining': 'pol1'
+    }
+    for old_histo_dict in old_histo_dicts:
+        if histo_dict['Variable'] in redundant_trainvars:
+            continue
+        else:
+            new_histo_infos.append(old_histo_dict)
+    for missing_trainvar in missing_trainvars:
+        histo_info = template.copy()
+        histo_info['Variable'] = missing_trainvar
+        new_histo_infos.append(histo_info)
+    return new_histo_infos
+
+
+
+def read_trainvars_from_histo_dict(histo_dict_path):
+    '''Reads the trainvars for which there is histogram info set previously
+
+    Parameters:
+    -----------
+    histo_dict_path : str
+        Path where the histo_dict.json is located
+
+    Returns:
+    -------
+    old_trainvars : list
+        List of trainvars read from the histo_dict.json file
+    '''
+    histo_dicts = ut.read_parameters(histo_dict_path)
+    old_trainvars = [histo_dict['Variable'] for histo_dict in histo_dicts]
+    return old_trainvars
 
 
 ####################################################################
@@ -263,7 +355,7 @@ def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
     for trainvar in trainvars:
         histo_dict = dlt.find_correct_dict(
             'Variable', str(trainvar), histo_dicts)
-        fit_poly_order = get_poly_order(histo_dict, masses_type)
+        fit_poly_order = get_fit_function(histo_dict, masses_type)
         canvas, profile = plotting_init(data, trainvar, histo_dict, masses)
         print('Variable Name: ' + str(trainvar))
         filename = '_'.join(['TProfile_signal_fit_func', str(trainvar)])
@@ -288,7 +380,7 @@ def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
         tfile.Close()
 
 
-def get_poly_order(histo_dict, masses_type):
+def get_fit_function(histo_dict, masses_type):
     ''' Reads the polynomial order to be used for the fit for a given trainvar
     histo_dict
 
@@ -492,7 +584,7 @@ if __name__ == '__main__':
         arguments = docopt.docopt(__doc__)
         fit = bool(int(arguments['--fit']))
         create_info =  bool(int(arguments['--create_info']))
-        weight_dir = arguments['--weight_dir']
+        weight_dir = os.path.expandvars(arguments['--weight_dir'])
         masses_type = arguments['--masses_type']
         create_profile = bool(int(arguments['--create_profile']))
         main(fit, create_info, weight_dir, masses_type, create_profile)
