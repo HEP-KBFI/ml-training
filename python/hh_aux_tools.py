@@ -1066,7 +1066,8 @@ def PlotClassifier(
     ]
     for item in dict_plot:
         values, bins, _ = ax.hist(
-            item[0], weights=item[1],
+            np.array(item[0], dtype=float),
+            weights=np.array(item[1], dtype=float),
             ls=item[2], color=item[3],
             label=item[4],
             **hist_params
@@ -1425,7 +1426,7 @@ def PlotClassifierByX(
             ]
             for item in dict_plot:
                 values, bins, _ = ax.hist(
-                    item[0], weights=item[1],
+                    np.array(item[0], dtype=float), weights=np.array(item[1], dtype=float),
                     ls=item[2], color=item[3],
                     label=item[4],
                     **hist_params
@@ -1433,7 +1434,7 @@ def PlotClassifierByX(
                 #  create unweighted and non normalized hist
                 #  to calculate proper per bin errors
                 values_unweighted, bins_unweighted = np.histogram(
-                    np.array(item[0]), bins=bins)
+                    np.array(item[0], dtype=float), bins=bins)
                 yerrs = []
                 for vv, value in enumerate(values_unweighted):
                     if value > 0:
