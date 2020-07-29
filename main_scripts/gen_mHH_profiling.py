@@ -184,7 +184,7 @@ def create_renewed_histo_dict(
         'fitFunc_HighMassTraining': 'pol1'
     }
     for old_histo_dict in old_histo_dicts:
-        if histo_dict['Variable'] in redundant_trainvars:
+        if old_histo_dict['Variable'] in redundant_trainvars:
             continue
         else:
             new_histo_infos.append(old_histo_dict)
