@@ -746,7 +746,6 @@ def get_hh_parameters(
     trainvar_info = read_trainvar_info(trainvars_path)
     parameters['trainvars'] = list(trainvar_info.keys())
     parameters['trainvar_info'] = trainvar_info
-    print(info_dict)
     parameters.update(info_dict)
     return parameters
 
