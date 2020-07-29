@@ -19,6 +19,13 @@ Options:
 ````
 
 For example, in order to only create the **histo_dict.json**, one needs to call as following:
+
 ````console
 python gen_mHH_profiling.py -i 1
+````
+
+or for both creating the histo_dict.json and fitting in one go:
+
+````console
+python gen_mHH_profiling.py -i 1 -f 1
 ````
