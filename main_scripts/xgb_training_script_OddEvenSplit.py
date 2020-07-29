@@ -132,33 +132,6 @@ def main(hyperparas_file, output_dir, skipInterpolStudy, settingsFolder):
     )
     #  for nonRes training the reweighting is not yet implemented
     if('nonres' not in global_settings['bdtType']):
-        hhat.MakeTProfile(
-            save_dir,
-            preferences['masses'],
-            global_settings['channel'],
-            data,
-            BDTvariables_wo_gen_mHH,
-            histo_dicts,
-            Target=0,
-            doFit=False,
-            label='bef_rewt',
-            TrainMode=0,
-            weights='totalWeight'
-        )
-        print('MAKING THE FITS FOR REWEIGHING')
-        hhat.MakeTProfile(
-            save_dir,
-            preferences['masses'],
-            global_settings['channel'],
-            data,
-            BDTvariables_wo_gen_mHH,
-            histo_dicts,
-            Target=1,
-            doFit=True,
-            label='bef_rewt',
-            TrainMode=0,
-            weights='totalWeight'
-        )
         print('REWEIGHING ENTIRE DATAFRAME')
         dlt.reweigh_dataframe(
             data,
@@ -184,32 +157,6 @@ def main(hyperparas_file, output_dir, skipInterpolStudy, settingsFolder):
             BDTvariables,
             histo_dicts,
             label='aft_rewt',
-            weights='totalWeight'
-        )
-        hhat.MakeTProfile(
-            save_dir,
-            preferences['masses'],
-            global_settings['channel'],
-            data,
-            BDTvariables_wo_gen_mHH,
-            histo_dicts,
-            Target=1,
-            doFit=False,
-            label='aft_rewt',
-            TrainMode=0,
-            weights='totalWeight'
-        )
-        hhat.MakeTProfile(
-            save_dir,
-            preferences['masses'],
-            global_settings['channel'],
-            data,
-            BDTvariables_wo_gen_mHH,
-            histo_dicts,
-            Target=0,
-            doFit=False,
-            label='aft_rewt',
-            TrainMode=0,
             weights='totalWeight'
         )
         PlotInputVar(
