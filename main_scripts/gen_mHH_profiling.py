@@ -555,6 +555,8 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
         data = dlt.load_data(preferences, global_settings)
         if not os.path.exists(weight_dir):
             os.makedirs(weight_dir)
+        if fit:
+            do_fit(weight_dir, info_dir, global_settings, data, masses_type)
         if create_profile:
             create_TProfiles(
                 info_dir, weight_dir, data,
@@ -575,8 +577,6 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
             except ReferenceError:
                 print('No fit for variables found')
                 print('Please fit the variables for plots after reweighing')
-        if fit:
-            do_fit(weight_dir, info_dir, global_settings, data, masses_type)
 
 
 if __name__ == '__main__':
