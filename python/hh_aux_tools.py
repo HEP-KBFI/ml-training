@@ -84,7 +84,7 @@ def normalize_hh_dataframe(
             wz_factor = preferences['WZdatacard']/wz_weights.sum()
             data.loc[data['key'] == 'WZ', [weight]] *= wz_factor
             ttt_weights = data.loc[data['key'] == 'TTT', [weight]]
-            ttt_factor = preferences['TTTdatacard']/ttt_weights.sum()
+            ttt_factor = preferences['TTdatacard']/ttt_weights.sum()
             data.loc[data['key'] == 'TTT', [weight]] *= ttt_factor
             dy_weights = data.loc[data['key'] == 'DY', [weight]]
             dy_factor = preferences['DYdatacard']/dy_weights.sum()
