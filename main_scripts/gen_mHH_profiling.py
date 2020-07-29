@@ -117,7 +117,7 @@ def create_histo_dict(info_dir):
     histo_dict_path = os.path.join(info_dir, 'histo_dict.json')
     trainvars = get_all_trainvars(info_dir)
     if os.path.exists(histo_dict_path):
-        histo_infos = update_histo_dict(trainvars)
+        histo_infos = update_histo_dict(trainvars, histo_dict_path)
     else:
         histo_infos = create_histo_info(trainvars)
     with open(histo_dict_path, 'wt') as out_file:
