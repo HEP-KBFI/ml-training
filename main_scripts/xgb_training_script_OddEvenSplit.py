@@ -182,6 +182,8 @@ def main(hyperparas_file, output_dir, skipInterpolStudy, settingsFolder):
     if ('3l_1tau' in global_settings['channel']):
         keysNotToSplit = ['WZTo', 'DY']
         print('These keys are excluded from splitting: ', keysNotToSplit)
+    elif ('0l_4tau' in global_settings['channel']):
+        keysNotToSplit = []
     else:
         print('PLEASE IMPLEMENT SETTINGS FOR YOUR CHANNEL')
     evtNotToSplit = (data['key'].isin(keysNotToSplit))
