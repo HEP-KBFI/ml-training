@@ -373,11 +373,11 @@ def define_new_variables(
                     chunk_df["gen_mHH"] = float(mass)
         elif target == 0:
             if mass_randomization == "default":
-                chunk_df["gen_mHH"] = np.random.choice(
-                    masses, size=len(chunk_df))
+                chunk_df["gen_mHH"] = float(np.random.choice(
+                    masses, size=len(chunk_df)))
             elif mass_randomization == "oversampling":
                 for mass in masses:
-                    chunk_df["gen_mHH"] = mass
+                    chunk_df["gen_mHH"] = float(mass)
                     data = data.append(chunk_df, ignore_index=True, sort=False)
             else:
                 raise ValueError(
