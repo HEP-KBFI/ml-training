@@ -15,10 +15,12 @@ Options:
 from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_aux_tools as hhat
+from machineLearning.machineLearning import xgb_tools as xt
 import numpy as np
 import xgboost as xgb
 import docopt
 from pathlib import Path
+import shutil
 import os
 
 def prepare_data():
@@ -32,7 +34,7 @@ def prepare_data():
     nthread = global_settings['nthread']
     channel_dir = os.path.join(
         cmssw_base,
-        'src/machineLearning/machineLearning/'
+        'src/machineLearning/machineLearning/info',
         global_settings['process'],
         global_settings['channel']
     )
@@ -136,6 +138,17 @@ def main(corr_threshold, min_nr_trainvars, step_size):
         cmssw_base,
         'src/machineLearning/machineLearning/info/default_hyperparameters.json'
     )
+    channel_dir = os.path.join(
+        cmssw_base,
+        'src/machineLearning/machineLearning/info',
+        global_settings['process'],
+        global_settings['channel'],
+        'trainvars.json'
+    )
+    trainvars_path = os.path.join(channel_dir, 'trainvars.json')
+    all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
+    if not os.path.exists(trainvars_path):
+        shutil.copy(all_trainvars_path, trainvars_path)
     hyperparameters = ut.read_parameters(hyperparameter_file)[0]
     print("Optimizing training variables")
     data, preferences, global_settings = prepare_data()
@@ -149,6 +162,7 @@ def main(corr_threshold, min_nr_trainvars, step_size):
 
 
 def save_optimized_trainvars(trainvars, preferences, global_settings):
+    cmssw_base = os.path.expandvars('$CMSSW_BASE')
     outpath =  os.path.join(
         cmssw_base,
         'src/machineLearning/machineLearning/info',
