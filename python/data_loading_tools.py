@@ -334,7 +334,8 @@ def define_new_variables(
     chunk_df['key'] = folder_name
     chunk_df['target'] = target
     chunk_df['totalWeight'] = chunk_df['evtWeight']
-    chunk_df['nodeX'] = node_x
+    if "nonores" in bdt_type:
+        chunk_df['nodeX'] = node_x
     if "HH_bb2l" in bdt_type:
         chunk_df["max_dR_b_lep"] = chunk_df[
             ["dR_b1lep1", "dR_b2lep1", "dR_b2lep1", "dR_b2lep2"]
@@ -369,7 +370,7 @@ def define_new_variables(
         if target == 1:
             for mass in masses:
                 if str(mass) in folder_name:
-                    chunk_df["gen_mHH"] = mass
+                    chunk_df["gen_mHH"] = float(mass)
         elif target == 0:
             if mass_randomization == "default":
                 chunk_df["gen_mHH"] = np.random.choice(

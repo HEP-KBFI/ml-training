@@ -2,8 +2,8 @@
 Call with 'python'
 
 Usage:
-    gen_mHH_profiling.py
-    gen_mHH_profiling.py [--output_dir=DIR]
+    trainvar_optimization.py
+    trainvar_optimization.py [--output_dir=DIR]
 
 Options:
     -o --output_dir=DIR                     Fit the TProfile [default: 0]
@@ -15,7 +15,7 @@ from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_aux_tools as hhat
 import numpy as np
-import xgboost
+import xgboost as xgb
 import docopt
 from pathlib import Path
 
@@ -54,17 +54,17 @@ def prepare_data(output_dir):
 def optimization(data, hyperparameters, nthread, num_class):
     while len(trainvars) >= 10:
         dtrain = create_dtrain(data, trainvars, nthread)
-        model = create_model(hyperparameters, dtrain, nthread, num_class)
+        model = xt.create_model(hyperparameters, dtrain, nthread, num_class)
         trainvars = drop_worst_performing_ones()
 
 
 def create_dtrain(data, trainvars, nthread):
     dtrain = xgb.DMatrix(
         data[trainvars],
-        label=data['Label'],
+        label=data['target'],
         nthread=nthread,
         feature_names=trainvars,
-        weights=data['totalWeight']
+        weight=data['totalWeight']
     )
     return dtrain
 
