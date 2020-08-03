@@ -99,8 +99,7 @@ def create_histo_info(trainvars):
         histo_infos.append(histo_info)
     return histo_infos
 
-# Idea: Read in the old histo_dict & use its settings for the new. Only add / 
-# delete variables that are not present in the new list of trainvars?
+
 def create_histo_dict(info_dir):
     ''' Creates the histo_dict.json. WARNING: Will overwrite the existing one
     in the info_dir
@@ -325,6 +324,7 @@ def choose_file_name(weight_dir, dtype, label, trainvar):
 
 
 ##################################################################
+
 
 def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
     ''' Fits the Data with a given order of polynomial
