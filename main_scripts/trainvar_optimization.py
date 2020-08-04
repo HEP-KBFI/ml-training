@@ -22,6 +22,7 @@ import docopt
 from pathlib import Path
 import shutil
 import os
+import json
 
 def prepare_data():
     cmssw_base = os.path.expandvars('$CMSSW_BASE')
