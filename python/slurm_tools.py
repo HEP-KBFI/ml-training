@@ -321,9 +321,9 @@ def save_prediction_files(pred_train, pred_test, save_dir):
     '''
     train_path = os.path.join(save_dir, 'pred_train.lst')
     test_path = os.path.join(save_dir, 'pred_test.lst')
-    with open(train_path, 'w') as file:
-        writer = csv.writer(file)
-        writer.writerows(pred_train)
+    with open(train_path, 'w') as pred_file:
+        for elem in pred_train:
+            pred_file.write(str(elem) + '\n')
     with open(test_path, 'w') as file:
-        writer = csv.writer(file)
-        writer.writerows(pred_test)
+        for elem in pred_test:
+            pred_file.write(str(elem) + '\n')
