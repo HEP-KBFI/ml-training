@@ -88,6 +88,8 @@ class Particle():
             if self.hyperparameters[key] < self.hyperparameter_info[key]['min']:
                 self.hyperparameters[key] = self.hyperparameter_info[key]['min']
                 self.speed[key] = 0
+            if self.hyperparameter_info[key]['int'] == 1:
+                self.hyperparameters[key] = int(np.ceil(self.hyperparameters[key]))
 
     def gather_intelligence(self, locations, fitnesses):
         index = np.argmax(fitnesses)
