@@ -127,6 +127,7 @@ class Particle():
 
 ############################################################################
 
+
 def particleSwarmOptimization(settings, fitness_function, value_dicts):
     number_particles = settings['sample_size']
     number_iterations = settings['iterations']
@@ -139,7 +140,8 @@ def particleSwarmOptimization(settings, fitness_function, value_dicts):
     set_particle_fitnesses(particle_swarm, fitnesses, initial=True)
     for particle in particle_swarm:
         particle.next_iteration()
-    while iteration <= number_iterations:
+    not_clustered = True
+    while iteration <= number_iterations and not_clustered:
         print('::::::: Iteration: ' + str(iteration) + ' ::::::::')
         espionage(number_informants, particle_swarm)
         all_locations = [particle.hyperparameters for particle in particle_swarm]
@@ -147,6 +149,8 @@ def particleSwarmOptimization(settings, fitness_function, value_dicts):
         set_particle_fitnesses(particle_swarm, fitnesses)
         for particle in particle_swarm:
             particle.next_iteration()
+        compactness = calculate_compactness(parameter_dicts)
+        not_clustered = compactness < settings['compactness_threshold']
         iteration += 1
     best_fitness, best_location = find_best_hyperparameters(particle_swarm)
     print('Best location is: ' + str(best_location))
