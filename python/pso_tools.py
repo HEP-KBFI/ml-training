@@ -1,4 +1,5 @@
 import numpy as np
+from machineLearning.machineLearning import evaluation_tools as et
 
 
 class Particle():
@@ -149,7 +150,8 @@ def particleSwarmOptimization(settings, fitness_function, value_dicts):
         set_particle_fitnesses(particle_swarm, fitnesses)
         for particle in particle_swarm:
             particle.next_iteration()
-        compactness = calculate_compactness(parameter_dicts)
+        compactness = et.calculate_compactness(parameter_dicts)
+        print(' --- Compactness: ' + str(compactness) + '---')
         not_clustered = compactness < settings['compactness_threshold']
         iteration += 1
     best_fitness, best_location = find_best_hyperparameters(particle_swarm)
