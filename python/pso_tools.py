@@ -1,347 +1,214 @@
-''' Tools necessary for running the Particle Swarm Optimization algorithm.
-'''
-import numbers
 import numpy as np
-import os
-from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import evaluation_tools as et
 
 
-def run_pso(
-        value_dicts,
-        calculate_fitnesses,
-        hyperparameter_sets,
-        output_dir
-):
-    '''Performs the whole particle swarm optimization. Pay attention that the
-    best fitness has the maximum value, not the minimum. (multiply by -1 if
-    needed)
+class Particle():
 
-    Parameters:
-    ----------
-    value_dicts : list of dicts
-        Info about every variable that is to be optimized
-    calculate_fitness : method
-        Function that calculates the fitness and returns the  score
-    hyperparameter_sets : list of dicts
-        The parameter-sets of all particles.
-    output_dir : str
-        Path to the directory of the output
+    def __init__(self, value_dicts, iterations):
+        self.confidence_coefficients = {'c_max': 1.62, 'w': 0.8, 'w2': 0.4}
+        self.set_inertial_weight_step(iterations)
+        self.set_parameter_info(value_dicts)
+        self.initialize_hyperparameters(value_dicts)
+        self.keys = self.hyperparameters.keys()
+        self.initialize_speeds()
+        self.personal_best_history = []
+        self.personal_best_fitness_history = []
+        self.fitness_history = []
+        self.location_history = []
+        self.total_iterations = iterations
+        self.iteration = 0
 
-    Returns:
-    -------
-    best_hyperparameters : dict
-        Best hyperparameters found.
-    '''
-    print(':::::::: Initializing :::::::::')
-    settings_dir = os.path.join(output_dir, 'run_settings')
-    global_settings = ut.read_settings(settings_dir, 'global')
-    pso_settings = ut.read_settings(settings_dir, 'pso')
-    inertial_weight, inertial_weight_step = get_weight_step(pso_settings)
-    iteration = 1
-    new_hyperparameter_sets = hyperparameter_sets
-    personal_bests = {}
-    compactness = et.calculate_compactness(hyperparameter_sets)
-    fitnesses = calculate_fitnesses(hyperparameter_sets, global_settings)
-    personal_bests = hyperparameter_sets
-    best_fitnesses = fitnesses
-    index = np.argmax(fitnesses)
-    best_hyperparameters = hyperparameter_sets[index]
-    best_fitness = fitnesses[index]
-    current_speeds = initialize_speeds(hyperparameter_sets)
-    max_iterations_not_reached = True
-    not_clustered = True
-    while max_iterations_not_reached and not_clustered:
-        print('::::::: Iteration: ' + str(iteration) + ' ::::::::')
-        hyperparameter_sets = new_hyperparameter_sets
-        compactness = et.calculate_compactness(hyperparameter_sets)
-        print(' --- Compactness: ' + str(compactness) + ' ---')
-        fitnesses = calculate_fitnesses(hyperparameter_sets, global_settings)
-        best_fitnesses = find_best_fitness(fitnesses, best_fitnesses)
-        personal_bests = calculate_personal_bests(
-            fitnesses, best_fitnesses, hyperparameter_sets, personal_bests)
-        weight_dict = {
-            'c1': pso_settings['c1'],
-            'c2': pso_settings['c2'],
-            'w': inertial_weight}
-        new_hyperparameter_sets, current_speeds = prepare_new_day(
-            personal_bests, hyperparameter_sets,
-            best_hyperparameters,
-            current_speeds, value_dicts,
-            weight_dict
+    def set_inertial_weight_step(self, iterations):
+        range_size = (
+            self.confidence_coefficients['w'] - \
+            self.confidence_coefficients['w2']
         )
-        index = np.argmax(fitnesses)
-        if best_fitness < max(fitnesses):
-            best_hyperparameters = hyperparameter_sets[index]
-            best_fitness = fitnesses[index]
-        inertial_weight += inertial_weight_step
-        iteration += 1
-        max_iterations_not_reached = iteration <= pso_settings['iterations']
-        not_clustered = pso_settings['compactness_threshold'] < compactness
-    return best_hyperparameters
+        self.weight_step = range_size / iterations
+
+    def initialize_speeds(self):
+        self.speed = {}
+        for key in self.keys:
+            v_max = (
+                self.hyperparameter_info[key]['max'] - \
+                self.hyperparameter_info[key]['min'] / 4
+            )
+            self.speed[key] = np.random.uniform() * v_max
+
+    def set_parameter_info(self, value_dicts):
+        self.hyperparameter_info = {}
+        for value_info in value_dicts:
+            value_copy = value_info.copy()
+            key = value_copy.pop('parameter')
+            self.hyperparameter_info[key] = value_copy
+
+    def set_fitness(self, fitness):
+        self.fitness = fitness
+        if self.fitness > self.personal_best_fitness:
+            self.set_personal_best()
+        if self.fitness > self.global_best_fitness:
+            self.set_global_best(self.hyperparameters, self.fitness)
+
+    def set_personal_best(self):
+        self.personal_best = self.hyperparameters.copy()
+        self.personal_best_fitness = float(self.fitness)
+
+    def set_global_best(self, hyperparameters, fitness):
+        self.global_best = hyperparameters.copy()
+        self.global_best_fitness = float(fitness)
 
 
-def get_weight_step(pso_settings):
-    '''Calculates the step size of the inertial weight
+    def set_initial_bests(self, fitness):
+        self.fitness = fitness
+        self.set_personal_best()
+        self.set_global_best(self.hyperparameters, self.fitness)
 
-    Parameters:
-    ----------
-    pso_settings : dict
-        PSO settings
-
-    Returns:
-    -------
-    inertial_weight : float
-        inertial weight
-    inertial_weight_step : float
-        Step size of the inertial weight
-    '''
-    inertial_weight = np.array(pso_settings['w_init'])
-    inertial_weight_fin = np.array(pso_settings['w_fin'])
-    inertial_weight_init = np.array(pso_settings['w_init'])
-    weight_difference = float(inertial_weight_fin - inertial_weight_init)
-    inertial_weight_step = weight_difference / pso_settings['iterations']
-    return inertial_weight, inertial_weight_step
-
-
-def check_numeric(variables):
-    '''Checks whether the variable is numeric
-
-    Parameters:
-    ----------
-    variables : list
-
-    Returns:
-    -------
-    decision : bool
-        Decision whether the list of variables contains non-numeric values
-    '''
-    nr_nonnumeric = 0
-    decision = False
-    for variable in variables:
-        if not isinstance(variable, numbers.Number):
-            nr_nonnumeric += 1
-    if nr_nonnumeric > 0:
-        decision = True
-    return decision
-
-
-def calculate_personal_bests(
-        fitnesses,
-        best_fitnesses,
-        hyperparameter_sets,
-        personal_bests
-):
-    '''Find best parameter-set for each particle
-
-    Parameters:
-    ----------
-    fitnesses : list
-        List of current iteration fitnesses for each particle
-    best_fitnesses : list
-        List of best fitnesses for each particle
-    hyperparameter_sets : list of dicts
-        Current parameters of the last iteration for each particle
-    personal_bests : list of dicts
-        Best parameters (with highest fitness) for each particle so far
-
-    Returns:
-    -------
-    new_dicts : list of dicts
-        Personal best parameter-sets for each particle
-    '''
-    new_dicts = []
-    for fitness, best_fitness, hyperparameters, personal_best in zip(
-            fitnesses, best_fitnesses, hyperparameter_sets, personal_bests):
-        non_numeric = check_numeric(
-            [fitness, best_fitness])
-        if non_numeric:
-            raise TypeError
-        if fitness > best_fitness:
-            new_dicts.append(hyperparameters)
-        else:
-            new_dicts.append(personal_best)
-    return new_dicts
-
-
-def calculate_new_position(
-        speeds,
-        hyperparameter_sets,
-        value_dicts
-):
-    '''Calculates the new parameters for the next iteration
-
-    Parameters:
-    ----------
-    speeds : list of dicts
-        Current speed in each parameter direction for each particle
-    hyperparameter_sets : list of dicts
-        Current parameter-sets of all particles
-    value_dicts : list of dicts
-        Info about every variable that is to be optimized
-
-    Returns:
-    -------
-    new_values : list of dicts
-        New parameters to be used in the next iteration
-    '''
-    new_values = []
-    for speed, hyperparameters in zip(speeds, hyperparameter_sets):
-        new_value = {}
-        for parameter in value_dicts:
-            key = parameter['p_name']
-            if bool(parameter['true_int']):
-                new_value[key] = int(np.ceil(
-                    hyperparameters[key] + speed[key]))
-            else:
-                new_value[key] = hyperparameters[key] + speed[key]
-            if parameter['exp'] == 1:
-                parameter_start = np.exp(parameter['range_start'])
-                parameter_end = np.exp(parameter['range_end'])
-            elif parameter['exp'] == 0:
-                parameter_start = parameter['range_start']
-                parameter_end = parameter['range_end']
-            else:
-                print('Check the "exp" parameter in "xgb or nn parameter file"')
-            if parameter_start > new_value[key]:
-                new_value[key] = parameter_start
-            elif parameter_end < new_value[key]:
-                new_value[key] = parameter_end
-        new_values.append(new_value)
-    return new_values
-
-
-def calculate_new_speed(
-        personal_bests,
-        hyperparameter_sets,
-        best_parameters,
-        current_speeds,
-        weight_dict
-):
-    '''Calculates the new speed in each parameter direction for all particles
-
-    Parameters:
-    ----------
-    personal_bests : list of dicts
-        Best parameters for each individual particle
-    hyperparameter_sets : list of dicts
-        Current iteration parameters for each particle
-    current_speeds : list of dicts
-        Speed in every parameter direction for each particle
-    weight_dict : dict
-        dictionary containing the normalized weights [w: inertial weight,
-        c1: cognitive weight, c2: social weight]
-
-    Returns:
-    -------
-    new_speeds : list of dicts
-        The new speed of the particle in each parameter direction
-    '''
-    new_speeds = []
-    for personal, current, inertia in zip(
-            personal_bests, hyperparameter_sets, current_speeds
-    ):
-        new_speed = {}
-        for key in current:
+    def update_speeds(self):
+        for key in self.keys:
             rand1 = np.random.uniform()
             rand2 = np.random.uniform()
-            cognitive_component = weight_dict['c1'] * rand1 * (
-                personal[key] - current[key])
-            social_component = weight_dict['c2'] * rand2 * (
-                best_parameters[key] - current[key])
-            inertial_component = weight_dict['w'] * inertia[key]
-            new_speed[key] = (
+            cognitive_component = self.confidence_coefficients['c_max'] * rand1 * (
+                self.personal_best[key] - self.hyperparameters[key])
+            social_component = self.confidence_coefficients['c_max'] * rand2 * (
+                self.global_best[key] - self.hyperparameters[key])
+            inertial_component = (
+                self.confidence_coefficients['w'] * self.speed[key]
+            )
+            self.speed[key] = (
                 cognitive_component
                 + social_component
                 + inertial_component
             )
-        new_speeds.append(new_speed)
-    return new_speeds
+
+    def update_location(self):
+        for key in self.keys:
+            self.hyperparameters[key] += self.speed[key]
+            if self.hyperparameter_info[key]['exp'] == 1:
+                max_value = np.exp(self.hyperparameter_info[key]['max'])
+                min_value = np.exp(self.hyperparameter_info[key]['min'])
+            else:
+                max_value = self.hyperparameter_info[key]['max']
+                min_value = self.hyperparameter_info[key]['min']
+            if self.hyperparameters[key] > max_value:
+                self.hyperparameters[key] = max_value
+                self.speed[key] = 0
+            if self.hyperparameters[key] < min_value:
+                self.hyperparameters[key] = min_value
+                self.speed[key] = 0
+            if self.hyperparameter_info[key]['int'] == 1:
+                self.hyperparameters[key] = int(np.ceil(self.hyperparameters[key]))
+
+    def gather_intelligence(self, locations, fitnesses):
+        index = np.argmax(fitnesses)
+        max_fitness = max(fitnesses)
+        if max_fitness > self.global_best_fitness:
+            self.set_global_best(locations[index], fitnesses[index])
+
+    def track_history(self):
+        self.personal_best_history.append(self.personal_best)
+        self.personal_best_fitness_history.append(self.personal_best_fitness)
+        self.fitness_history.append(self.fitness)
+        self.location_history.append(self.hyperparameters)
+
+    def initialize_hyperparameters(self, value_dicts):
+        self.hyperparameters = {}
+        for parameter_info in value_dicts:
+            if bool(parameter_info['int']):
+                value = np.random.randint(
+                    low=parameter_info['min'],
+                    high=parameter_info['max']
+                )
+            else:
+                value = np.random.uniform(
+                    low=parameter_info['min'],
+                    high=parameter_info['max']
+                )
+            if bool(parameter_info['exp']):
+                value = np.exp(value)
+            self.hyperparameters[str(parameter_info['parameter'])] = value
+
+    def next_iteration(self):
+        self.update_location()
+        self.update_speeds()
+        self.track_history()
+        self.confidence_coefficients['w'] -= self.weight_step
 
 
-def initialize_speeds(hyperparameter_sets):
-    '''Initializes the speeds in the beginning to be 0
 
-    Parameters:
-    ----------
-    hyperparameter_sets : list of dicts
-        The parameter-sets of all particles.
-
-    Returns:
-    -------
-    speeds : list of dicts
-        Speeds of all particles in all parameter directions. All are 0
-    '''
-    speeds = []
-    for hyperparameters in hyperparameter_sets:
-        speed = {}
-        for key in hyperparameters:
-            speed[key] = 0
-        speeds.append(speed)
-    return speeds
+############################################################################
 
 
-def find_best_fitness(fitnesses, best_fitnesses):
-    '''Compares the current best fitnesses with the current ones and
-    substitutes one if it finds better
+def particleSwarmOptimization(settings, fitness_function, value_dicts):
+    number_particles = settings['sample_size']
+    number_iterations = settings['iterations']
+    number_informants = settings['nr_informants']
+    iteration = 0
+    particle_swarm = createSwarm(
+        number_particles, value_dicts, fitness_function, number_iterations)
+    all_locations = [particle.hyperparameters for particle in particle_swarm]
+    fitnesses = fitness_function(all_locations, settings)
+    set_particle_fitnesses(particle_swarm, fitnesses, initial=True)
+    for particle in particle_swarm:
+        particle.next_iteration()
+    not_clustered = True
+    while iteration <= number_iterations and not_clustered:
+        print('::::::: Iteration: ' + str(iteration) + ' ::::::::')
+        espionage(number_informants, particle_swarm)
+        all_locations = [particle.hyperparameters for particle in particle_swarm]
+        fitnesses = fitness_function(all_locations, settings)
+        set_particle_fitnesses(particle_swarm, fitnesses)
+        for particle in particle_swarm:
+            particle.next_iteration()
+        compactness = et.calculate_compactness(all_locations)
+        print(' --- Compactness: ' + str(compactness) + '---')
+        not_clustered = compactness > settings['compactness_threshold']
+        iteration += 1
+    best_fitness, best_location = find_best_hyperparameters(particle_swarm)
+    print('Best location is: ' + str(best_location))
+    print('Best_fitness is: ' + str(best_fitness))
+    return best_fitness
 
-    Parameters:
-    ----------
-    fitnesses : list
-        List of current iteration fitnesses
-    best_fitnesses : list
-        List of the best found fitnesses
 
-    Returns:
-    -------
-    new_best_fitnesses : list
-        List of best fitnesses taken into account the ones found current
-        iteration
-    '''
-    new_best_fitnesses = []
-    for fitness, best_fitness in zip(fitnesses, best_fitnesses):
-        if fitness > best_fitness:
-            new_best_fitnesses.append(fitness)
-        else:
-            new_best_fitnesses.append(best_fitness)
-    return new_best_fitnesses
+##############################################################################
 
 
-def prepare_new_day(
-        personal_bests,
-        hyperparameter_sets,
-        best_parameters,
-        current_speeds,
-        value_dicts,
-        weight_dict
+def createSwarm(
+        number_particles, value_dicts,
+        fitness_function, iterations
 ):
-    '''Finds the new new parameters to find the fitness of
+    particle_swarm = []
+    for i in range(number_particles):
+        single_particle = Particle(value_dicts, iterations)
+        particle_swarm.append(single_particle)
+    return particle_swarm
 
-    Parameters:
-    ----------
-    personal_bests : list of dicts
-        Best parameters for each individual particle
-    hyperparameter_sets : list of dicts
-        Current iteration parameters for each particle
-    current_speeds : list of dicts
-        Speed in every parameter direction for each particle
-    value_dicts : list of dicts
-        Info about every variable that is to be optimized
-    weight_dict : dict
-        dictionary containing the normalized weights [w: inertial weight,
-        c1: cognitive weight, c2: social weight]
 
-    Returns:
-    -------
-    new_parameters : list of dicts
-        Parameter-sets that are used in the next iteration
-    current_speeds : list of dicts
-        New speed of each particle
-    '''
-    current_speeds = calculate_new_speed(
-        personal_bests, hyperparameter_sets, best_parameters,
-        current_speeds, weight_dict
-    )
-    new_parameters = calculate_new_position(
-        current_speeds, hyperparameter_sets, value_dicts)
-    return new_parameters, current_speeds
+def espionage(number_informants, particle_swarm):
+    for particle in particle_swarm:
+        informants = np.random.choice(particle_swarm, number_informants)
+        best_fitnesses, best_locations  = get_fitnesses_and_location(informants)
+        particle.gather_intelligence(best_locations, best_fitnesses)
+
+
+def get_fitnesses_and_location(particles):
+    best_locations = []
+    best_fitnesses = []
+    for particle in particles:
+        best_fitnesses.append(particle.personal_best_fitness)
+        best_locations.append(particle.personal_best)
+    return best_fitnesses, best_locations
+
+
+def set_particle_fitnesses(particle_swarm, fitnesses, initial=False):
+    for particle, fitness in zip(particle_swarm, fitnesses):
+        if initial:
+            particle.set_initial_bests(fitness)
+        else:
+            particle.set_fitness(fitness)
+
+
+def find_best_hyperparameters(particle_swarm):
+    best_fitnesses, best_locations = get_fitnesses_and_location(particle_swarm)
+    index = np.argmax(best_fitnesses)
+    best_fitness = best_fitnesses[index]
+    best_location = best_locations[index]
+    return best_fitness, best_location
