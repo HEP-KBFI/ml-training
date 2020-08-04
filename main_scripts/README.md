@@ -29,3 +29,39 @@ or for both creating the histo_dict.json and fitting in one go:
 ````console
 python gen_mHH_profiling.py -i 1 -f 1
 ````
+
+
+## Optimizing the training variables
+
+Having too many features (or trainigvariables) will cause the model to be overfitted, so it generalizes bad on the unseen data.
+To overcome this overtraining problem, one needs to reduce the number of training variables.
+For this purpose, one can use the cript **trainvar_optimization.py**.
+
+This script starts with removing the highly correlated trainvars (one from the pair). The cut is made according to the parameter **corr_threshold**, which defaults to 0.8.
+Then a model is built with the remaining trainvars and the importance for each feature is evaluated according to the model.get_fscore (this metric simply sums up how many times each feature is split on; similar to the frequency metric).
+After having the importance of each feature, the worst performing **step_size** variables are removed from the list of trainvars.
+The new model will be trained with the remaining trainvars. This process repeats until **min_nr_trainvars** is reached.
+
+As a result, **trainvars.json** file will be saved to your channel info directory. All trainings use the default hyperparameters (**info/default_hyperparameters.json**).
+
+**Precondition:** The starting trainvars should be listed in a file called **all_trainvars.json** in your channel info directory.
+
+The options for the scripts are the following:
+
+````console
+    -c --corr_threshold=FLOAT       Threshold from which trainvar is dropped [default: 0.8]
+    -n --min_nr_trainvars=INT       Number trainvars to end up with [default: 10]
+    -s --step_size=INT              Number of trainvars dropped per iteration [default: 5]
+````
+
+An example of how to run the code:
+
+````console
+python gen_mHH_profiling.py -c 0.9 -n 15 -s 3
+````
+
+Or simply by using the defaults:
+
+````console
+python gen_mHH_profiling.py
+````
