@@ -143,8 +143,7 @@ def main(corr_threshold, min_nr_trainvars, step_size):
         cmssw_base,
         'src/machineLearning/machineLearning/info',
         global_settings['process'],
-        global_settings['channel'],
-        'trainvars.json'
+        global_settings['channel']
     )
     trainvars_path = os.path.join(channel_dir, 'trainvars.json')
     all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
