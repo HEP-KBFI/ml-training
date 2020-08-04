@@ -371,17 +371,17 @@ def Evaluate(
 
     dtrain = xgb.DMatrix(
         np.array(data_dict['train'][trainvars].values),
-        label=data['train']['target'].astype(int),
+        label=data_dict['train']['target'].astype(int),
         nthread=nthread,
         feature_names=trainvars,
-        weight=np.array(data['train'][weights].values)
+        weight=np.array(data_dict['train'][weights].values)
     )
     dtest = xgb.DMatrix(
-        np.array(data['test'][trainvars].values),
-        label=data['test']['target'].astype(int),
+        np.array(data_dict['test'][trainvars].values),
+        label=data_dict['test']['target'].astype(int),
         nthread=nthread,
         feature_names=trainvars,
-        weight=np.array(data['test'][weights].values)
+        weight=np.array(data_dict['test'][weights].values)
     )
     data_dict['dtrain'] = dtrain
     data_dict['dtest'] = dtest
