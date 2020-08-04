@@ -60,7 +60,7 @@ def prepare_run_params(value_dicts, sample_size):
     return run_params
 
 
-def create_model(hyperparameters, dtrain):
+def create_model(hyperparameters, dtrain, nthread):
     label = dtrain.get_label()
     weight = dtrain.get_weight()
     sum_wpos = sum(weight[i] for i in range(len(label)) if label[i] == 1.0)
@@ -69,7 +69,8 @@ def create_model(hyperparameters, dtrain):
         'objective': 'binary:logitraw',
         'scale_pos_weight': sum_wneg/sum_wpos,
         'eval_metric': 'auc',
-        'silent': 1
+        'silent': 1,
+        'nthread': nthread
     }
     watchlist = [(dtrain,'train')]
     hyp_copy = hyperparameters.copy()
@@ -173,7 +174,7 @@ def model_evaluation_main(hyperparameters, data_dict, global_settings):
     )
     model = create_model(
         hyperparameters, data_dict['dtrain'],
-        global_settings['nthread'], global_settings['num_classes']
+        global_settings['nthread']
     )
     score, pred_train, pred_test = evaluate_model(
         data_dict, global_settings, model)
