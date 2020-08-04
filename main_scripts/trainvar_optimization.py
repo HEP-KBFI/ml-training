@@ -157,7 +157,7 @@ def main(corr_threshold, min_nr_trainvars, step_size):
     trainvars = optimization(
         data, hyperparameters, trainvars,
         global_settings, min_nr_trainvars=min_nr_trainvars, step_size=step_size)
-    save_optimized_trainvars(preferences, global_settings)
+    save_optimized_trainvars(trainvars, preferences, global_settings)
 
 
 def save_optimized_trainvars(trainvars, preferences, global_settings):
