@@ -133,6 +133,7 @@ def load_trainvars(global_settings):
 
 
 def main(corr_threshold, min_nr_trainvars, step_size):
+    data, preferences, global_settings = prepare_data()
     cmssw_base = os.path.expandvars('$CMSSW_BASE')
     hyperparameter_file = os.path.join(
         cmssw_base,
@@ -151,7 +152,6 @@ def main(corr_threshold, min_nr_trainvars, step_size):
         shutil.copy(all_trainvars_path, trainvars_path)
     hyperparameters = ut.read_parameters(hyperparameter_file)[0]
     print("Optimizing training variables")
-    data, preferences, global_settings = prepare_data()
     trainvars = load_trainvars(global_settings)
     trainvars = drop_highly_currelated_variables(
         data, preferences['trainvars'], corr_threshold=corr_threshold)
