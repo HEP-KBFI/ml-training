@@ -932,7 +932,7 @@ def getPred(data, trainvars, nthread, targetName, weightsName, estimator):
         target=targetName,
         weights=weightsName
     )
-    return estimator.predict(dMatrix_pred)[:, 1]
+    return estimator.predict(dMatrix_pred)
 
 
 def PlotROC(
