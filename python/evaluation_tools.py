@@ -143,8 +143,7 @@ def calculate_auc(data_dict, prediction, data_class, weights):
     Parameters:
     ----------
     data_dict : dict
-        Dictionary that contains the labels for testing and training. Keys are
-        called 'testing_labels' and 'training_labels'
+        Dictionary that contains the DMatrices for train and test (dtrain and dtest)
     prediction : lists of lists
         Predicted labels of train/test data set.
     data_class : str
@@ -152,10 +151,12 @@ def calculate_auc(data_dict, prediction, data_class, weights):
     [weights] : str
         [Default: 'totalWeight'] data label to be used as the weight.
     '''
-    label_type = data_class + 'ing_labels'
+    data_type = 'd' + data_class
+    labels = data_dict[data_type].get_label()
+    weights = data_dict[data_type].get_weight()
     fpr, tpr, thresholds_train = skm.roc_curve(
         np.array(data_dict[label_type]),
-        prediction[:,1],
+        prediction,
         sample_weight=(data_dict[data_class][weights].astype(np.float64))
     )
     auc_score = skm.auc(fpr, tpr, reorder=True)
