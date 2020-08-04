@@ -171,9 +171,12 @@ def save_optimized_trainvars(trainvars, preferences, global_settings):
     )
     with open(outpath, 'wt') as outfile:
         for trainvar in trainvars:
-            trainvar_info = dlt.find_correct_dict(
-                'key', trainvar, preferences['trainvar_info'])
-            json.dump(trainvar_info, outfile)
+            trainvar_info = preferences['trainvar_info']
+            trainvar_dict = {
+                'key': trainvar,
+                'true_int': trainvar_info[trainvar]
+            }
+            json.dump(trainvar_dict, outfile)
             outfile.write('\n')
 
 
