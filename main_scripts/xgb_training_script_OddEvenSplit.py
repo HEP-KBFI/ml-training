@@ -368,19 +368,20 @@ def Evaluate(
     }
     nthread = global_settings['nthread']
     num_class = global_settings['num_classes']
-    dtrain = hhat.PDfToDMatConverter(
-        data_dict['train'],
-        data_dict['trainvars'],
-        nthread,
-        target='target',
-        weights='totalWeight'
+
+    dtrain = xgb.DMatrix(
+        np.array(data_dict['train'][trainvars].values),
+        label=data['train']['target'].astype(int),
+        nthread=nthread,
+        feature_names=trainvars,
+        weight=np.array(data['train'][weights].values)
     )
-    dtest = hhat.PDfToDMatConverter(
-        data_dict['test'],
-        data_dict['trainvars'],
-        nthread,
-        target='target',
-        weights='totalWeight'
+    dtest = xgb.DMatrix(
+        np.array(data['test'][trainvars].values),
+        label=data['test']['target'].astype(int),
+        nthread=nthread,
+        feature_names=trainvars,
+        weight=np.array(data['test'][weights].values)
     )
     data_dict['dtrain'] = dtrain
     data_dict['dtest'] = dtest
@@ -388,7 +389,6 @@ def Evaluate(
         hyperparameters[0],
         dtrain,
         nthread,
-        num_class
     )
     if(savePKL):
         channel = global_settings['channel']
