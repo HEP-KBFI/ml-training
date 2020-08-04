@@ -426,7 +426,7 @@ def Evaluate(
         proba_test = model.predict(data_dict['dtest'])
         fprt, tprt, thresholds_test = roc_curve(
             test['target'].astype(np.bool),
-            proba_test[:, 1],
+            proba_test,
             sample_weight=(test[weights].astype(np.float64))
         )
         test_auc = auc(fprt, tprt, reorder=True)
