@@ -412,7 +412,7 @@ def Evaluate(
         proba_train = model.predict(data_dict['dtrain'])
         fpr, tpr, thresholds_train = roc_curve(
             train['target'].astype(np.bool),
-            proba_train[:, 1],
+            proba_train,
             sample_weight=(train[weights].astype(np.float64))
         )
         train_auc = auc(fpr, tpr, reorder=True)
