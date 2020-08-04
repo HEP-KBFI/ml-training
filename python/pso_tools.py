@@ -150,7 +150,7 @@ def particleSwarmOptimization(settings, fitness_function, value_dicts):
         set_particle_fitnesses(particle_swarm, fitnesses)
         for particle in particle_swarm:
             particle.next_iteration()
-        compactness = et.calculate_compactness(parameter_dicts)
+        compactness = et.calculate_compactness(all_locations)
         print(' --- Compactness: ' + str(compactness) + '---')
         not_clustered = compactness < settings['compactness_threshold']
         iteration += 1
