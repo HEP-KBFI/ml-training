@@ -160,7 +160,7 @@ def particleSwarmOptimization(settings, fitness_function, value_dicts):
             particle.next_iteration()
         compactness = et.calculate_compactness(all_locations)
         print(' --- Compactness: ' + str(compactness) + '---')
-        not_clustered = compactness < settings['compactness_threshold']
+        not_clustered = compactness > settings['compactness_threshold']
         iteration += 1
     best_fitness, best_location = find_best_hyperparameters(particle_swarm)
     print('Best location is: ' + str(best_location))
