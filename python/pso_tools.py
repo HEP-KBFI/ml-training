@@ -85,8 +85,9 @@ class Particle():
             if self.hyperparameter_info[key]['exp'] == 1:
                 max_value = np.exp(self.hyperparameter_info[key]['max'])
                 min_value = np.exp(self.hyperparameter_info[key]['min'])
-            max_value = self.hyperparameter_info[key]['max']
-            min_value = self.hyperparameter_info[key]['min']
+            else:
+                max_value = self.hyperparameter_info[key]['max']
+                min_value = self.hyperparameter_info[key]['min']
             if self.hyperparameters[key] > max_value:
                 self.hyperparameters[key] = max_value
                 self.speed[key] = 0
