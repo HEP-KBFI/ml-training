@@ -283,6 +283,7 @@ def load_data_from_tfile(
                 node_x
             )
     else:
+        tfile.Close()
         print('Error: empty path')
     return data
 
