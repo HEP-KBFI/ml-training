@@ -76,7 +76,6 @@ def optimization(
         model = xt.create_model(
             hyperparameters, dtrain,
             global_settings['nthread'],
-            global_settings['num_classes']
         )
         trainvars = drop_worst_performing_ones(
             model, trainvars, step_size, min_nr_trainvars
