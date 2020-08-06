@@ -754,7 +754,7 @@ def get_hh_parameters(
 
 
 def load_era_keys(keys_path):
-    key_infos = read_parameters(keys_path)
+    key_infos = ut.read_parameters(keys_path)
     era_wise_keys = {'keys16': [], 'keys17': [], 'keys18': []}
     for key_info in key_infos:
         key = key_info['key']
