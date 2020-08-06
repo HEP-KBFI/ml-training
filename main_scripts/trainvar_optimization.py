@@ -33,11 +33,16 @@ def prepare_data():
     global_settings = ut.read_settings(settings_dir, 'global')
     num_classes = global_settings['num_classes']
     nthread = global_settings['nthread']
+    if 'nonres' in global_settings['bdtType']:
+        mode = 'nonRes'
+    else:
+        mode = 'res'
     channel_dir = os.path.join(
         cmssw_base,
         'src/machineLearning/machineLearning/info',
         global_settings['process'],
-        global_settings['channel']
+        global_settings['channel'],
+        mode
     )
     preferences = dlt.get_hh_parameters(
         global_settings['channel'],
