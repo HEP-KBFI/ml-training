@@ -119,15 +119,7 @@ def drop_highly_currelated_variables(data, trainvars_initial, corr_threshold):
     return trainvars
 
 
-def load_trainvars(global_settings):
-    cmssw_base = os.path.expandvars('$CMSSW_BASE')
-    all_trainvars_path = os.path.join(
-        cmssw_base,
-        'src/machineLearning/machineLearning/info',
-        global_settings['process'],
-        global_settings['channel'],
-        'all_trainvars.json'
-    )
+def load_trainvars(all_trainvars_path):
     trainvar_info = dlt.read_trainvar_info(all_trainvars_path)
     trainvars = list(trainvar_info.keys())
     return trainvars
@@ -146,7 +138,11 @@ def main(corr_threshold, min_nr_trainvars, step_size):
         global_settings['process'],
         global_settings['channel']
     )
-    trainvars_path = os.path.join(channel_dir, 'trainvars.json')
+    if 'nonres' in global_settings['bdtType']:
+        mode = 'nonRes'
+    else:
+        mode = 'res'
+    trainvars_path = os.path.join(channel_dir, mode, 'trainvars.json')
     all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
     if not os.path.exists(trainvars_path):
         shutil.copy(all_trainvars_path, trainvars_path)
@@ -158,18 +154,10 @@ def main(corr_threshold, min_nr_trainvars, step_size):
     trainvars = optimization(
         data, hyperparameters, trainvars,
         global_settings, min_nr_trainvars=min_nr_trainvars, step_size=step_size)
-    save_optimized_trainvars(trainvars, preferences, global_settings)
+    save_optimized_trainvars(trainvars, preferences, trainvars_path)
 
 
-def save_optimized_trainvars(trainvars, preferences, global_settings):
-    cmssw_base = os.path.expandvars('$CMSSW_BASE')
-    outpath =  os.path.join(
-        cmssw_base,
-        'src/machineLearning/machineLearning/info',
-        global_settings['process'],
-        global_settings['channel'],
-        'trainvars.json'
-    )
+def save_optimized_trainvars(trainvars, preferences, outpath):
     with open(outpath, 'wt') as outfile:
         for trainvar in trainvars:
             trainvar_info = preferences['trainvar_info']
