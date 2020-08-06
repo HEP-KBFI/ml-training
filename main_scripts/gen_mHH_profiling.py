@@ -44,7 +44,11 @@ def get_info_dir():
     global_settings = ut.read_settings(settings_dir, 'global')
     channel = global_settings['channel']
     process = global_settings['process']
-    info_dir = os.path.join(package_dir, 'info', process, channel)
+    if 'nonres' in global_settings['bdtType']:
+        mode = 'nonRes'
+    else:
+        mode = 'res'
+    info_dir = os.path.join(package_dir, 'info', process, channel, mode)
     return info_dir, global_settings
 
 

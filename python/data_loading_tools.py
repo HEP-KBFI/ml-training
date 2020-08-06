@@ -729,6 +729,8 @@ def get_hh_parameters(
     parameters : dict
         The necessary info for loading data
     '''
+    whole_channel_dir = Path(channel_dir)
+    whole_channel_dir = str(whole_channel_dir.parent)
     info_path = os.path.join(channel_dir, 'info.json')
     keys_path = os.path.join(channel_dir, 'keys.json')
     tau_id_application_path = os.path.join(
@@ -748,7 +750,9 @@ def get_hh_parameters(
     parameters['keys'] = load_era_keys(keys_path)
     trainvar_info = read_trainvar_info(trainvars_path)
     parameters['trainvars'] = list(trainvar_info.keys())
-    parameters['trainvar_info'] = trainvar_info
+    all_trainvars_path = os.path.join(whole_channel_dir, 'all_trainvars.json')
+    all_trainvar_info = read_trainvar_info(all_trainvars_path)
+    parameters['trainvar_info'] = all_trainvar_info
     parameters.update(info_dict)
     return parameters
 
