@@ -752,7 +752,7 @@ def get_hh_parameters(
     parameters['trainvars'] = list(trainvar_info.keys())
     all_trainvars_path = os.path.join(whole_channel_dir, 'all_trainvars.json')
     all_trainvar_info = read_trainvar_info(all_trainvars_path)
-    parameters['trainvar_info'] = trainvar_info
+    parameters['trainvar_info'] = all_trainvar_info
     parameters.update(info_dict)
     return parameters
 
