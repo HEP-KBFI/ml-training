@@ -155,7 +155,7 @@ def main(corr_threshold, min_nr_trainvars, step_size):
     print("Optimizing training variables")
     trainvars = load_trainvars(all_trainvars_path)
     trainvars = drop_highly_currelated_variables(
-        data, preferences['trainvars'], corr_threshold=corr_threshold)
+        data, trainvars, corr_threshold=corr_threshold)
     trainvars = optimization(
         data, hyperparameters, trainvars,
         global_settings, min_nr_trainvars=min_nr_trainvars, step_size=step_size)
