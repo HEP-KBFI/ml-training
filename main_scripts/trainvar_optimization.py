@@ -153,7 +153,7 @@ def main(corr_threshold, min_nr_trainvars, step_size):
         shutil.copy(all_trainvars_path, trainvars_path)
     hyperparameters = ut.read_parameters(hyperparameter_file)[0]
     print("Optimizing training variables")
-    trainvars = load_trainvars(global_settings)
+    trainvars = load_trainvars(all_trainvars_path)
     trainvars = drop_highly_currelated_variables(
         data, preferences['trainvars'], corr_threshold=corr_threshold)
     trainvars = optimization(
