@@ -60,37 +60,28 @@ def prepare_run_params(value_dicts, sample_size):
     return run_params
 
 
-def create_model(hyperparameters, dtrain, nthread, num_class):
-    ''' Creates the XGBoost model given the with the given hyperparameters and
-    training dataset
-
-    Parameters:
-    ----------
-    hyperparameters : dict
-        Dictionary containing all the wanted hyperparameters. Must contain
-        at least 'num_boost_round' parameter.
-    dtrain : xgboost.core.DMatrix
-        XGB Dmatrix containing the dataset and the labels.
-
-    Returns:
-    --------
-    model : XGBoost Booster
-        The trained model
-    '''
-    params = {
+def create_model(hyperparameters, dtrain, nthread):
+    label = dtrain.get_label()
+    weight = dtrain.get_weight()
+    sum_wpos = sum(weight[i] for i in range(len(label)) if label[i] == 1.0)
+    sum_wneg = sum(weight[i] for i in range(len(label)) if label[i] == 0.0)
+    parameters = {
+        'objective': 'binary:logitraw',
+        'scale_pos_weight': sum_wneg/sum_wpos,
+        'eval_metric': 'auc',
         'silent': 1,
-        'objective': 'multi:softprob',
-        'num_class': num_class,
-        'nthread': nthread,
-        'seed': 1,
+        'nthread': nthread
     }
-    parameters = hyperparameters.copy()
-    num_boost_round = parameters.pop('num_boost_round')
-    parameters.update(params)
+    watchlist = [(dtrain,'train')]
+    hyp_copy = hyperparameters.copy()
+    num_boost_round = hyp_copy.pop('num_boost_round')
+    parameters.update(hyp_copy)
+    parameters = list(parameters.items())+[('eval_metric', 'ams@0.15')]
     model = xgb.train(
         parameters,
         dtrain,
-        num_boost_round=int(num_boost_round),
+        num_boost_round,
+        watchlist,
         verbose_eval=False
     )
     return model
@@ -183,7 +174,7 @@ def model_evaluation_main(hyperparameters, data_dict, global_settings):
     )
     model = create_model(
         hyperparameters, data_dict['dtrain'],
-        global_settings['nthread'], global_settings['num_classes']
+        global_settings['nthread']
     )
     score, pred_train, pred_test = evaluate_model(
         data_dict, global_settings, model)

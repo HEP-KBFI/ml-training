@@ -281,7 +281,7 @@ def check_error(output_dir):
     error_list = ['FAILED', 'CANCELLED', 'ERROR', 'Error']
     output_error_list = ['Usage']
     error_files = os.path.join(output_dir, 'error*')
-    output_files = os.path.join(output_dir, 'output*')
+    # output_files = os.path.join(output_dir, 'output*')
     for error_file in glob.glob(error_files):
         if os.path.exists(error_file):
             with open(error_file, 'rt') as file:
@@ -290,14 +290,14 @@ def check_error(output_dir):
                     for error in error_list:
                         if error in line:
                             number_errors += 1
-    for output_file in glob.glob(output_files):
-        if os.path.exists(output_file):
-            with open(output_file, 'rt') as file:
-                lines = file.readlines()
-                for line in lines:
-                    for error in output_error_list:
-                        if error in line:
-                            number_errors += 1
+    # for output_file in glob.glob(output_files):
+    #     if os.path.exists(output_file):
+    #         with open(output_file, 'rt') as file:
+    #             lines = file.readlines()
+    #             for line in lines:
+    #                 for error in output_error_list:
+    #                     if error in line:
+    #                         number_errors += 1
     if number_errors > 0:
         print("Found errors: " + str(number_errors))
         raise SystemExit(0)
@@ -321,9 +321,9 @@ def save_prediction_files(pred_train, pred_test, save_dir):
     '''
     train_path = os.path.join(save_dir, 'pred_train.lst')
     test_path = os.path.join(save_dir, 'pred_test.lst')
-    with open(train_path, 'w') as file:
-        writer = csv.writer(file)
-        writer.writerows(pred_train)
+    with open(train_path, 'w') as pred_file:
+        for elem in pred_train:
+            pred_file.write(str(elem) + '\n')
     with open(test_path, 'w') as file:
-        writer = csv.writer(file)
-        writer.writerows(pred_test)
+        for elem in pred_test:
+            pred_file.write(str(elem) + '\n')

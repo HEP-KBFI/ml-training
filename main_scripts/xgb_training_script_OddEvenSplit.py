@@ -373,19 +373,20 @@ def Evaluate(
     }
     nthread = global_settings['nthread']
     num_class = global_settings['num_classes']
-    dtrain = hhat.PDfToDMatConverter(
-        data_dict['train'],
-        data_dict['trainvars'],
-        nthread,
-        target='target',
-        weights='totalWeight'
+
+    dtrain = xgb.DMatrix(
+        np.array(data_dict['train'][trainvars].values),
+        label=data_dict['train']['target'].astype(int),
+        nthread=nthread,
+        feature_names=trainvars,
+        weight=np.array(data_dict['train'][weights].values)
     )
-    dtest = hhat.PDfToDMatConverter(
-        data_dict['test'],
-        data_dict['trainvars'],
-        nthread,
-        target='target',
-        weights='totalWeight'
+    dtest = xgb.DMatrix(
+        np.array(data_dict['test'][trainvars].values),
+        label=data_dict['test']['target'].astype(int),
+        nthread=nthread,
+        feature_names=trainvars,
+        weight=np.array(data_dict['test'][weights].values)
     )
     data_dict['dtrain'] = dtrain
     data_dict['dtest'] = dtest
@@ -393,7 +394,6 @@ def Evaluate(
         hyperparameters[0],
         dtrain,
         nthread,
-        num_class
     )
     if(savePKL):
         channel = global_settings['channel']
@@ -417,7 +417,7 @@ def Evaluate(
         proba_train = model.predict(data_dict['dtrain'])
         fpr, tpr, thresholds_train = roc_curve(
             train['target'].astype(np.bool),
-            proba_train[:, 1],
+            proba_train,
             sample_weight=(train[weights].astype(np.float64))
         )
         train_auc = auc(fpr, tpr, reorder=True)
@@ -431,7 +431,7 @@ def Evaluate(
         proba_test = model.predict(data_dict['dtest'])
         fprt, tprt, thresholds_test = roc_curve(
             test['target'].astype(np.bool),
-            proba_test[:, 1],
+            proba_test,
             sample_weight=(test[weights].astype(np.float64))
         )
         test_auc = auc(fprt, tprt, reorder=True)
