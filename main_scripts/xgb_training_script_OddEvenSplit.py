@@ -60,11 +60,16 @@ def main(hyperparas_file, output_dir, skipInterpolStudy, settingsFolder):
     save_dir = str(output_dir)
     ut.save_run_settings(output_dir)
     ut.save_info_settings(output_dir, global_settings)
+    if 'nonres' in global_settings['bdtType']:
+        mode = 'nonRes'
+    else:
+        mode = 'res'
     channel_dir = os.path.join(
         os.path.expandvars('$CMSSW_BASE'),
         'src/machineLearning/machineLearning/info',
         global_settings['process'],
-        global_settings['channel']
+        global_settings['channel'],
+        mode
     )
     if hyperparas_file == 'info/process/channel/':
         hyperparas_file = os.path.join(channel_dir, 'hyperparameters.json')

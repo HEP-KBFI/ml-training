@@ -37,13 +37,14 @@ def load_data(
     for era in eras:
         input_path_key = 'inputPath' + era
         input_path = preferences[input_path_key]
+        era_keys = preferences['keys']['keys' + str(era)]
         data = load_data_from_one_era(
             input_path,
             preferences['channelInTree'],
             preferences['trainvars'],
             global_settings['bdtType'],
             global_settings['channel'],
-            preferences['keys'],
+            era_keys,
             preferences['masses'],
             preferences['nonResScenarios'],
             global_settings['bkg_mass_rand']
@@ -80,7 +81,7 @@ def load_data_from_one_era(
     channel : str
         What channel data is to be loaded
     keys : list
-        Which keys to be included in the data
+        Which keys to be included in the data (for a specific era)
         (part included in the folder names)
     masses : list
         List of the masses to be used in data loading
@@ -728,8 +729,10 @@ def get_hh_parameters(
     parameters : dict
         The necessary info for loading data
     '''
+    whole_channel_dir = Path(channel_dir)
+    whole_channel_dir = str(whole_channel_dir.parent)
     info_path = os.path.join(channel_dir, 'info.json')
-    keys_path = os.path.join(channel_dir, 'keys.txt')
+    keys_path = os.path.join(channel_dir, 'keys.json')
     tau_id_application_path = os.path.join(
         channel_dir, 'tauID_application.json')
     tau_id_training_path = os.path.join(channel_dir, 'tauID_training.json')
@@ -744,12 +747,28 @@ def get_hh_parameters(
     )
     parameters.update(find_input_paths(
         info_dict, tau_id_trainings, tau_id_training))
-    parameters['keys'] = read_list(keys_path)
+    parameters['keys'] = load_era_keys(keys_path)
     trainvar_info = read_trainvar_info(trainvars_path)
     parameters['trainvars'] = list(trainvar_info.keys())
-    parameters['trainvar_info'] = trainvar_info
+    all_trainvars_path = os.path.join(whole_channel_dir, 'all_trainvars.json')
+    all_trainvar_info = read_trainvar_info(all_trainvars_path)
+    parameters['trainvar_info'] = all_trainvar_info
     parameters.update(info_dict)
     return parameters
+
+
+def load_era_keys(keys_path):
+    key_infos = ut.read_parameters(keys_path)
+    era_wise_keys = {'keys16': [], 'keys17': [], 'keys18': []}
+    for key_info in key_infos:
+        key = key_info['key']
+        if 16 in key_info['eras']:
+            era_wise_keys['keys16'].append(key)
+        if 17 in key_info['eras']:
+            era_wise_keys['keys17'].append(key)
+        if 18 in key_info['eras']:
+            era_wise_keys['keys18'].append(key)
+    return era_wise_keys
 
 
 def find_input_paths(

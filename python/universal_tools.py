@@ -87,11 +87,16 @@ def save_info_settings(output_dir, global_settings):
     info_dir = os.path.join(output_dir, 'run_info')
     if not os.path.exists(info_dir):
         os.makedirs(info_dir)
+    if 'nonres' in global_settings['bdtType']:
+        mode = 'nonRes'
+    else:
+        mode = 'res'
     wild_card_path = os.path.join(
         os.path.expandvars('$CMSSW_BASE'),
         'src/machineLearning/machineLearning/info/',
         global_settings['process'],
         global_settings['channel'],
+        mode,
         "*"
     )
     for path in glob.glob(wild_card_path):
