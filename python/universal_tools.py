@@ -99,8 +99,16 @@ def save_info_settings(output_dir, global_settings):
         mode,
         "*"
     )
+    all_trainvars_path = os.path.join(
+        os.path.expandvars('$CMSSW_BASE'),
+        'src/machineLearning/machineLearning/info/',
+        global_settings['process'],
+        global_settings['channel'],
+        'all_trainvars.json'
+    )
     for path in glob.glob(wild_card_path):
         shutil.copy(path, info_dir)
+    shutil.copy(all_trainvars_path, output_dir)
 
 
 def read_parameters(param_file):
