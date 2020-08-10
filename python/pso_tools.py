@@ -165,7 +165,7 @@ def particleSwarmOptimization(settings, fitness_function, value_dicts):
     best_fitness, best_location = find_best_hyperparameters(particle_swarm)
     print('Best location is: ' + str(best_location))
     print('Best_fitness is: ' + str(best_fitness))
-    return best_fitness
+    return best_location, best_fitness
 
 
 ##############################################################################
