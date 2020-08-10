@@ -33,7 +33,7 @@ def main():
     pso_settings.update(global_settings)
     print("\n============ Starting hyperparameter optimization ==========\n")
     best_hyperparameters = pt.particleSwarmOptimization(
-        pso_settings, st.get_fitness_score, value_dicts)
+        pso_settings, st.get_fitness_score, value_dicts)[0]
     print("\n============ Saving results ================\n")
     best_parameters_path = os.path.join(
         output_dir, 'best_hyperparameters.json')
