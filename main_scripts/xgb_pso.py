@@ -36,7 +36,7 @@ def main():
         pso_settings, st.get_fitness_score, value_dicts)[0]
     print("\n============ Saving results ================\n")
     best_parameters_path = os.path.join(
-        output_dir, 'best_hyperparameters.json')
+        output_dir, 'best_hyperparameters.json')[0]
     ut.save_dict_to_json(best_hyperparameters, best_parameters_path)
     print("Results saved to " + str(output_dir))
 
