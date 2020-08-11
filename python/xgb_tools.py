@@ -66,7 +66,7 @@ def create_model(hyperparameters, dtrain, nthread):
     sum_wpos = sum(weight[i] for i in range(len(label)) if label[i] == 1.0)
     sum_wneg = sum(weight[i] for i in range(len(label)) if label[i] == 0.0)
     parameters = {
-        'objective': 'binary:logitraw',
+        'objective': 'binary:logistic',
         'scale_pos_weight': sum_wneg/sum_wpos,
         'eval_metric': 'auc',
         'silent': 1,

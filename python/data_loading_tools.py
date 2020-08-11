@@ -334,7 +334,7 @@ def define_new_variables(
     '''
     chunk_df['process'] = sample_name
     chunk_df['key'] = folder_name
-    chunk_df['target'] = target
+    chunk_df['target'] = int(target)
     chunk_df['totalWeight'] = chunk_df['evtWeight']
     if "nonores" in bdt_type:
         chunk_df['nodeX'] = node_x
