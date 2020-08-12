@@ -334,7 +334,7 @@ def define_new_variables(
     '''
     chunk_df['process'] = sample_name
     chunk_df['key'] = folder_name
-    chunk_df['target'] = target
+    chunk_df['target'] = int(target)
     chunk_df['totalWeight'] = chunk_df['evtWeight']
     if "nonores" in bdt_type:
         chunk_df['nodeX'] = node_x
@@ -394,8 +394,8 @@ def define_new_variables(
             chunk_df_node['nodeXname'] = scenario
             if target == 1:
                 if scenario is not "SM":
-                    nodeWeight = chunk_df_node['weight_' + scenario]
-                    nodeWeight /= chunk_df_node['weight_SM']
+                    nodeWeight = chunk_df_node['Weight_' + scenario]
+                    nodeWeight /= chunk_df_node['Weight_SM']
                     chunk_df_node['totalWeight'] *= nodeWeight
             data = data.append(chunk_df_node, ignore_index=True, sort=False)
         return data

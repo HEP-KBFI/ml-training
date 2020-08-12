@@ -42,28 +42,17 @@ def prepare_data():
         'src/machineLearning/machineLearning/info',
         global_settings['process'],
         global_settings['channel'],
-        mode
     )
+    mode_dir = os.path.join(channel_dir, mode)
+    trainvars_path = os.path.join(mode_dir, 'trainvars.json')
+    all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
+    shutil.copy(all_trainvars_path, trainvars_path)
     preferences = dlt.get_hh_parameters(
         global_settings['channel'],
         global_settings['tauID_training'],
-        channel_dir
+        mode_dir
     )
-    data = dlt.load_data(
-        preferences,
-        global_settings
-    )
-    if("nonres" not in global_settings['bdtType']):
-        dlt.reweigh_dataframe(
-            data,
-            preferences['weight_dir'],
-            preferences['trainvar_info'],
-            ['gen_mHH'],
-            preferences['masses']
-        )
-    elif 'nodeX' not in preferences['trainvars']:
-        preferences['trainvars'].append('nodeX')
-    hhat.normalize_hh_dataframe(data, preferences, global_settings)
+    data = hhat.load_hh_data(preferences, global_settings)
     return data, preferences, global_settings
 
 
@@ -136,23 +125,9 @@ def main(corr_threshold, min_nr_trainvars, step_size):
         cmssw_base,
         'src/machineLearning/machineLearning/info/default_hyperparameters.json'
     )
-    channel_dir = os.path.join(
-        cmssw_base,
-        'src/machineLearning/machineLearning/info',
-        global_settings['process'],
-        global_settings['channel']
-    )
-    if 'nonres' in global_settings['bdtType']:
-        mode = 'nonRes'
-    else:
-        mode = 'res'
-    trainvars_path = os.path.join(channel_dir, mode, 'trainvars.json')
-    all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
-    if not os.path.exists(trainvars_path):
-        shutil.copy(all_trainvars_path, trainvars_path)
     hyperparameters = ut.read_parameters(hyperparameter_file)[0]
     print("Optimizing training variables")
-    trainvars = load_trainvars(all_trainvars_path)
+    trainvars = preferences['trainvars']
     trainvars = drop_highly_currelated_variables(
         data, trainvars, corr_threshold=corr_threshold)
     trainvars = optimization(

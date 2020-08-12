@@ -297,6 +297,8 @@ def PlotInputVar(
     channel = global_settings['channel']
     trainvar = global_settings['trainvar']
     test_masses = preferences['masses_test']
+    if mode =='byNode':
+        test_masses = preferences['nonResScenarios_test']
     mass_list = preferences['masses']
     labelBKG = hhat.BkgLabelMaker(global_settings)
     BDTvariables = preferences['trainvars']

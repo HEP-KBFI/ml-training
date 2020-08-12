@@ -291,6 +291,7 @@ def check_error(output_dir):
                     for error in error_list:
                         if error in line:
                             number_errors += 1
+                            print(error_file)
     # for output_file in glob.glob(output_files):
     #     if os.path.exists(output_file):
     #         with open(output_file, 'rt') as file:

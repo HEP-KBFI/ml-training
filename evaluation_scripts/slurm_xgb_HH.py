@@ -35,21 +35,7 @@ def main(hyperparameter_file, output_dir):
         global_settings['tauID_training'],
         channel_dir
     )
-    data = dlt.load_data(
-        preferences,
-        global_settings
-    )
-    if( "nonres" not in global_settings['bdtType']):
-        dlt.reweigh_dataframe(
-            data,
-            preferences['weight_dir'],
-            preferences['trainvar_info'],
-            ['gen_mHH'],
-            preferences['masses']
-        )
-    elif 'nodeX' not in preferences['trainvars']:
-        preferences['trainvars'].append('nodeX')
-    hhat.normalize_hh_dataframe(data, preferences, global_settings)
+    data = hhat.load_hh_data(preferences, global_settings)
     if bool(global_settings['use_kfold']):
         score = et.kfold_cv(
             xt.model_evaluation_main,
@@ -66,7 +52,6 @@ def main(hyperparameter_file, output_dir):
             global_settings,
             hyperparameters
         )
-        # st.save_prediction_files(pred_train, pred_test, save_dir)
     score_path = os.path.join(save_dir, 'score.json')
     with open(score_path, 'w') as score_file:
         json.dump({global_settings['fitness_fn']: score}, score_file)
