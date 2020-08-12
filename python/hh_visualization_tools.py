@@ -67,7 +67,7 @@ def plot_feature_importances(model, global_settings, addition):
         addition,
         'feature_importances.png'
     )
-    fig.savefig(plot_out)
+    fig.savefig(plot_out, bbox_inces='tight')
 
 
 def plotROC(odd_infos, even_infos, global_settings):
@@ -91,10 +91,45 @@ def plotROC(odd_infos, even_infos, global_settings):
     ax.legend(loc="lower right")
     ax.grid()
     plot_out = os.path.join(output_dir, 'ROC_curve.png')
-    fig.savefig(plot_out)
+    fig.savefig(plot_out, bbox_inces='tight')
     plt.close('all')
 
 
-def plot_correlations(data, trainvars):
-    
+def plot_correlations(data, trainvars, global_settings):
+    output_dir = global_settings['output_dir']
+    classes = [('signal', 1), ('background', 0)]
+    for mode in classes:
+        mode_data = data.loc[data['target' == mode[1]]]
+        plot_single_mode_correlation(mode_data, trainvars, output_dir, mode[0])
+    plot_single_mode_correlation(data, trainvars, output_dir, 'total')
 
+
+def plot_single_mode_correlation(data, trainvars, output_dir, addition):
+    correlations = data[trainvars].corr()
+    plt.matshow(correlations)
+    ticks = np.arange(0, len(trainvars), 1)
+    plt.rc('axes', labelsize=8)
+    plt.xticks(ticks)
+    plt.yticks(ticks)
+    plt.xticklabels(trainvars, rotation=-90)
+    plt.yticklabels(trainvars)
+    plt.colorbar()
+    plot_out = os.path.join(output_dir, str(addition) + '_correlations.png')
+    plt.savefig(plot_out, bbox_inches='tight')
+    plt.close('all')
+
+
+
+
+
+def plot_nodeWise_performance(
+        data, trainvars, prediction,
+        label, global_settings, mode, savefig=False
+):
+    output_dir = global_settings['output_dir']
+    plt.hist(
+        prediction, histtype='step', weights=data['totalWeight'], label=label
+    )
+    if savefig:
+        plot_out = os.path.join(output_dir, mode + '_nodeWisePredictions.png')
+        plt.savefig(plot_out, bbox_inches='tight')

@@ -111,6 +111,38 @@ def model_creation(
     return model
 
 
+def nodeWise_modelPredictions(
+        odd_data, even_data,
+        model_odd, model_even,
+        preferences, label,
+        global_settings,
+):
+    output_dir = global_settings['output_dir']
+    if 'nonres' in global_settings['bdtType']:
+        nodes = preferences['nonResScenarios_test']
+        mode = 'nodeXname'
+    else:
+        nodes = preferences['masses_test']
+        mode = 'gen_mHH'
+    for node in nodes:
+        split_odd_data = odd_data.loc[odd_data[mode] == node]
+        split_even_data = even_data.loc[even_data[mode] == node]
+        odd_infos = list(performance_prediction(
+                odd_model, split_even_data, split_odd_data, global_settings,
+                'odd', preferences
+        ))
+        even_infos = list(performance_prediction(
+                even_model, split_odd_data, split_even_data, global_settings,
+                'even', preferences
+        ))
+        key = '_'.join([mode, node])
+        if node = nodes[-1]:
+            savefig = True
+        else:
+            savefig = False
+
+
+
 def save_pklFile(global_settings, model, addition):
     output_dir = global_settings['output_dir']
     pklFile_path = os.path.join(output_dir, addition + '_model.pkl')
@@ -144,23 +176,18 @@ def performance_prediction(
         'tpr': test_tpr,
         'auc': test_auc,
         'type': 'test',
-        'addition': addition
+        'addition': addition,
+        'prediction': test_predicted_probabilities
     }
     train_info = {
         'fpr': train_fpr,
         'tpr': train_tpr,
         'auc': train_auc,
         'type': 'train',
-        'addition': addition
+        'addition': addition,
+        'prediction': train_predicted_probabilities
     }
     return train_info, test_info
-
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
