@@ -52,21 +52,7 @@ def prepare_data():
         global_settings['tauID_training'],
         mode_dir
     )
-    data = dlt.load_data(
-        preferences,
-        global_settings
-    )
-    if("nonres" not in global_settings['bdtType']):
-        dlt.reweigh_dataframe(
-            data,
-            preferences['weight_dir'],
-            preferences['trainvar_info'],
-            ['gen_mHH'],
-            preferences['masses']
-        )
-    elif 'nodeX' not in preferences['trainvars']:
-        preferences['trainvars'].append('nodeX')
-    hhat.normalize_hh_dataframe(data, preferences, global_settings)
+    data = hhat.load_hh_data(preferences, global_settings)
     return data, preferences, global_settings
 
 
