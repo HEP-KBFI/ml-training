@@ -129,6 +129,31 @@ def normalize_hh_dataframe(
         data.loc[condition_bkg, [weight]] *= bkg_factor
 
 
+def load_hh_data(preferences, global_settings):
+    data = dlt.load_data(
+        preferences,
+        global_settings
+    )
+    for trainvar in preferences['trainvars']:
+        if str(data[trainvar].dtype) == 'object':
+            try:
+                data[trainvar] = data[trainvar].astype(int)
+            except:
+                continue
+    if( "nonres" not in global_settings['bdtType']):
+        dlt.reweigh_dataframe(
+            data,
+            preferences['weight_dir'],
+            preferences['trainvar_info'],
+            ['gen_mHH'],
+            preferences['masses']
+        )
+    elif 'nodeX' not in preferences['trainvars']:
+        preferences['trainvars'].append('nodeX')
+    normalize_hh_dataframe(data, preferences, global_settings)
+    return data
+
+
 def PDfToDMatConverter(
         data,
         trainvars,
