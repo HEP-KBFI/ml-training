@@ -124,22 +124,30 @@ def nodeWise_modelPredictions(
     else:
         nodes = preferences['masses_test']
         mode = 'gen_mHH'
+    nodeWise_performances = []
     for node in nodes:
         split_odd_data = odd_data.loc[odd_data[mode] == node]
+        split_odd_data_sig = split_odd_data.loc[split_odd_data['target'] == 1]
+        split_odd_data_bkg = split_odd_data.loc[split_odd_data['target'] == 0]
         split_even_data = even_data.loc[even_data[mode] == node]
-        odd_infos = list(performance_prediction(
+        split_even_data_sig = split_even_data.loc[split_even_data['target'] == 1]
+        split_even_data_bkg = split_even_data.loc[split_even_data['target'] == 0]
+        odd_info = list(performance_prediction(
                 odd_model, split_even_data, split_odd_data, global_settings,
                 'odd', preferences
         ))
-        even_infos = list(performance_prediction(
+        odd_info = list(performance_prediction(
+                odd_model, split_even_data, split_odd_data, global_settings,
+                'odd', preferences
+        ))
+        odd_info = list(performance_prediction(
                 even_model, split_odd_data, split_even_data, global_settings,
                 'even', preferences
         ))
+
         key = '_'.join([mode, node])
-        if node = nodes[-1]:
-            savefig = True
-        else:
-            savefig = False
+        nodeWise_performances_test.append(odd_infos[0]['performance'])
+
 
 
 
