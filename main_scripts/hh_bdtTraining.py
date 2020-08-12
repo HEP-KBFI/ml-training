@@ -85,6 +85,10 @@ def evaluation_main(global_settings, preferences, hyperparameters):
     hhvt.plot_sampleWise_bdtOutput(
         odd_model, even_data, preferences, global_settings
     )
+    nodeWise_modelPredictions(
+            odd_data, even_data, odd_model, even_model, preferences,
+            global_settings
+    )
 
 
 def create_DMatrix(data, global_settings, preferences):
@@ -114,8 +118,8 @@ def model_creation(
 def nodeWise_modelPredictions(
         odd_data, even_data,
         model_odd, model_even,
-        preferences, label,
-        global_settings,
+        preferences, global_settings,
+        weight='totalWeight'
 ):
     output_dir = global_settings['output_dir']
     if 'nonres' in global_settings['bdtType']:
@@ -125,6 +129,7 @@ def nodeWise_modelPredictions(
         nodes = preferences['masses_test']
         mode = 'gen_mHH'
     nodeWise_performances = []
+    roc_infos = []
     for node in nodes:
         split_odd_data = odd_data.loc[odd_data[mode] == node]
         split_odd_data_sig = split_odd_data.loc[split_odd_data['target'] == 1]
@@ -132,22 +137,53 @@ def nodeWise_modelPredictions(
         split_even_data = even_data.loc[even_data[mode] == node]
         split_even_data_sig = split_even_data.loc[split_even_data['target'] == 1]
         split_even_data_bkg = split_even_data.loc[split_even_data['target'] == 0]
-        odd_info = list(performance_prediction(
+        odd_info_sig = list(performance_prediction(
+                odd_model, split_even_data_sig, split_odd_data_sig,
+                global_settings, 'odd', preferences
+        ))
+        odd_info_bkg = list(performance_prediction(
+                odd_model, split_even_data_bkg, split_odd_data_bkg,
+                global_settings, 'odd', preferences
+        ))
+        odd_total_infos = list(performance_prediction(
                 odd_model, split_even_data, split_odd_data, global_settings,
                 'odd', preferences
         ))
-        odd_info = list(performance_prediction(
-                odd_model, split_even_data, split_odd_data, global_settings,
-                'odd', preferences
-        ))
-        odd_info = list(performance_prediction(
+        even_total_infos = list(performance_prediction(
                 even_model, split_odd_data, split_even_data, global_settings,
                 'even', preferences
         ))
-
-        key = '_'.join([mode, node])
-        nodeWise_performances_test.append(odd_infos[0]['performance'])
-
+        nodeWise_histo_dict = {
+            'sig_test_w': split_even_data_sig[weight],
+            'sig_train_w': split_odd_data_sig[weight],
+            'bkg_test_w': split_even_data_bkg[weight],
+            'bkg_train_w': split_odd_data_bkg[weight],
+            'sig_test': odd_info_sig[1]['prediction'],
+            'sig_train': odd_info_sig[0]['prediction'],
+            'bkg_test': odd_info_bkg[1]['prediction'],
+            'bkg_train': odd_info_bkg[0]['prediction'],
+            'node': node
+        }
+        roc_info = {
+            'even_auc_test': even_total_infos[1]['auc'],
+            'odd_auc_test': odd_total_infos[1]['auc'],
+            'even_auc_train': even_total_infos[0]['auc'],
+            'odd_auc_train': odd_total_infos[0]['auc'],
+            'even_fpr_test': even_total_infos[1]['fpr'],
+            'odd_fpr_test': odd_total_infos[1]['fpr'],
+            'even_fpr_train': even_total_infos[0]['fpr'],
+            'odd_fpr_train': odd_total_infos[0]['fpr'],
+            'even_tpr_test': even_total_infos[1]['tpr'],
+            'odd_tpr_test': odd_total_infos[1]['tpr'],
+            'even_tpr_train': even_total_infos[0]['tpr'],
+            'odd_tpr_train': odd_total_infos[0]['tpr'],
+            'node': node
+        }
+        nodeWise_performances.append(nodeWise_histo_dict)
+        roc_infos.append(roc_info)
+    hhvt.plot_nodeWise_performance(
+        global_settings, nodeWise_histo_dicts, mode)
+    hhvt.plot_nodWise_roc(global_settings, roc_infos, mode)
 
 
 

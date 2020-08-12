@@ -18,7 +18,8 @@ def plot_sampleWise_bdtOutput(
 ):
     output_dir = global_settings['output_dir']
     data_even = data_even.copy()
-    data_even.loc[data_even['process'].str.contains('signal'), ['process']] = 'signal'
+    data_even.loc[
+        data_even['process'].str.contains('signal'), ['process']] = 'signal'
     bkg_predictions = []
     bkg_labels = []
     bkg_weights = []
@@ -119,17 +120,113 @@ def plot_single_mode_correlation(data, trainvars, output_dir, addition):
     plt.close('all')
 
 
-
-
-
 def plot_nodeWise_performance(
-        data, trainvars, prediction,
-        label, global_settings, mode, savefig=False
+        global_settings, nodeWise_histo_dicts, mode
 ):
     output_dir = global_settings['output_dir']
-    plt.hist(
-        prediction, histtype='step', weights=data['totalWeight'], label=label
-    )
-    if savefig:
-        plot_out = os.path.join(output_dir, mode + '_nodeWisePredictions.png')
+    bins = np.linspace(0., 1., 11)
+    bin_centers = 0.5*(bins[1:] + bins[:-1])
+    for nodeWise_histo_dict in nodeWise_histo_dicts:
+        node = nodeWise_histo_dict['node']
+        plot_out = os.path.join(
+            output_dir, mode + '_' + str(node) + '_nodeWisePredictions.png'
+        )
+        ###########################################
+        values = plt.hist(
+            nodeWise_histo_dict['sig_test'],
+            weights=nodeWise_histo_dict['sig_test_w'], bins=bins,
+            histtype='step', ec='o', ls='--', density=True, label='SIG_test'
+        )[0]
+        values_uw = np.histogram(
+            np.array(nodeWise_histo_dict['sig_test'], dtype=float),
+            bins=bins
+        )[0]
+        yerrors = [(np.sqrt(uw)/uw)*w for uw, w in zip(values_uw, values)]
+        plt.errorbar(
+            bin_centers, values, yerr=yerrors, fmt='none', color='o', ec='o',
+            lw=2
+        )
+        ###########################################
+        values = plt.hist(
+            nodeWise_histo_dict['bkg_test'],
+            weights=nodeWise_histo_dict['bkg_test_w'], bins=bins,
+            histtype='step', ec='g', ls='--', density=True, label='BKG_test'
+        )[0]
+        values_uw = np.histogram(
+            np.array(nodeWise_histo_dict['bkg_test'], dtype=float),
+            bins=bins
+        )[0]
+        yerrors = [(np.sqrt(uw)/uw)*w for uw, w in zip(values_uw, values)]
+        plt.errorbar(
+            bin_centers, values, yerr=yerrors, fmt='none', color='g', ec='g',
+            lw=2
+        )
+        ###########################################
+        values = plt.hist(
+            nodeWise_histo_dict['sig_train'],
+            weights=nodeWise_histo_dict['sig_train_w'], bins=bins,
+            histtype='step', ec='r', ls='-', density=True, label='SIG_train'
+        )[0]
+        values_uw = np.histogram(
+            np.array(nodeWise_histo_dict['sig_train'], dtype=float),
+            bins=bins
+        )[0]
+        yerrors = [(np.sqrt(uw)/uw)*w for uw, w in zip(values_uw, values)]
+        plt.errorbar(
+            bin_centers, values, yerr=yerrors, fmt='none', color='r', ec='r',
+            lw=2
+        )
+        ###########################################
+        values = plt.hist(
+            nodeWise_histo_dict['bkg_train'],
+            weights=nodeWise_histo_dict['bkg_train_w'], bins=bins,
+            histtype='step', ec='b', ls='-', density=True, label='BKG_train'
+        )[0]
+        values_uw = np.histogram(
+            np.array(nodeWise_histo_dict['bkg_train'], dtype=float),
+            bins=bins
+        )[0]
+        yerrors = [(np.sqrt(uw)/uw)*w for uw, w in zip(values_uw, values)]
+        plt.errorbar(
+            bin_centers, values, yerr=yerrors, fmt='none', color='b', ec='b',
+            lw=2
+        )
+        ###########################################
+        plt.legend()
         plt.savefig(plot_out, bbox_inches='tight')
+        plt.close('all')
+
+
+def plot_nodewise_roc(global_settings, roc_infos, mode):
+    output_dir = global_settings['output_dir']
+    colors = [('o', 'r'), ('magenta', 'b'), ('k', 'g')]
+    for color, roc_info in zip(colors, roc_infos):
+        node = roc_info['node']
+        plt.plot(
+            roc_info['even_fpr_test'],
+            roc_info['even_tpr_test'],
+            lw=2, ls='--', color=color[0],
+            label='node_' + str(node) + '_evenTrain_oddTest'
+        )
+        plt.plot(
+            roc_info['even_fpr_train'],
+            roc_info['even_tpr_train'],
+            lw=2, ls='-', color=color[0],
+            label='node_' + str(node) + '_evenTrain_evenTest'
+        )
+        plt.plot(
+            roc_info['odd_fpr_test'],
+            roc_info['odd_tpr_test'],
+            lw=2, ls='--', color=color[1],
+            label='node_' + str(node) + '_oddTrain_oddTest'
+        )
+        plt.plot(
+            roc_info['odd_fpr_train'],
+            roc_info['odd_tpr_train'],
+            lw=2, ls='-', color=color[1],
+            label='node_' + str(node) + '_oddTrain_evenTest'
+        )
+    plot_out = os.path.join(output_dir, 'nodeWiseROC_performance.png')
+    plt.legend()
+    plt.savefig(plot_out, bbox_inches='tight')
+    plt.close('all')
