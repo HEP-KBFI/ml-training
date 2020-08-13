@@ -28,12 +28,9 @@ def plot_sampleWise_bdtOutput(
         if process == 'signal':
             continue
         process_data = data_even.loc[data_even['process'] == process]
-        process_DMatrix = xgb.DMatrix(
-            process_data[preferences['trainvars']],
-            nthread=global_settings['nthread'],
-            feature_names=preferences['trainvars'],
+        process_prediction = model_odd.predict_proba(
+            process_data[preferences['trainvars']]
         )
-        process_prediction = model_odd.predict(process_DMatrix)
         bkg_predictions.append(process_prediction)
         bkg_labels.append(process)
         bkg_weights.append(np.array(process_data[weight]))
@@ -43,12 +40,9 @@ def plot_sampleWise_bdtOutput(
         alpha=1, stacked=True, density=True
     )
     process_data = data_even.loc[data_even['process'] == process]
-    process_DMatrix = xgb.DMatrix(
-        process_data[preferences['trainvars']],
-        nthread=global_settings['nthread'],
-        feature_names=preferences['trainvars'],
+    process_prediction = model_odd.predict_proba(
+        process_data[preferences['trainvars']]
     )
-    process_prediction = model_odd.predict(process_DMatrix)
     plt.hist(
         process_prediction, histtype='step', label=str(process),
         lw=2, ec='k', weights=np.array(process_data['totalWeight']),

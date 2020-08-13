@@ -24,10 +24,11 @@ def main(pklFile):
             print('pklData loaded')
     except IOError:
         print('IOError when loading pklData from the file')
-    features = pklData.feature_names
+    bst = pklData.get_booster()
+    features = bst.feature_names
     bdtModel = ct.BDTxgboost(pklData, features, ['Background', 'Signal'])
     bdtModel.to_tmva(xmlFile)
-    print('BDT model saved to ' + str(xmlFile))
+    print('.xml BDT model saved to ' + str(xmlFile))
 
 
 if __name__ == '__main__':

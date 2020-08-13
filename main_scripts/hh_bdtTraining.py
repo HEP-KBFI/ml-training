@@ -106,9 +106,10 @@ def create_DMatrix(data, global_settings, preferences):
 def model_creation(
         data, hyperparameters, preferences, global_settings, addition
 ):
-    dtrain = create_DMatrix(data, global_settings, preferences)
+    data_dict = {'train': data, 'trainvars': preferences['trainvars']}
     model = xt.create_model(
-        hyperparameters, dtrain, global_settings['nthread']
+        hyperparameters, data_dict, global_settings['nthread'],
+        objective='auc', weight='totalWeight'
     )
     save_pklFile(global_settings, model, addition)
     hhvt.plot_feature_importances(model, global_settings, addition)
@@ -199,15 +200,15 @@ def performance_prediction(
         model, test_data, train_data, global_settings,
         addition, preferences
 ):
-    dtest = create_DMatrix(test_data, global_settings, preferences)
-    dtrain = create_DMatrix(train_data, global_settings, preferences)
-    test_predicted_probabilities = model.predict(dtest)
+    test_predicted_probabilities = model.predict_proba(
+        test_data[preferences['trainvars']])[:,1]
     test_fpr, test_tpr, test_thresholds = roc_curve(
         test_data['target'].astype(int),
         predicted_probabilities,
         sampel_weight=test_data['totalWeight'].astype(float)
     )
-    train_predicted_probabilities = model.predict(dtrain)
+    train_predicted_probabilities = model.predict_proba(
+        train_data[preferences['trainvars']])[:,1]
     train_fpr, train_tpr, train_thresholds = roc_curve(
         train_data['target'].astype(int),
         predicted_probabilities,

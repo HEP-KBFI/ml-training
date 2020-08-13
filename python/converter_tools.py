@@ -197,7 +197,6 @@ def xgbtree_to_nodetree(tree):
         if match is not None:
             node_index = int(match.group(1))
             node_variable, threshold = match.group(2).split("<")
-            node_variable = int(node_variable.replace("f", ""))
             threshold = float(threshold)
             is_node = True
         match = _LEAFPAT.match(node.strip())

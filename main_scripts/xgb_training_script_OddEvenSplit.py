@@ -362,36 +362,8 @@ def Evaluate(
     XGBClassifier object
     '''
     PlotLabel = label
-    data_dict = {
-        'trainvars': trainvars,
-        'train': train,
-        'test': test,
-        'traindataset': np.array(train[trainvars].values),
-        'testdataset': np.array(test[trainvars].values),
-        'training_labels': train['target'].astype(int),
-        'testing_labels': test['target'].astype(int),
-        'weight_train': np.array(train[weights].values),
-        'weight_test': np.array(test[weights].values),
-    }
     nthread = global_settings['nthread']
     num_class = global_settings['num_classes']
-
-    dtrain = xgb.DMatrix(
-        np.array(data_dict['train'][trainvars].values),
-        label=data_dict['train']['target'].astype(int),
-        nthread=nthread,
-        feature_names=trainvars,
-        weight=np.array(data_dict['train'][weights].values)
-    )
-    dtest = xgb.DMatrix(
-        np.array(data_dict['test'][trainvars].values),
-        label=data_dict['test']['target'].astype(int),
-        nthread=nthread,
-        feature_names=trainvars,
-        weight=np.array(data_dict['test'][weights].values)
-    )
-    data_dict['dtrain'] = dtrain
-    data_dict['dtest'] = dtest
     model = xt.create_model(
         hyperparameters[0],
         dtrain,
@@ -416,7 +388,7 @@ def Evaluate(
         print('No .pkl file will be saved')
 
     if(makePlots):
-        proba_train = model.predict(data_dict['dtrain'])
+        proba_train = model.predict_proba(train[trainvars])[:,1]
         fpr, tpr, thresholds_train = roc_curve(
             train['target'].astype(np.bool),
             proba_train,
@@ -430,7 +402,7 @@ def Evaluate(
                      'train_auc': train_auc
         }]
         print('XGBoost train set auc - {}'.format(train_auc))
-        proba_test = model.predict(data_dict['dtest'])
+        proba_test = model.predict_proba(test[trainvars])[:,1]
         fprt, tprt, thresholds_test = roc_curve(
             test['target'].astype(np.bool),
             proba_test,

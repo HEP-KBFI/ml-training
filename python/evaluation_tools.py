@@ -46,13 +46,7 @@ def kfold_cv(
         data_dict = {
             'trainvars': trainvars,
             'train': train,
-            'test': test,
-            'traindataset': np.array(train[trainvars].values),
-            'testdataset': np.array(test[trainvars].values),
-            'training_labels': train['target'].astype(int),
-            'testing_labels': test['target'].astype(int),
-            'train_weights': train[weight].astype(float),
-            'test_weights': test[weight].astype(float)
+            'test': test
         }
         score = evaluation(hyperparameters, data_dict, global_settings)[0]
         scores.append(score)
@@ -102,12 +96,6 @@ def get_evaluation(
         'trainvars': trainvars,
         'train': train,
         'test': test,
-        'traindataset': np.array(train[trainvars].values),
-        'testdataset': np.array(test[trainvars].values),
-        'training_labels': train['target'].astype(int),
-        'testing_labels': test['target'].astype(int),
-        'train_weights': train[weight].astype(float),
-        'test_weights': test[weight].astype(float)
     }
     score, pred_train, pred_test = evaluation(
         hyperparameters, data_dict, global_settings)
