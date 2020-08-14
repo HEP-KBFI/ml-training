@@ -64,6 +64,7 @@ def create_model(
         hyperparameters, data_dict, nthread,
         objective, weight
 ):
+    train_data = data_dict['train']
     sum_wpos = sum(train_data.loc[train_data['target'] == 1, weight])
     sum_wneg = sum(train_data.loc[train_data['target'] == 0, weight])
     parameters = {

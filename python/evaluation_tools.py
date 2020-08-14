@@ -139,9 +139,8 @@ def calculate_auc(data_dict, prediction, data_class, weights):
     [weights] : str
         [Default: 'totalWeight'] data label to be used as the weight.
     '''
-    data_type = 'd' + data_class
-    labels = np.array(data_dict[data_type].get_label()).astype(int)
-    weights = np.array(data_dict[data_type].get_weight()).astype(float)
+    labels = np.array(data_dict[data_class]['target']).astype(int)
+    weights = np.array(data_dict[data_class]['totalWeight']).astype(float)
     fpr, tpr, thresholds_train = skm.roc_curve(
         labels,
         prediction,
