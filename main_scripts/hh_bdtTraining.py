@@ -31,6 +31,10 @@ def main(output_dir, settings_dir, hyperparameter_file):
         output_dir = global_settings['output_dir']
     else:
         global_settings['output_dir'] = output_dir
+    if 'nonres' in global_settings['bdtType']:
+        mode = 'nonRes'
+    else:
+        mode = 'res'
     channel_dir = os.path.join(
         os.path.expandvars('$CMSSW_BASE'),
         'src/machineLearning/machineLearning/info',
@@ -45,7 +49,7 @@ def main(output_dir, settings_dir, hyperparameter_file):
     )
     if hyperparameter_file == 'None':
         hyperparameter_file = os.path.join(channel_dir, 'hyperparameters.json')
-    hyperparameters = ut.read_parameters(hyperparas_file)[0]
+    hyperparameters = ut.read_parameters(hyperparameter_file)[0]
     evaluation_main(global_settings, preferences, hyperparameters)
 
 
