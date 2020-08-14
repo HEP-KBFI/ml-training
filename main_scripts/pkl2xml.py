@@ -3,7 +3,7 @@ Call with 'python'
 
 Usage:
     pkl2xml.py
-    pkl2xml.py [--pklFile=PTH --logFile=PTH]
+    pkl2xml.py [--pklFile=PTH]
 
 Options:
     -i --pklFile=PTH         .pkl file to be converted [default: None]
