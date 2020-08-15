@@ -59,8 +59,7 @@ def plot_feature_importances(model, global_settings, addition):
     xgb.plot_importance(model, max_num_features=50, height=0.8, ax=ax)
     plot_out = os.path.join(
         global_settings['output_dir'],
-        addition,
-        'feature_importances.png'
+        addition + '_feature_importances.png'
     )
     fig.savefig(plot_out, bbox_inces='tight')
 

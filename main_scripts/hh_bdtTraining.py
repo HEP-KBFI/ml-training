@@ -19,6 +19,11 @@ from machineLearning.machineLearning import hh_aux_tools as hhat
 from machineLearning.machineLearning import xgb_tools as xt
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
+import numpy as np
+try:
+    import cPickle
+except:
+    import pickle
 
 
 def main(output_dir, settings_dir, hyperparameter_file):
@@ -196,12 +201,11 @@ def nodeWise_modelPredictions(
     hhvt.plot_nodWise_roc(global_settings, roc_infos, mode)
 
 
-
 def save_pklFile(global_settings, model, addition):
     output_dir = global_settings['output_dir']
     pklFile_path = os.path.join(output_dir, addition + '_model.pkl')
     with open(pklFile_path, 'wb') as pklFile:
-        pickel.dump(model, pklFile)
+        pickle.dump(model, pklFile)
     print('.pkl file saved to: ' + str(pklFile_path))
 
 
