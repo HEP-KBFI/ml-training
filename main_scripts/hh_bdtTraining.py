@@ -21,7 +21,7 @@ from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 import numpy as np
 try:
-    import cPickle
+    import cPickle as pickle
 except:
     import pickle
 
