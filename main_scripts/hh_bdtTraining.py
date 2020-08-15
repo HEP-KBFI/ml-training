@@ -14,6 +14,7 @@ import os
 import docopt
 from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning import universal_tools as ut
+from machineLearning.machineLearning import hh_visualization_tools as hhvt
 from machineLearning.machineLearning import hh_aux_tools as hhat
 from machineLearning.machineLearning import xgb_tools as xt
 from sklearn.metrics import roc_curve
@@ -31,6 +32,10 @@ def main(output_dir, settings_dir, hyperparameter_file):
         output_dir = global_settings['output_dir']
     else:
         global_settings['output_dir'] = output_dir
+    global_settings['output_dir'] = os.path.expandvars(
+        global_settings['output_dir'])
+    if not os.path.exists(global_settings['output_dir']):
+        os.makedirs(global_settings['output_dir'])
     if 'nonres' in global_settings['bdtType']:
         mode = 'nonRes'
     else:
@@ -56,7 +61,7 @@ def main(output_dir, settings_dir, hyperparameter_file):
 def split_data(global_settings, preferences):
     print('============ Starting evaluation ============')
     data = hhat.load_hh_data(preferences, global_settings)
-    hhvt.plot_correlations(data, preferences['trainvars'])
+    hhvt.plot_correlations(data, preferences['trainvars'], global_settings)
     keysNotToSplit = []
     if ('3l_1tau' in global_settings['channel']):
         keysNotToSplit = ['WZTo', 'DY']

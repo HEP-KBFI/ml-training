@@ -94,24 +94,28 @@ def plot_correlations(data, trainvars, global_settings):
     output_dir = global_settings['output_dir']
     classes = [('signal', 1), ('background', 0)]
     for mode in classes:
-        mode_data = data.loc[data['target' == mode[1]]]
+        mode_data = data.loc[data['target'] == mode[1]]
         plot_single_mode_correlation(mode_data, trainvars, output_dir, mode[0])
     plot_single_mode_correlation(data, trainvars, output_dir, 'total')
 
 
 def plot_single_mode_correlation(data, trainvars, output_dir, addition):
     correlations = data[trainvars].corr()
-    plt.matshow(correlations)
+    fig = plt.figure(figsize=(10, 10))
+    ax = fig.add_subplot(111)
+    cax = ax.matshow(correlations, vmin=-1, vmax=1)
     ticks = np.arange(0, len(trainvars), 1)
     plt.rc('axes', labelsize=8)
-    plt.xticks(ticks)
-    plt.yticks(ticks)
-    plt.xticklabels(trainvars, rotation=-90)
-    plt.yticklabels(trainvars)
-    plt.colorbar()
+    ax.set_xticks(ticks)
+    ax.set_yticks(ticks)
+    ax.set_xticklabels(trainvars, rotation=-90)
+    ax.set_yticklabels(trainvars)
+    fig.colorbar(cax)
+    fig.tight_layout()
     plot_out = os.path.join(output_dir, str(addition) + '_correlations.png')
     plt.savefig(plot_out, bbox_inches='tight')
     plt.close('all')
+
 
 
 def plot_nodeWise_performance(
