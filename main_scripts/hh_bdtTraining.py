@@ -132,7 +132,7 @@ def model_creation(
 
 def nodeWise_modelPredictions(
         odd_data, even_data,
-        model_odd, model_even,
+        odd_model, even_model,
         preferences, global_settings,
         weight='totalWeight'
 ):
