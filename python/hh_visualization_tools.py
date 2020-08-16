@@ -8,7 +8,6 @@ import os
 import xgboost as xgb
 
 
-
 def plot_sampleWise_bdtOutput(
         model_odd,
         data_even,
@@ -28,25 +27,26 @@ def plot_sampleWise_bdtOutput(
         if process == 'signal':
             continue
         process_data = data_even.loc[data_even['process'] == process]
-        process_prediction = model_odd.predict_proba(
+        process_prediction = np.array(model_odd.predict_proba(
             process_data[preferences['trainvars']]
-        )
-        bkg_predictions.append(process_prediction)
-        bkg_labels.append(process)
-        bkg_weights.append(np.array(process_data[weight]))
+        )[:,1])
+        weights = np.array(process_data[weight])
+        prediction = weights * process_prediction
+        bkg_predictions.append(prediction)
+        bkg_labels.append(str(process))
     plt.hist(
         bkg_predictions, histtype='bar', label=bkg_labels,
-        lw=2, weights=bkg_weights, bins=bins,
-        alpha=1, stacked=True, density=True
+        lw=2, bins=bins, alpha=1, stacked=True, density=True
     )
-    process_data = data_even.loc[data_even['process'] == process]
-    process_prediction = model_odd.predict_proba(
+    process_data = data_even.loc[data_even['process'] == 'signal']
+    process_prediction = np.array(model_odd.predict_proba(
         process_data[preferences['trainvars']]
-    )
+    )[:,1])
+    weights = np.array(process_data['totalWeight'])
+    process_prediction = process_prediction * weights
     plt.hist(
-        process_prediction, histtype='step', label=str(process),
-        lw=2, ec='k', weights=np.array(process_data['totalWeight']),
-        alpha=1, density=True, bins=bins
+        process_prediction, histtype='step', label='signal',
+        lw=2, ec='k', alpha=1, density=True, bins=bins
     )
     plt.legend()
     output_path = os.path.join(output_dir, 'sampleWise_bdtOutput.png')
@@ -75,7 +75,7 @@ def plotROC(odd_infos, even_infos, global_settings):
         )
     for even_info, linestyle in zip(even_infos, linestyles):
         ax.plot(
-            even_info['fpr'], even_info['tpr'], ls=linestyle, color='g',
+            even_info['fpr'], even_info['tpr'], ls=linestyle, color='r',
             label='even_' + even_info['type'] + 'AUC = ' + str(even_info['auc'])
         )
     ax.set_ylim([0.0, 1.0])
@@ -132,7 +132,7 @@ def plot_nodeWise_performance(
         values = plt.hist(
             nodeWise_histo_dict['sig_test'],
             weights=nodeWise_histo_dict['sig_test_w'], bins=bins,
-            histtype='step', ec='o', ls='--', density=True, label='SIG_test'
+            histtype='step', ec='orange', ls='--', density=True, label='SIG_test'
         )[0]
         values_uw = np.histogram(
             np.array(nodeWise_histo_dict['sig_test'], dtype=float),
@@ -140,7 +140,7 @@ def plot_nodeWise_performance(
         )[0]
         yerrors = [(np.sqrt(uw)/uw)*w for uw, w in zip(values_uw, values)]
         plt.errorbar(
-            bin_centers, values, yerr=yerrors, fmt='none', color='o', ec='o',
+            bin_centers, values, yerr=yerrors, fmt='none', color='orange', ec='orange',
             lw=2
         )
         ###########################################
@@ -194,9 +194,9 @@ def plot_nodeWise_performance(
         plt.close('all')
 
 
-def plot_nodewise_roc(global_settings, roc_infos, mode):
+def plot_nodeWise_roc(global_settings, roc_infos, mode):
     output_dir = global_settings['output_dir']
-    colors = [('o', 'r'), ('magenta', 'b'), ('k', 'g')]
+    colors = [('orange', 'r'), ('magenta', 'b'), ('k', 'g')]
     for color, roc_info in zip(colors, roc_infos):
         node = roc_info['node']
         plt.plot(

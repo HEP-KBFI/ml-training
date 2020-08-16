@@ -197,8 +197,8 @@ def nodeWise_modelPredictions(
         nodeWise_performances.append(nodeWise_histo_dict)
         roc_infos.append(roc_info)
     hhvt.plot_nodeWise_performance(
-        global_settings, nodeWise_histo_dicts, mode)
-    hhvt.plot_nodWise_roc(global_settings, roc_infos, mode)
+        global_settings, nodeWise_performances, mode)
+    hhvt.plot_nodeWise_roc(global_settings, roc_infos, mode)
 
 
 def save_pklFile(global_settings, model, addition):
