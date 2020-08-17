@@ -46,13 +46,7 @@ def kfold_cv(
         data_dict = {
             'trainvars': trainvars,
             'train': train,
-            'test': test,
-            'traindataset': np.array(train[trainvars].values),
-            'testdataset': np.array(test[trainvars].values),
-            'training_labels': train['target'].astype(int),
-            'testing_labels': test['target'].astype(int),
-            'train_weights': train[weight].astype(float),
-            'test_weights': test[weight].astype(float)
+            'test': test
         }
         score = evaluation(hyperparameters, data_dict, global_settings)[0]
         scores.append(score)
@@ -102,12 +96,6 @@ def get_evaluation(
         'trainvars': trainvars,
         'train': train,
         'test': test,
-        'traindataset': np.array(train[trainvars].values),
-        'testdataset': np.array(test[trainvars].values),
-        'training_labels': train['target'].astype(int),
-        'testing_labels': test['target'].astype(int),
-        'train_weights': train[weight].astype(float),
-        'test_weights': test[weight].astype(float)
     }
     score, pred_train, pred_test = evaluation(
         hyperparameters, data_dict, global_settings)
@@ -151,9 +139,8 @@ def calculate_auc(data_dict, prediction, data_class, weights):
     [weights] : str
         [Default: 'totalWeight'] data label to be used as the weight.
     '''
-    data_type = 'd' + data_class
-    labels = np.array(data_dict[data_type].get_label()).astype(int)
-    weights = np.array(data_dict[data_type].get_weight()).astype(float)
+    labels = np.array(data_dict[data_class]['target']).astype(int)
+    weights = np.array(data_dict[data_class]['totalWeight']).astype(float)
     fpr, tpr, thresholds_train = skm.roc_curve(
         labels,
         prediction,

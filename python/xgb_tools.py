@@ -60,65 +60,30 @@ def prepare_run_params(value_dicts, sample_size):
     return run_params
 
 
-def create_model(hyperparameters, dtrain, nthread):
-    label = dtrain.get_label()
-    weight = dtrain.get_weight()
-    sum_wpos = sum(weight[i] for i in range(len(label)) if label[i] == 1.0)
-    sum_wneg = sum(weight[i] for i in range(len(label)) if label[i] == 0.0)
+def create_model(
+        hyperparameters, data_dict, nthread,
+        objective, weight
+):
+    train_data = data_dict['train']
+    sum_wpos = sum(train_data.loc[train_data['target'] == 1, weight])
+    sum_wneg = sum(train_data.loc[train_data['target'] == 0, weight])
     parameters = {
         'objective': 'binary:logistic',
         'scale_pos_weight': sum_wneg/sum_wpos,
-        'eval_metric': 'auc',
+        'eval_metric': objective,
         'silent': 1,
         'nthread': nthread
     }
-    watchlist = [(dtrain,'train')]
-    hyp_copy = hyperparameters.copy()
-    num_boost_round = hyp_copy.pop('num_boost_round')
-    parameters.update(hyp_copy)
-    parameters = list(parameters.items())+[('eval_metric', 'ams@0.15')]
-    model = xgb.train(
-        parameters,
-        dtrain,
-        num_boost_round,
-        watchlist,
-        verbose_eval=False
+    train_data = data_dict['train']
+    trainvars = data_dict['trainvars']
+    parameters.update(hyperparameters)
+    classifier = xgb.XGBClassifier(**parameters)
+    model = classifier.fit(
+        train_data[trainvars],
+        train_data['target'],
+        sample_weight=train_data[weight]
     )
     return model
-
-
-def create_xgb_data_dict(data_dict, nthread):
-    '''Creates the data_dict for the XGBoost method
-
-    Parameters:
-    ----------
-    data_dict : dict
-        Contains some of the necessary information for the evaluation.
-    nthread : int
-        Number of threads to be used
-
-    Returns:
-    -------
-    data_dict : dict
-        Contains all the necessary information for the evaluation.
-    '''
-    dtrain = xgb.DMatrix(
-        data_dict['traindataset'],
-        label=data_dict['training_labels'],
-        nthread=nthread,
-        feature_names=data_dict['trainvars'],
-        weight=data_dict['train_weights']
-    )
-    dtest = xgb.DMatrix(
-        data_dict['testdataset'],
-        label=data_dict['testing_labels'],
-        nthread=nthread,
-        feature_names=data_dict['trainvars'],
-        weight=data_dict['test_weights']
-    )
-    data_dict['dtrain'] = dtrain
-    data_dict['dtest'] = dtest
-    return data_dict
 
 
 def evaluate_model(data_dict, global_settings, model):
@@ -138,8 +103,9 @@ def evaluate_model(data_dict, global_settings, model):
     score : float
         The score calculated according to the fitness_fn
     '''
-    pred_train = model.predict(data_dict['dtrain'])
-    pred_test = model.predict(data_dict['dtest'])
+    trainvars = data_dict['trainvars']
+    pred_train = model.predict_proba(data_dict['train'][trainvars])[:,1]
+    pred_test = model.predict_proba(data_dict['test'][trainvars])[:,1]
     kappa = global_settings['kappa']
     if global_settings['fitness_fn'] == 'd_roc':
         score = et.calculate_d_roc(
@@ -148,11 +114,19 @@ def evaluate_model(data_dict, global_settings, model):
         score = et.calculate_d_ams(
             pred_train, pred_test, data_dict, kappa=kappa)
     else:
-        print('This fitness_fn is not implemented')
+        print('The' + str(global_settings['fitness_fn']) + \
+            ' fitness_fn is not implemented'
+        )
     return score, pred_train, pred_test
 
 
-def model_evaluation_main(hyperparameters, data_dict, global_settings):
+def model_evaluation_main(
+        hyperparameters,
+        data_dict,
+        global_settings,
+        objective='auc',
+        weight='totalWeight'
+):
     ''' Collected functions for CGB model evaluation
 
     Parameters:
@@ -169,12 +143,9 @@ def model_evaluation_main(hyperparameters, data_dict, global_settings):
     score : float
         The score calculated according to the fitness_fn
     '''
-    data_dict = create_xgb_data_dict(
-        data_dict, global_settings['nthread']
-    )
     model = create_model(
-        hyperparameters, data_dict['dtrain'],
-        global_settings['nthread']
+        hyperparameters, data_dict, global_settings['nthread'], objective,
+        weight
     )
     score, pred_train, pred_test = evaluate_model(
         data_dict, global_settings, model)

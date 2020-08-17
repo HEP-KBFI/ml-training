@@ -1,4 +1,4 @@
-{"parameter": "num_boost_round", "min": 1, "max": 500, "int": 1, "exp": 0}
+{"parameter": "n_estimators", "min": 1, "max": 500, "int": 1, "exp": 0}
 {"parameter": "learning_rate", "min": -5, "max": 0, "int": 0, "exp": 1}
 {"parameter": "max_depth", "min": 1, "max": 10, "int": 1, "exp": 0}
 {"parameter": "gamma", "min": 0, "max": 5, "int": 0, "exp": 0}
