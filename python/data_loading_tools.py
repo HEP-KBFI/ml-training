@@ -189,12 +189,10 @@ def data_main_loop(
         channel_in_tree, 'sel/evtntuple', sample_name, 'evtTree'))
     paths = get_all_paths(input_path, folder_name, bdt_type)
     for path in paths:
-        node_x = 'NonNode'
         if 'nonres' in bdt_type and 'nonresonant' in path:
             target = 1
             sample_name = 'HH_nonres_decay'
             input_tree = create_input_tree_path(path, channel_in_tree)
-            node_x = get_node_nr(path)
         print('Loading from: ' + path)
         tree, tfile = read_root_tree(path, input_tree)
         data = load_data_from_tfile(
@@ -209,7 +207,6 @@ def data_main_loop(
             nonResScenarios,
             data,
             variables,
-            node_x
         )
     return data
 
@@ -226,7 +223,6 @@ def load_data_from_tfile(
         nonResScenarios,
         data,
         variables,
-        node_x
 ):
     ''' Loads data from the ROOT TTree.
 
@@ -252,8 +248,6 @@ def load_data_from_tfile(
         All the loaded data will be appended there.
     variables : list
         List of training variables to be used.
-    node_x : str
-        Name of the node. Used with HH_nonres type bdtType
 
     Returns:
     -------
@@ -281,7 +275,6 @@ def load_data_from_tfile(
                 nonResScenarios,
                 data,
                 variables,
-                node_x
             )
     else:
         tfile.Close()
@@ -300,7 +293,6 @@ def define_new_variables(
         nonResScenarios,
         data,
         variables,
-        node_x
 ):
     ''' Defines new variables based on the old ones that can be used in the
     training
@@ -324,8 +316,6 @@ def define_new_variables(
         Which kind of mass randomization to use: "default" or "oversampling"
     data : pandas DataFrame
         All the loaded data will be appended there.
-    node_x : str
-        Name of the node. Used with HH_nonres type bdtType
 
     Returns:
     -------
@@ -336,8 +326,6 @@ def define_new_variables(
     chunk_df['key'] = folder_name
     chunk_df['target'] = int(target)
     chunk_df['totalWeight'] = chunk_df['evtWeight']
-    if "nonores" in bdt_type:
-        chunk_df['nodeX'] = node_x
     if "HH_bb2l" in bdt_type:
         chunk_df["max_dR_b_lep"] = chunk_df[
             ["dR_b1lep1", "dR_b2lep1", "dR_b2lep1", "dR_b2lep2"]
@@ -391,6 +379,8 @@ def define_new_variables(
             chunk_df_node = chunk_df.copy()
             scenario = nonResScenarios[i]
             chunk_df_node['nodeX'] = i
+            for idx, node in enumerate(nonResScenarios):
+                chunk_df_node[node] = 1 if idx == i else 0
             chunk_df_node['nodeXname'] = scenario
             if target == 1:
                 if scenario is not "SM":
@@ -938,31 +928,6 @@ def print_columns(to_print):
     for one, two in zip(l1, l2):
         print('{0:<45s} {1}'.format(one, two))
     print('-----------------------------------')
-
-
-def get_node_nr(path):
-    '''Extracts the node number from the path. For 'hh_nonres type.
-
-    Parameters:
-    ----------
-    path : str
-        Path to the file
-
-    Returns:
-    -------
-    node_name : str
-        Name for the node (under nodeX in the pandas dataframe)
-    '''
-    filename = os.path.basename(path)
-    filename_elements = filename.split('_')
-    try:
-        index = filename_elements.index('node')
-        node_name = '_'.join(
-            [filename_elements[index], filename_elements[index + 1]]
-        )
-    except ValueError:
-        node_name = filename
-    return node_name
 
 
 def create_input_tree_path(filename, channel_in_tree):

@@ -2,7 +2,7 @@
 Hyperparameter optimization with Particle Swarm Optimization for HH/ttH analysis
 Call with 'python'
 
-Usage: xgb_pso.py
+Usage: hyperparameterOptimization.py
 '''
 from machineLearning.machineLearning import slurm_tools as st
 from machineLearning.machineLearning import pso_tools as pt

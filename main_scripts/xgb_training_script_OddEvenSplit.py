@@ -218,7 +218,7 @@ def main(hyperparas_file, output_dir, skipInterpolStudy, settingsFolder):
             output_dir,
             Even_df,
             Odd_df,
-            BDTvariables,
+            preferences,
             global_settings,
             hyperparameters,
             savePKL=True,
@@ -230,7 +230,7 @@ def main(hyperparas_file, output_dir, skipInterpolStudy, settingsFolder):
             output_dir,
             Odd_df,
             Even_df,
-            BDTvariables,
+            preferences,
             global_settings,
             hyperparameters,
             savePKL=True,
@@ -326,7 +326,7 @@ def Evaluate(
         output_dir,
         train,
         test,
-        trainvars,
+        preferences,
         global_settings,
         hyperparameters,
         savePKL=False,
@@ -361,6 +361,7 @@ def Evaluate(
     --------
     XGBClassifier object
     '''
+    trainvars = preferences['trainvars']
     PlotLabel = label
     data_dict = {
         'trainvars': trainvars,
@@ -448,7 +449,8 @@ def Evaluate(
         # --- PLOTTING FEATURE IMPORTANCES AND ROCs ---#
         hhat.PlotFeaturesImportance(
             output_dir,
-            global_settings['channel'],
+            global_settings,
+            preferences,
             model,
             label=PlotLabel
         )
