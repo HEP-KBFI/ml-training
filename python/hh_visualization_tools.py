@@ -31,22 +31,21 @@ def plot_sampleWise_bdtOutput(
             process_data[preferences['trainvars']]
         )[:,1])
         weights = np.array(process_data[weight])
-        prediction = weights * process_prediction
-        bkg_predictions.append(prediction)
+        bkg_weights.append(weights)
+        bkg_predictions.append(process_prediction)
         bkg_labels.append(str(process))
     plt.hist(
-        bkg_predictions, histtype='bar', label=bkg_labels,
-        lw=2, bins=bins, alpha=1, stacked=True, density=True
+        bkg_predictions, histtype='bar', label=bkg_labels, lw=2, bins=bins,
+        weights=bkg_weights, alpha=1, stacked=True, density=True
     )
     process_data = data_even.loc[data_even['process'] == 'signal']
     process_prediction = np.array(model_odd.predict_proba(
         process_data[preferences['trainvars']]
     )[:,1])
     weights = np.array(process_data['totalWeight'])
-    process_prediction = process_prediction * weights
     plt.hist(
         process_prediction, histtype='step', label='signal',
-        lw=2, ec='k', alpha=1, density=True, bins=bins
+        lw=2, ec='k', alpha=1, density=True, bins=bins, weights=weights
     )
     plt.legend()
     output_path = os.path.join(output_dir, 'sampleWise_bdtOutput.png')
@@ -224,6 +223,7 @@ def plot_nodeWise_roc(global_settings, roc_infos, mode):
             label='node_' + str(node) + '_oddTrain_evenTest'
         )
     plot_out = os.path.join(output_dir, 'nodeWiseROC_performance.png')
+    plt.grid()
     plt.legend()
     plt.savefig(plot_out, bbox_inches='tight')
     plt.close('all')
