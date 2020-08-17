@@ -923,7 +923,8 @@ def MakeTHStack(
 
 def PlotFeaturesImportance(
         output_dir,
-        channel,
+        global_settings,
+        preferences,
         model,
         label=""
 ):
@@ -942,11 +943,36 @@ def PlotFeaturesImportance(
     -----------
     Nothing
     '''
-    fig, ax = plt.subplots(figsize=(12, 18))
-    xgb.plot_importance(model, max_num_features=50, height=0.8, ax=ax)
+    channel = global_settings['channel']
     nameout = "{}/{}_{}_InputVar_Importance.pdf".format(
         output_dir, channel, label)
-    fig.savefig(nameout)
+    if 'nonres' in global_settings['bdtType']:
+        booster = model.get_booster()
+        feature_importances = booster.feature_importances()
+        keys = feature_importances.keys()
+        nonResScenarios = preferences['nonResScenarios']
+        elements_BM = 0
+        for nonRes_scenario in preferences['nonResScenarios']:
+            elements_BM += feature_importances[nonRes_scenario]
+        feature_importances['sumBM'] = sumBM
+        for key in feature_immportances.keys():
+            if key in nonResScenarios:
+                feature_importances.pop(key)
+        # ORDER THE DICT!!
+        plt.bar(
+            range(len(feature_importances)),
+            list(feature_importances.values()),
+            align='center'
+        )
+        plt.xticks(
+            range(len(feature_importances)),
+            list(feature_importances.keys())
+        )
+        plt.savefig(nameout, bbox_inces='tight')
+    else:
+        xgb.plot_importance(model, max_num_features=50, height=0.8, ax=ax)
+        fig, ax = plt.subplots(figsize=(12, 18))
+        fig.savefig(nameout)
 
 
 def getPred(data, trainvars, nthread, targetName, weightsName, estimator):
