@@ -11,7 +11,6 @@ Options:
     -s --step_size=INT              Number of trainvars dropped per iteration [default: 5]
 
 '''
-
 from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_aux_tools as hhat
@@ -23,6 +22,7 @@ from pathlib import Path
 import shutil
 import os
 import json
+
 
 def prepare_data():
     cmssw_base = os.path.expandvars('$CMSSW_BASE')
@@ -57,8 +57,8 @@ def prepare_data():
 
 
 def optimization(
-        data, hyperparameters, trainvars,
-        global_settings, min_nr_trainvars, step_size
+        data, hyperparameters, trainvars, global_settings,
+        min_nr_trainvars, step_size, preferences
 ):
     while len(trainvars) > min_nr_trainvars:
         dtrain = create_dtrain(data, trainvars, global_settings['nthread'])
@@ -67,21 +67,58 @@ def optimization(
             global_settings['nthread'],
         )
         trainvars = drop_worst_performing_ones(
-            model, trainvars, step_size, min_nr_trainvars
+            model, trainvars, step_size, min_nr_trainvars, global_settings,
+            preferences
         )
     return trainvars
 
 
-def drop_worst_performing_ones(model, trainvars, step_size, min_nr_trainvars):
-    if len(trainvars) < (min_nr_trainvars + step_size):
-        step_size = len(trainvars) - min_nr_trainvars
+def drop_worst_performing_ones(
+        model, trainvars, step_size, min_nr_trainvars,
+        global_settings, preferences
+):
     feature_importances = model.get_fscore()
-    keys = np.array(feature_importances.keys())
-    values = np.array(feature_importances.values())
-    index = np.argpartition(values, step_size)[:step_size]
-    n_worst_performing = keys[index]
-    for element in n_worst_performing:
-        trainvars.remove(element)
+    if 'nonres' in global_settings['bdtType']:
+        BM_in_trainvars = False
+        for nonRes_scenario in preferences['nonResScenarios']:
+            if nonRes_scenario in trainvars:
+                BM_in_trainvars = True
+                break
+        if BM_in_trainvars:
+            for nonRes_scenario in preferences['nonResScenarios']:
+                trainvars.remove(nonRes_scenario)
+            trainvars.append('sumBM')
+            keys = np.array(feature_importances.keys())
+            keys = [key if key not in preferences['nonResScenarios'] for key in keys]
+            keys.append('sumBM')
+            sumBM = sum(
+                [feature_importances[key] if key in \
+                preferences['nonResScenarios'] for key in keys]
+            )
+            feature_importances['sumBM'] = sumBM
+            values = [feature_importances[key] for key in keys]
+            if len(trainvars) < (min_nr_trainvars + step_size):
+                step_size = len(trainvars) - min_nr_trainvars
+            index = np.argpartition(values, step_size)[:step_size]
+            n_worst_performing = keys[index]
+            for element in n_worst_performing:
+                if element == 'sumBM':
+                    print('Removing benchmark scenarios')
+                    for nonRes_scenario in preferences['nonResScenarios']:
+                        trainvars.remove(nonRes_scenario)
+                else:
+                    trainvars.remove(element)
+    else:
+        if len(trainvars) < (min_nr_trainvars + step_size):
+            step_size = len(trainvars) - min_nr_trainvars
+        feature_importances = model.get_fscore()
+        keys = np.array(feature_importances.keys())
+        values = np.array(feature_importances.values())
+        index = np.argpartition(values, step_size)[:step_size]
+        n_worst_performing = keys[index]
+        for element in n_worst_performing:
+            print('Removing ' + str(element))
+            trainvars.remove(element)
     return trainvars
 
 
@@ -128,12 +165,30 @@ def main(corr_threshold, min_nr_trainvars, step_size):
     hyperparameters = ut.read_parameters(hyperparameter_file)[0]
     print("Optimizing training variables")
     trainvars = preferences['trainvars']
+    trainvars, preferences = check_trainvars_integrity(trainvars, global_settings)
     trainvars = drop_highly_currelated_variables(
         data, trainvars, corr_threshold=corr_threshold)
     trainvars = optimization(
-        data, hyperparameters, trainvars,
-        global_settings, min_nr_trainvars=min_nr_trainvars, step_size=step_size)
+        data, hyperparameters, trainvars, global_settings,
+        min_nr_trainvars=min_nr_trainvars, step_size=step_size, preferences)
     save_optimized_trainvars(trainvars, preferences, trainvars_path)
+
+
+def check_trainvars_integrity(trainvars, preferences, global_settings):
+    if 'nonres' in global_settings['bdtType']:
+        for nonRes_scenario in preferences['nonResScenarios']:
+            if nonRes_scenario not in trainvars:
+                trainvars.append(nonRes_scenario)
+                preferences['trainvar_info'].append(
+                    {'key': nonRes_scenario, 'true_int': 1}
+                )
+    else:
+        if 'gen_mHH' not in trainvars:
+            trainvars.append('gen_mHH')
+            preferences['trainvar_info'].append(
+                {'key': 'gen_mHH', 'true_int': 1}
+            )
+    return trainvars, preferences
 
 
 def save_optimized_trainvars(trainvars, preferences, outpath):
