@@ -53,7 +53,7 @@ def prepare_data():
         mode_dir
     )
     data = hhat.load_hh_data(preferences, global_settings)
-    return data, preferences, global_settings
+    return data, preferences, global_settings, trainvars_path
 
 
 def optimization(
@@ -119,7 +119,7 @@ def load_trainvars(all_trainvars_path):
 
 
 def main(corr_threshold, min_nr_trainvars, step_size):
-    data, preferences, global_settings = prepare_data()
+    data, preferences, global_settings, trainvars_path = prepare_data()
     cmssw_base = os.path.expandvars('$CMSSW_BASE')
     hyperparameter_file = os.path.join(
         cmssw_base,
