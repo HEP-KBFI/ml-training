@@ -110,10 +110,10 @@ def drop_worst_performing_ones(
                     print('Removing ' + str(element))
                     trainvars.remove(element)
         else:
-            remove_nonBM_trainvars(
+            trainvars = remove_nonBM_trainvars(
                 trainvars, min_nr_trainvars, step_size, feature_importances)
     else:
-        remove_nonBM_trainvars(
+        trainvars = remove_nonBM_trainvars(
             trainvars, min_nr_trainvars, step_size, feature_importances)
     return trainvars
 
@@ -185,6 +185,7 @@ def update_trainvars(trainvars, preferences, global_settings):
     else:
         if 'gen_mHH' not in trainvars:
             trainvars.append('gen_mHH')
+    return trainvars
 
 
 def check_trainvars_integrity(trainvars, preferences, global_settings):
