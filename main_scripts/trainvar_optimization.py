@@ -60,11 +60,11 @@ def optimization(
         data, hyperparameters, trainvars, global_settings,
         min_nr_trainvars, step_size, preferences
 ):
+    data_dict = {'train': data, 'trainvars': trainvars}
     while len(trainvars) > min_nr_trainvars:
-        dtrain = create_dtrain(data, trainvars, global_settings['nthread'])
         model = xt.create_model(
-            hyperparameters, dtrain,
-            global_settings['nthread'],
+            hyperparameters, data_dict, global_settings['nthread'],
+            'auc', 'totalWeight'
         )
         trainvars = drop_worst_performing_ones(
             model, trainvars, step_size, min_nr_trainvars, global_settings,
@@ -86,19 +86,21 @@ def drop_worst_performing_ones(
                 BM_in_trainvars = True
                 break
         if BM_in_trainvars:
-            feature_keys = np.array(feature_importances.keys())
-            elements_BM = 0
-            keys = feature_keys.copy()
+            keys = list(feature_importances.keys())
+            sumBM = 0
             for nonRes_scenario in preferences['nonResScenarios']:
-                elements_BM += feature_importances[nonRes_scenario]
-                keys.remove(nonRes_scenario)
+                try:
+                    sumBM += feature_importances[nonRes_scenario]
+                    keys.remove(nonRes_scenario)
+                except KeyError:
+                    continue
             keys.append('sumBM')
             feature_importances['sumBM'] = sumBM
             values = [feature_importances[key] for key in keys]
             if len(keys) < (min_nr_trainvars + step_size):
                 step_size = len(trainvars) - min_nr_trainvars
             index = np.argpartition(values, step_size)[:step_size]
-            n_worst_performing = keys[index]
+            n_worst_performing = np.array(keys)[index]
             for element in n_worst_performing:
                 if element == 'sumBM':
                     print('Removing benchmark scenarios')
@@ -118,17 +120,6 @@ def drop_worst_performing_ones(
             print('Removing ' + str(element))
             trainvars.remove(element)
     return trainvars
-
-
-def create_dtrain(data, trainvars, nthread):
-    dtrain = xgb.DMatrix(
-        data[trainvars],
-        label=data['target'],
-        nthread=nthread,
-        feature_names=trainvars,
-        weight=data['totalWeight']
-    )
-    return dtrain
 
 
 def drop_highly_currelated_variables(data, trainvars_initial, corr_threshold):
@@ -162,14 +153,15 @@ def main(corr_threshold, min_nr_trainvars, step_size):
     )
     hyperparameters = ut.read_parameters(hyperparameter_file)[0]
     print("Optimizing training variables")
-    trainvars = preferences['trainvars']
+    trainvars = list(preferences['trainvars'])
     trainvars, preferences = check_trainvars_integrity(
         trainvars, preferences, global_settings)
     trainvars = drop_highly_currelated_variables(
         data, trainvars, corr_threshold=corr_threshold)
     trainvars = optimization(
         data, hyperparameters, trainvars, global_settings,
-        min_nr_trainvars, step_size, preferences)
+        min_nr_trainvars, step_size, preferences
+    )
     save_optimized_trainvars(trainvars, preferences, trainvars_path)
 
 
