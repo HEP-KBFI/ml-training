@@ -548,15 +548,10 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
     Nothing
     '''
     info_dir, global_settings = get_info_dir()
-    if 'nonres' in global_settings['bdtType']:
-        mode = 'nonRes'
-    else:
-        mode = 'res'
     preferences = dlt.get_hh_parameters(
         global_settings['channel'],
         global_settings['tauID_training'],
-        info_dir,
-        mode
+        info_dir
     )
     if create_info:
         create_histo_dict(info_dir)
