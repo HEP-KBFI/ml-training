@@ -173,7 +173,18 @@ def main(corr_threshold, min_nr_trainvars, step_size):
         data, hyperparameters, trainvars, global_settings,
         min_nr_trainvars, step_size, preferences
     )
+    trainvars = update_trainvars(trainvars, preferences, global_settings)
     save_optimized_trainvars(trainvars, preferences, trainvars_path)
+
+
+def update_trainvars(trainvars, preferences, global_settings):
+    if 'nonres' in global_settings['bdtType']:
+        for scenario in preferences['nonResScenarios']:
+            if scenario not in trainvars:
+                trainvars.append(scenario)
+    else:
+        if 'gen_mHH' not in trainvars:
+            trainvars.append('gen_mHH')
 
 
 def check_trainvars_integrity(trainvars, preferences, global_settings):
