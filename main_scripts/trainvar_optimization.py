@@ -123,6 +123,8 @@ def remove_nonBM_trainvars(
 ):
     if len(trainvars) < (min_nr_trainvars + step_size):
         step_size = len(trainvars) - min_nr_trainvars
+    print(step_size)
+    print(len(trainvars))
     keys = np.array(feature_importances.keys())
     values = np.array(feature_importances.values())
     index = np.argpartition(values, step_size)[:step_size]
@@ -185,6 +187,7 @@ def update_trainvars(trainvars, preferences, global_settings):
     else:
         if 'gen_mHH' not in trainvars:
             trainvars.append('gen_mHH')
+    return trainvars
 
 
 def check_trainvars_integrity(trainvars, preferences, global_settings):
