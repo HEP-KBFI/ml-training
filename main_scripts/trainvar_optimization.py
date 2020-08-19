@@ -109,16 +109,27 @@ def drop_worst_performing_ones(
                 else:
                     print('Removing ' + str(element))
                     trainvars.remove(element)
+        else:
+            remove_nonBM_trainvars(
+                trainvars, min_nr_trainvars, step_size, feature_importances)
     else:
-        if len(trainvars) < (min_nr_trainvars + step_size):
-            step_size = len(trainvars) - min_nr_trainvars
-        keys = np.array(feature_importances.keys())
-        values = np.array(feature_importances.values())
-        index = np.argpartition(values, step_size)[:step_size]
-        n_worst_performing = keys[index]
-        for element in n_worst_performing:
-            print('Removing ' + str(element))
-            trainvars.remove(element)
+        remove_nonBM_trainvars(
+            trainvars, min_nr_trainvars, step_size, feature_importances)
+    return trainvars
+
+
+def remove_nonBM_trainvars(
+        trainvars, min_nr_trainvars, step_size, feature_importances
+):
+    if len(trainvars) < (min_nr_trainvars + step_size):
+        step_size = len(trainvars) - min_nr_trainvars
+    keys = np.array(feature_importances.keys())
+    values = np.array(feature_importances.values())
+    index = np.argpartition(values, step_size)[:step_size]
+    n_worst_performing = keys[index]
+    for element in n_worst_performing:
+        print('Removing ' + str(element))
+        trainvars.remove(element)
     return trainvars
 
 

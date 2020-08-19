@@ -54,7 +54,7 @@ def plot_sampleWise_bdtOutput(
 
 
 def plot_feature_importances(model, global_settings, addition):
-    fig, ax = plt.subplots(figsize=(12, 18))
+    fig, ax = plt.subplots()
     xgb.plot_importance(model, max_num_features=50, height=0.8, ax=ax)
     plot_out = os.path.join(
         global_settings['output_dir'],
