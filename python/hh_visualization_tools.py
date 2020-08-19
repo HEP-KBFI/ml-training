@@ -36,7 +36,7 @@ def plot_sampleWise_bdtOutput(
         bkg_labels.append(str(process))
     plt.hist(
         bkg_predictions, histtype='bar', label=bkg_labels, lw=2, bins=bins,
-        weights=bkg_weights, alpha=1, stacked=True, density=True
+        weights=bkg_weights, alpha=1, stacked=True, normed=True
     )
     process_data = data_even.loc[data_even['process'] == 'signal']
     process_prediction = np.array(model_odd.predict_proba(
@@ -45,7 +45,7 @@ def plot_sampleWise_bdtOutput(
     weights = np.array(process_data['totalWeight'])
     plt.hist(
         process_prediction, histtype='step', label='signal',
-        lw=2, ec='k', alpha=1, density=True, bins=bins, weights=weights
+        lw=2, ec='k', alpha=1, normed=True, bins=bins, weights=weights
     )
     plt.legend()
     output_path = os.path.join(output_dir, 'sampleWise_bdtOutput.png')
@@ -131,7 +131,7 @@ def plot_nodeWise_performance(
         values = plt.hist(
             nodeWise_histo_dict['sig_test'],
             weights=nodeWise_histo_dict['sig_test_w'], bins=bins,
-            histtype='step', ec='orange', ls='--', density=True, label='SIG_test'
+            histtype='step', ec='orange', ls='--', normed=True, label='SIG_test'
         )[0]
         values_uw = np.histogram(
             np.array(nodeWise_histo_dict['sig_test'], dtype=float),
@@ -146,7 +146,7 @@ def plot_nodeWise_performance(
         values = plt.hist(
             nodeWise_histo_dict['bkg_test'],
             weights=nodeWise_histo_dict['bkg_test_w'], bins=bins,
-            histtype='step', ec='g', ls='--', density=True, label='BKG_test'
+            histtype='step', ec='g', ls='--', normed=True, label='BKG_test'
         )[0]
         values_uw = np.histogram(
             np.array(nodeWise_histo_dict['bkg_test'], dtype=float),
@@ -161,7 +161,7 @@ def plot_nodeWise_performance(
         values = plt.hist(
             nodeWise_histo_dict['sig_train'],
             weights=nodeWise_histo_dict['sig_train_w'], bins=bins,
-            histtype='step', ec='r', ls='-', density=True, label='SIG_train'
+            histtype='step', ec='r', ls='-', normed=True, label='SIG_train'
         )[0]
         values_uw = np.histogram(
             np.array(nodeWise_histo_dict['sig_train'], dtype=float),
@@ -176,7 +176,7 @@ def plot_nodeWise_performance(
         values = plt.hist(
             nodeWise_histo_dict['bkg_train'],
             weights=nodeWise_histo_dict['bkg_train_w'], bins=bins,
-            histtype='step', ec='b', ls='-', density=True, label='BKG_train'
+            histtype='step', ec='b', ls='-', normed=True, label='BKG_train'
         )[0]
         values_uw = np.histogram(
             np.array(nodeWise_histo_dict['bkg_train'], dtype=float),

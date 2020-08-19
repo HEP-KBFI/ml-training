@@ -110,10 +110,10 @@ def drop_worst_performing_ones(
                     print('Removing ' + str(element))
                     trainvars.remove(element)
         else:
-            remove_nonBM_trainvars(
+            trainvars = remove_nonBM_trainvars(
                 trainvars, min_nr_trainvars, step_size, feature_importances)
     else:
-        remove_nonBM_trainvars(
+        trainvars = remove_nonBM_trainvars(
             trainvars, min_nr_trainvars, step_size, feature_importances)
     return trainvars
 

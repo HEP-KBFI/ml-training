@@ -105,18 +105,6 @@ def evaluation_main(global_settings, preferences, hyperparameters):
     )
 
 
-def create_DMatrix(data, global_settings, preferences):
-    trainvars = preferences['trainvars']
-    dMatrix = xgb.DMatrix(
-        data[trainvars],
-        label=data['target'],
-        nthread=global_settings['nthread'],
-        feature_names=trainvars,
-        weight=data['totalWeight']
-    )
-    return dMatrix
-
-
 def model_creation(
         data, hyperparameters, preferences, global_settings, addition
 ):
