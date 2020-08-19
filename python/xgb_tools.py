@@ -74,7 +74,6 @@ def create_model(
         'silent': 1,
         'nthread': nthread
     }
-    train_data = data_dict['train']
     trainvars = data_dict['trainvars']
     parameters.update(hyperparameters)
     classifier = xgb.XGBClassifier(**parameters)
