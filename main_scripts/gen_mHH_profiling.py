@@ -325,7 +325,7 @@ def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
     trainvars = list(get_all_trainvars(info_dir))
     if 'gen_mHH' in trainvars:
         trainvars.remove('gen_mHH')
-    masses = find_masses(info_dir, global_settings, masses_type)
+    masses = find_masses(masses_type)
     histo_dicts_json = os.path.join(info_dir, 'histo_dict.json')
     histo_dicts = ut.read_parameters(histo_dicts_json)
     for trainvar in trainvars:
@@ -337,7 +337,7 @@ def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
         filename = '_'.join(['TProfile_signal_fit_func', str(trainvar)])
         out_file = os.path.join(weight_dir, filename + '.root')
         fit_function = 'fitFunction_' + str(trainvar)
-        masses = find_masses(info_dir, global_settings, masses_type)
+        masses = find_masses(masses_type)
         mass_min = min(masses)
         mass_max = max(masses)
         print('Fitfunction: ' + fit_function)
@@ -490,7 +490,7 @@ def plotting_main(
     --------
     Nothing
     '''
-    masses = find_masses(info_dir, global_settings, masses_type)
+    masses = find_masses(masses_type)
     histo_dicts_json = os.path.join(info_dir, 'histo_dict.json')
     histo_dicts = ut.read_parameters(histo_dicts_json)
     histo_dict = dlt.find_correct_dict(
