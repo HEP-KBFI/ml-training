@@ -23,35 +23,6 @@ from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import data_loading_tools as dlt
 
 
-def get_info_dir():
-    ''' Gets info directory path and returns it together with the global
-    settings
-
-    Parameters:
-    ----------
-    None
-
-    Returns:
-    -------
-    info_dir : str
-        Path to the info directory of the specified channel
-    '''
-    package_dir = os.path.join(
-        os.path.expandvars('$CMSSW_BASE'),
-        'src/machineLearning/machineLearning/'
-    )
-    settings_dir = os.path.join(package_dir, 'settings')
-    global_settings = ut.read_settings(settings_dir, 'global')
-    channel = global_settings['channel']
-    process = global_settings['process']
-    if 'nonres' in global_settings['bdtType']:
-        mode = 'nonRes'
-    else:
-        mode = 'res'
-    info_dir = os.path.join(package_dir, 'info', process, channel, mode)
-    return info_dir, global_settings
-
-
 def get_all_trainvars(info_dir):
     ''' Reads the trainvars from the provided info dir
 
@@ -547,7 +518,7 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
     --------
     Nothing
     '''
-    info_dir, global_settings = get_info_dir()
+    info_dir, global_settings = ut.find_settings()
     preferences = dlt.get_hh_parameters(
         global_settings['channel'],
         global_settings['tauID_training'],

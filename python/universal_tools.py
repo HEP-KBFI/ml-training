@@ -71,43 +71,26 @@ def save_run_settings(output_dir):
     for path in glob.glob(wild_card_path):
         shutil.copy(path, settings_dir)
 
-def save_info_settings(output_dir, global_settings):
+def save_info_settings(output_dir):
     '''Saves the info settings for future reference
 
     Parameters:
     ----------
     output_dir : str
         Path to the output directory
-    global_settings : str
-        Path to the global_settings directory
+
     Returns:
     -------
     Nothing
     '''
-    info_dir = os.path.join(output_dir, 'run_info')
-    if not os.path.exists(info_dir):
-        os.makedirs(info_dir)
-    if 'nonres' in global_settings['bdtType']:
-        mode = 'nonRes'
-    else:
-        mode = 'res'
-    wild_card_path = os.path.join(
-        os.path.expandvars('$CMSSW_BASE'),
-        'src/machineLearning/machineLearning/info/',
-        global_settings['process'],
-        global_settings['channel'],
-        mode,
-        "*"
-    )
-    all_trainvars_path = os.path.join(
-        os.path.expandvars('$CMSSW_BASE'),
-        'src/machineLearning/machineLearning/info/',
-        global_settings['process'],
-        global_settings['channel'],
-        'all_trainvars.json'
-    )
+    channel_dir, info_dir, global_settings = find_settings()
+    run_info = os.path.join(output_dir, 'run_info')
+    if not os.path.exists(run_info):
+        os.makedirs(run_info)
+    wild_card_path = os.path.join(info_dir, "*")
+    all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
     for path in glob.glob(wild_card_path):
-        shutil.copy(path, info_dir)
+        shutil.copy(path, run_info)
     shutil.copy(all_trainvars_path, output_dir)
 
 
@@ -225,3 +208,38 @@ def _decode_dict(data):
             value = _decode_dict(value)
         rv[key] = value
     return rv
+
+
+def find_settings():
+    ''' Gets info directory path and returns it together with the global
+    settings
+
+    Parameters:
+    ----------
+    None
+
+    Returns:
+    -------
+    channel_dir : str
+        Path to the global channel directory
+    info_dir : str
+        Path to the info directory of the specified channel
+    global_settings: dict
+        global settings for the training
+    '''
+    package_dir = os.path.join(
+        os.path.expandvars('$CMSSW_BASE'),
+        'src/machineLearning/machineLearning/'
+    )
+    settings_dir = os.path.join(package_dir, 'settings')
+    global_settings = read_settings(settings_dir, 'global')
+    channel = global_settings['channel']
+    process = global_settings['process']
+    if 'nonres' in global_settings['bdtType']:
+        mode = 'nonRes'
+    else:
+        spinCase = global_settings['spinCase']
+        mode = '/'.join(['res', spinCase])
+    channel_dir = os.path.join(package_dir, 'info', process, channel)
+    info_dir =  os.path.join(channel_dir, mode)
+    return channel_dir, info_dir, global_settings
