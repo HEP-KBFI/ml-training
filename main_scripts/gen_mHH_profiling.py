@@ -377,7 +377,7 @@ def get_fit_function(histo_dict, masses_type):
     return poly_order
 
 
-def find_masses(info_dir, global_settings, masses_type):
+def find_masses(masses_type):
     ''' Finds the masses to be used in the fit
 
     Parameters:
@@ -394,8 +394,9 @@ def find_masses(info_dir, global_settings, masses_type):
     masses : list
         List of masses to be used.
     '''
+    channel_dir, info_dir, global_settings = ut.find_settings()
     preferences = dlt.get_hh_parameters(
-        global_settings['channel'],
+        channel_dir,
         global_settings['tauID_training'],
         info_dir
     )
@@ -518,9 +519,9 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
     --------
     Nothing
     '''
-    info_dir, global_settings = ut.find_settings()
+    channel_dir, info_dir, global_settings = ut.find_settings()
     preferences = dlt.get_hh_parameters(
-        global_settings['channel'],
+        channel_dir,
         global_settings['tauID_training'],
         info_dir
     )

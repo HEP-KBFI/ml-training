@@ -29,11 +29,13 @@ def main(hyperparameter_file, output_dir):
     path = Path(hyperparameter_file)
     save_dir = str(path.parent)
     hyperparameters = ut.read_parameters(hyperparameter_file)[0]
+    addition = ut.create_infoPath_addition(global_settings)
     channel_dir = os.path.join(output_dir, 'run_info')
+    info_dir = os.path.join(channel_dir, addition)
     preferences = dlt.get_hh_parameters(
-        global_settings['channel'],
+        channel_dir,
         global_settings['tauID_training'],
-        channel_dir
+        info_dir
     )
     data = dlt.load_data(
         preferences['inputPath'],

@@ -30,7 +30,7 @@ def prepare_data():
     all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
     shutil.copy(all_trainvars_path, trainvars_path)
     preferences = dlt.get_hh_parameters(
-        global_settings['channel'],
+        channel_dir,
         global_settings['tauID_training'],
         info_dir
     )

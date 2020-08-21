@@ -71,8 +71,9 @@ def save_run_settings(output_dir):
     for path in glob.glob(wild_card_path):
         shutil.copy(path, settings_dir)
 
-def save_info_settings(output_dir):
-    '''Saves the info settings for future reference
+
+def save_info_dir(output_dir):
+    '''Saves the info dir for future reference
 
     Parameters:
     ----------
@@ -87,11 +88,7 @@ def save_info_settings(output_dir):
     run_info = os.path.join(output_dir, 'run_info')
     if not os.path.exists(run_info):
         os.makedirs(run_info)
-    wild_card_path = os.path.join(info_dir, "*")
-    all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
-    for path in glob.glob(wild_card_path):
-        shutil.copy(path, run_info)
-    shutil.copy(all_trainvars_path, output_dir)
+    shutil.copytree(channel_dir, run_info)
 
 
 def read_parameters(param_file):
@@ -235,11 +232,16 @@ def find_settings():
     global_settings = read_settings(settings_dir, 'global')
     channel = global_settings['channel']
     process = global_settings['process']
+    mode = create_infoPath_addition(global_settings)
+    channel_dir = os.path.join(package_dir, 'info', process, channel)
+    info_dir =  os.path.join(channel_dir, mode)
+    return channel_dir, info_dir, global_settings
+
+
+def create_infoPath_addition(global_settings):
     if 'nonres' in global_settings['bdtType']:
         mode = 'nonRes'
     else:
         spinCase = global_settings['spinCase']
         mode = '/'.join(['res', spinCase])
-    channel_dir = os.path.join(package_dir, 'info', process, channel)
-    info_dir =  os.path.join(channel_dir, mode)
-    return channel_dir, info_dir, global_settings
+    return mode

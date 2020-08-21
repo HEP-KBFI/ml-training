@@ -699,19 +699,19 @@ def reweigh_dataframe(
 
 
 def get_hh_parameters(
-        channel,
+        channel_dir,
         tau_id_training,
-        channel_dir
+        info_dir
 ):
     '''Reads the parameters for HH data loading
 
     Parameters:
     ----------
-    channel : str
-        The name of the channel (e.g. 2l_2tau)
+    channel_dir : str
+        Path of the whole channel info direcotry
     tau_id_training : str
         Tau ID for training
-    channel_dir : str
+    info_dir : str
         Path to the "info" firectory of the current run
 
     Returns:
@@ -719,14 +719,12 @@ def get_hh_parameters(
     parameters : dict
         The necessary info for loading data
     '''
-    whole_channel_dir = Path(channel_dir)
-    whole_channel_dir = str(whole_channel_dir.parent)
-    info_path = os.path.join(channel_dir, 'info.json')
-    keys_path = os.path.join(channel_dir, 'keys.json')
+    info_path = os.path.join(info_dir, 'info.json')
+    keys_path = os.path.join(info_dir, 'keys.json')
     tau_id_application_path = os.path.join(
-        channel_dir, 'tauID_application.json')
-    tau_id_training_path = os.path.join(channel_dir, 'tauID_training.json')
-    trainvars_path = os.path.join(channel_dir, 'trainvars.json')
+        info_dir, 'tauID_application.json')
+    tau_id_training_path = os.path.join(info_dir, 'tauID_training.json')
+    trainvars_path = os.path.join(info_dir, 'trainvars.json')
     info_dict = ut.read_multiline_json_to_dict(info_path)
     tau_id_trainings = ut.read_parameters(tau_id_training_path)
     tau_id_applications = ut.read_parameters(tau_id_application_path)
@@ -740,7 +738,7 @@ def get_hh_parameters(
     parameters['keys'] = load_era_keys(keys_path)
     trainvar_info = read_trainvar_info(trainvars_path)
     parameters['trainvars'] = list(trainvar_info.keys())
-    all_trainvars_path = os.path.join(whole_channel_dir, 'all_trainvars.json')
+    all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
     all_trainvar_info = read_trainvar_info(all_trainvars_path)
     parameters['trainvar_info'] = all_trainvar_info
     parameters.update(info_dict)

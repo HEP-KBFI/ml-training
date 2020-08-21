@@ -41,9 +41,9 @@ def main(output_dir, settings_dir, hyperparameter_file):
         global_settings['output_dir'])
     if not os.path.exists(global_settings['output_dir']):
         os.makedirs(global_settings['output_dir'])
-    info_dir = ut.find_settings()[1]
+    channel_dir, info_dir, _ = ut.find_settings()
     preferences = dlt.get_hh_parameters(
-        global_settings['channel'],
+        channel_dir,
         global_settings['tauID_training'],
         info_dir
     )

@@ -23,7 +23,7 @@ def main():
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
     ut.save_run_settings(output_dir)
-    ut.save_info_settings(output_dir, global_settings)
+    ut.save_info_dir(output_dir, global_settings)
     print("::::::: Reading parameters :::::::")
     param_file = os.path.join(
         settings_dir,
