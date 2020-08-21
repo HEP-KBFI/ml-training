@@ -618,131 +618,40 @@ def signal_background_calc(data, bdt_type, folder_name):
     -------
     Nothing
     '''
-    if len(data) == 0:
-        print('Error: No data (!!!)')
-    if 'evtLevelSUM_HH_bb2l' in bdt_type and folder_name == 'TTTo2L2Nu':
-        data.drop(data.tail(6000000).index, inplace=True)
-    elif 'evtLevelSUM_HH_bb1l' in bdt_type:
-        if folder_name == 'TTToSemiLeptonic_PSweights':
-            data.drop(data.tail(24565062).index, inplace=True)
-        if folder_name == 'TTTo2L2Nu_PSweights':
-            data.drop(data.tail(11089852).index, inplace=True)  # 12089852
-        if folder_name.find('signal') != -1:
-            if folder_name.find('900') == -1 and folder_name.find('1000') == -1:
-                data.drop(data.tail(15000).index, inplace=True)
-            if bdt_type.find('nonres') != -1:
-                data.drop(data.tail(20000).index, inplace=True)
-        elif folder_name == 'W':
-            data.drop(data.tail(2933623).index, inplace=True)
-    nS = len(
-        data.loc[(data.target.values == 1) & (data.key.values == folder_name)])
-    nB = len(
-        data.loc[(data.target.values == 0) & (data.key.values == folder_name)])
-    nNW = len(
-        data.loc[
-            (data['totalWeight'].values < 0) & (
-                data.key.values == folder_name)])
-    print('Signal: ' + str(nS))
-    print('Background: ' + str(nB))
-    print('Event weight: ' + str(data.loc[
-            (data.key.values == folder_name)]['evtWeight'].sum()))
-    print('Total data weight: ' + str(data.loc[
-            (data.key.values == folder_name)]['totalWeight'].sum()))
-    print('events with -ve weights: ' + str(nNW))
-    print(':::::::::::::::::')
-
-
-def reweigh_dataframe(
-        data,
-        weight_files_dir,
-        trainvar_info,
-        cancelled_trainvars,
-        masses,
-        skip_int_vars=True
-):
-    '''Reweighs the dataframe
-
-    Parameters:
-    ----------
-    data : pandas Dataframe
-        Data to be reweighed
-    weighed_files_dir : str
-        Path to the directory where the reweighing files are
-    trainvar_info : dict
-        Dictionary containing trainvar info (e.g is the trainvar supposed to
-        be an integer or not)
-    cancelled_trainvars :list
-        list of trainvars not to include
-    masses : list
-        list of masses
-
-    Returns:
-    -------
-    Nothing
-    '''
-    trainvars = list(trainvar_info.keys())
-    for trainvar in trainvars:
-        if trainvar in cancelled_trainvars:
-            continue
-        filename = '_'.join(['TProfile_signal_fit_func', trainvar]) + '.root'
-        file_path = os.path.join(weight_files_dir, filename)
-        tfile = ROOT.TFile.Open(file_path)
-        fit_function_name = '_'.join(['fitFunction', trainvar])
-        function = tfile.Get(fit_function_name)
-        if bool(trainvar_info[trainvar]) and skip_int_vars:
-            data[trainvar] = data[trainvar].astype(int)
-            continue
-        for mass in masses:
+    try:
+        if 'evtLevelSUM_HH_bb2l' in bdt_type and folder_name == 'TTTo2L2Nu':
+            data.drop(data.tail(6000000).index, inplace=True)
+        elif 'evtLevelSUM_HH_bb1l' in bdt_type:
+            if folder_name == 'TTToSemiLeptonic_PSweights':
+                data.drop(data.tail(24565062).index, inplace=True)
+            if folder_name == 'TTTo2L2Nu_PSweights':
+                data.drop(data.tail(11089852).index, inplace=True)  # 12089852
+            if folder_name.find('signal') != -1:
+                if folder_name.find('900') == -1 and folder_name.find('1000') == -1:
+                    data.drop(data.tail(15000).index, inplace=True)
+                if bdt_type.find('nonres') != -1:
+                    data.drop(data.tail(20000).index, inplace=True)
+            elif folder_name == 'W':
+                data.drop(data.tail(2933623).index, inplace=True)
+        nS = len(
+            data.loc[(data.target.values == 1) & (data.key.values == folder_name)])
+        nB = len(
+            data.loc[(data.target.values == 0) & (data.key.values == folder_name)])
+        nNW = len(
             data.loc[
-                data['gen_mHH'] == mass, [trainvar]] /= function.Eval(mass)
-        tfile.Close()
-
-
-def get_hh_parameters(
-        channel_dir,
-        tau_id_training,
-        info_dir
-):
-    '''Reads the parameters for HH data loading
-
-    Parameters:
-    ----------
-    channel_dir : str
-        Path of the whole channel info direcotry
-    tau_id_training : str
-        Tau ID for training
-    info_dir : str
-        Path to the "info" firectory of the current run
-
-    Returns:
-    --------
-    parameters : dict
-        The necessary info for loading data
-    '''
-    info_path = os.path.join(info_dir, 'info.json')
-    keys_path = os.path.join(info_dir, 'keys.json')
-    tau_id_application_path = os.path.join(
-        info_dir, 'tauID_application.json')
-    tau_id_training_path = os.path.join(info_dir, 'tauID_training.json')
-    trainvars_path = os.path.join(info_dir, 'trainvars.json')
-    info_dict = ut.read_multiline_json_to_dict(info_path)
-    tau_id_trainings = ut.read_parameters(tau_id_training_path)
-    tau_id_applications = ut.read_parameters(tau_id_application_path)
-    parameters = find_correct_dict(
-        'tauID_application',
-        info_dict['default_tauID_application'],
-        tau_id_applications
-    )
-    parameters.update(find_input_paths(
-        info_dict, tau_id_trainings, tau_id_training))
-    parameters['keys'] = load_era_keys(keys_path)
-    trainvar_info = read_trainvar_info(trainvars_path)
-    parameters['trainvars'] = list(trainvar_info.keys())
-    all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
-    all_trainvar_info = read_trainvar_info(all_trainvars_path)
-    parameters['trainvar_info'] = all_trainvar_info
-    parameters.update(info_dict)
-    return parameters
+                (data['totalWeight'].values < 0) & (
+                    data.key.values == folder_name)])
+        print('Signal: ' + str(nS))
+        print('Background: ' + str(nB))
+        print('Event weight: ' + str(data.loc[
+                (data.key.values == folder_name)]['evtWeight'].sum()))
+        print('Total data weight: ' + str(data.loc[
+                (data.key.values == folder_name)]['totalWeight'].sum()))
+        print('Events with negative weights: ' + str(nNW))
+        print(':::::::::::::::::')
+    except:
+        if len(data) == 0:
+            print('Error: No data (!!!)')
 
 
 def load_era_keys(keys_path):
@@ -788,53 +697,6 @@ def find_input_paths(
         key = 'inputPath' + era
         input_paths_dict[key] = correct_dict[key]
     return input_paths_dict
-
-
-def get_tth_parameters(channel, bdt_type, channel_dir):
-    '''Reads the parameters for the tth channel
-
-    Parameters:
-    ----------
-    channel : str
-        Name of the channel for which the parameters will be loaded
-    bdt_type : str
-        Name of the bdtType
-    channel_dir : str
-        Path to the "info" directory for the run
-
-    Returns:
-    -------
-    parameters : dict
-        Necessary info for loading and weighing the data
-    '''
-    parameters = {}
-    keys_path = os.path.join(channel_dir, 'keys.txt')
-    info_path = os.path.join(channel_dir, 'info.json')
-    datacard_info_path = os.path.join(channel_dir, 'datacard_info.json')
-    trainvar_path = os.path.join(channel_dir, 'trainvars.txt')
-    htt_var_path = os.path.join(channel_dir, 'HTT_var.txt')
-    dict_list = ut.read_parameters(datacard_info_path)
-    multidict = {}
-    if dict_list != []:
-        for dictionary in dict_list:
-            if bdt_type in dictionary['bdtType']:
-                if multidict == {}:
-                    multidict = dictionary
-                else:
-                    print(
-                        '''Warning: Multiple choices with the
-                        given bdtType. Using %s as bdtType'''
-                        % (multidict['bdtType']))
-        parameters.update(multidict)
-    parameters['HTT_var'] = read_list(htt_var_path)
-    parameters['trainvars'] = read_list(trainvar_path)
-    info_dict = ut.read_multiline_json_to_dict(info_path)
-    if os.path.exists(keys_path):
-        parameters['keys'] = read_list(keys_path)
-    else:
-        print('Error: File %s does not exist. No keys found' % (keys_path))
-    parameters.update(info_dict)
-    return parameters
 
 
 def find_correct_dict(key, value, list_of_dicts):

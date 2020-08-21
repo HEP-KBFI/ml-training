@@ -21,6 +21,7 @@ from ROOT import TCanvas,TProfile, TF1
 from ROOT import TFitResultPtr
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import data_loading_tools as dlt
+from machineLearning.machineLearning import hh_aux_tools as hhat
 
 
 def get_all_trainvars(info_dir):
@@ -395,7 +396,7 @@ def find_masses(masses_type):
         List of masses to be used.
     '''
     channel_dir, info_dir, global_settings = ut.find_settings()
-    preferences = dlt.get_hh_parameters(
+    preferences = hhat.get_hh_parameters(
         channel_dir,
         global_settings['tauID_training'],
         info_dir
@@ -520,7 +521,7 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
     Nothing
     '''
     channel_dir, info_dir, global_settings = ut.find_settings()
-    preferences = dlt.get_hh_parameters(
+    preferences = hhat.get_hh_parameters(
         channel_dir,
         global_settings['tauID_training'],
         info_dir
@@ -539,7 +540,7 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
                 masses_type, global_settings, label='raw'
             )
             try:
-                dlt.reweigh_dataframe(
+                hhat.reweigh_dataframe(
                     data,
                     preferences['weight_dir'],
                     preferences['trainvar_info'],

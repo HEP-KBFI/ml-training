@@ -32,7 +32,7 @@ def main(hyperparameter_file, output_dir):
     addition = ut.create_infoPath_addition(global_settings)
     channel_dir = os.path.join(output_dir, 'run_info')
     info_dir = os.path.join(channel_dir, addition)
-    preferences = dlt.get_hh_parameters(
+    preferences = hhat.get_hh_parameters(
         channel_dir,
         global_settings['tauID_training'],
         info_dir

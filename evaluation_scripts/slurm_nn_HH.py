@@ -32,34 +32,12 @@ def main(hyperparameter_file, output_dir):
     addition = ut.create_infoPath_addition(global_settings)
     channel_dir = os.path.join(output_dir, 'run_info')
     info_dir = os.path.join(channel_dir, addition)
-    preferences = dlt.get_hh_parameters(
+    preferences = hhat.get_hh_parameters(
         channel_dir,
         global_settings['tauID_training'],
         info_dir
     )
-    data = dlt.load_data(
-        preferences['inputPath'],
-        preferences['channelInTree'],
-        preferences['trainvars'],
-        global_settings['bdtType'],
-        global_settings['channel'],
-        preferences['keys'],
-        preferences['masses'],
-        global_settings['bkg_mass_rand'],
-    )
-    if( "nonres" not in global_settings['bdtType']):
-        dlt.reweigh_dataframe(
-            data,
-            preferences['weight_dir'],
-            preferences['trainvar_info'],
-            ['gen_mHH'],
-            preferences['masses']
-        )
-    elif 'nodeX' not in preferences['trainvars']:
-        preferences['trainvars'].append('nodeX')
-
-
-    hhat.normalize_hh_dataframe(data, preferences, global_settings)
+    data = hhat.load_hh_data(preferences, global_settings)
     if bool(global_settings['use_kfold']):
         score = et.kfold_cv(
             nnt.model_evaluation_main,

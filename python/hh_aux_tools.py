@@ -121,7 +121,6 @@ def normalize_hh_dataframe(
                 data.loc[
                     condition_bkg & condition_mass,
                     [weight]] *= bkg_mass_factor
-
     else:
         sig_factor = 100000./data.loc[condition_sig, [weight]].sum()
         data.loc[condition_sig, [weight]] *= sig_factor
@@ -141,7 +140,7 @@ def load_hh_data(preferences, global_settings):
             except:
                 continue
     if( "nonres" not in global_settings['bdtType']):
-        dlt.reweigh_dataframe(
+        reweigh_dataframe(
             data,
             preferences['weight_dir'],
             preferences['trainvar_info'],
@@ -152,40 +151,6 @@ def load_hh_data(preferences, global_settings):
         preferences['trainvars'].append('nodeX')
     normalize_hh_dataframe(data, preferences, global_settings)
     return data
-
-
-def PDfToDMatConverter(
-        data,
-        trainvars,
-        nthread=2,
-        target='target',
-        weights='totalWeight'
-):
-    '''Convert Pandas Dataframe into DMatrix
-    Parameters:
-    -----------
-    data : pandas dataframe
-       Input dataframe
-    trainvars: list
-       List of training variables
-    nthread : int
-       No. of threads
-    target : string
-       Name of the column in the dataframe to be used for label
-    weights : str
-       Name of the column in the dataframe to be used for evt weights
-    Returns
-    --------
-    XGB DMatrix
-    '''
-    dMatrix = xgb.DMatrix(
-        np.array(data[trainvars].values),
-        label=data[target].astype(int),
-        nthread=nthread,
-        feature_names=trainvars,
-        weight=np.array(data[weights].values)
-        )
-    return dMatrix
 
 
 def BkgLabelMaker(
@@ -1519,3 +1484,96 @@ def PlotClassifierByX(
                 str(node)
             )
         fig.savefig(nameout)
+
+
+def get_hh_parameters(
+        channel_dir,
+        tau_id_training,
+        info_dir
+):
+    '''Reads the parameters for HH data loading
+
+    Parameters:
+    ----------
+    channel_dir : str
+        Path of the whole channel info direcotry
+    tau_id_training : str
+        Tau ID for training
+    info_dir : str
+        Path to the "info" firectory of the current run
+
+    Returns:
+    --------
+    parameters : dict
+        The necessary info for loading data
+    '''
+    info_path = os.path.join(info_dir, 'info.json')
+    keys_path = os.path.join(info_dir, 'keys.json')
+    tau_id_application_path = os.path.join(
+        info_dir, 'tauID_application.json')
+    tau_id_training_path = os.path.join(info_dir, 'tauID_training.json')
+    trainvars_path = os.path.join(info_dir, 'trainvars.json')
+    info_dict = ut.read_multiline_json_to_dict(info_path)
+    tau_id_trainings = ut.read_parameters(tau_id_training_path)
+    tau_id_applications = ut.read_parameters(tau_id_application_path)
+    parameters = dlt.find_correct_dict(
+        'tauID_application',
+        info_dict['default_tauID_application'],
+        tau_id_applications
+    )
+    parameters.update(dlt.find_input_paths(
+        info_dict, tau_id_trainings, tau_id_training))
+    parameters['keys'] = dlt.load_era_keys(keys_path)
+    trainvar_info = dlt.read_trainvar_info(trainvars_path)
+    parameters['trainvars'] = list(trainvar_info.keys())
+    all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
+    all_trainvar_info = dlt.read_trainvar_info(all_trainvars_path)
+    parameters['trainvar_info'] = all_trainvar_info
+    parameters.update(info_dict)
+    return parameters
+
+
+def reweigh_dataframe(
+        data,
+        weight_files_dir,
+        trainvar_info,
+        cancelled_trainvars,
+        masses,
+        skip_int_vars=True
+):
+    '''Reweighs the dataframe
+
+    Parameters:
+    ----------
+    data : pandas Dataframe
+        Data to be reweighed
+    weighed_files_dir : str
+        Path to the directory where the reweighing files are
+    trainvar_info : dict
+        Dictionary containing trainvar info (e.g is the trainvar supposed to
+        be an integer or not)
+    cancelled_trainvars :list
+        list of trainvars not to include
+    masses : list
+        list of masses
+
+    Returns:
+    -------
+    Nothing
+    '''
+    trainvars = list(trainvar_info.keys())
+    for trainvar in trainvars:
+        if trainvar in cancelled_trainvars:
+            continue
+        filename = '_'.join(['TProfile_signal_fit_func', trainvar]) + '.root'
+        file_path = os.path.join(weight_files_dir, filename)
+        tfile = ROOT.TFile.Open(file_path)
+        fit_function_name = '_'.join(['fitFunction', trainvar])
+        function = tfile.Get(fit_function_name)
+        if bool(trainvar_info[trainvar]) and skip_int_vars:
+            data[trainvar] = data[trainvar].astype(int)
+            continue
+        for mass in masses:
+            data.loc[
+                data['gen_mHH'] == mass, [trainvar]] /= function.Eval(mass)
+        tfile.Close()
