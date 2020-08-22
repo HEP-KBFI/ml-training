@@ -1,6 +1,7 @@
 {"output_dir": "$HOME/foobar"}
 {"ml_method": "xgb"}
 {"process": "HH"}
+{"optimization_algo": "pso"}
 {"bdtType": "evtLevelSUM_HH_2l_2tau_res"}
 {"tauID_training": "deepVSjVVVLoose"}
 {"bkg_mass_rand": "oversampling"}
