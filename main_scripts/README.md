@@ -98,7 +98,7 @@ To run the hyperparameter optimization one also needs to set the correct setting
     spinCase:           Applies only for the HH resonant case. [default: 'spin0'] Other possibility is 'spin2'
 ````
 
-Usually one only needs to change the 'output_dir', 'bdtType' and 'rpcess' and 'channel'.
+Usually one only needs to change the 'output_dir', 'bdtType' and 'process' and 'channel'.
 
 To perform the hyperparameter optimization, simply run the following:
 
