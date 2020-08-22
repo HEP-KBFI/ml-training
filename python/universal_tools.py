@@ -86,8 +86,6 @@ def save_info_dir(output_dir):
     '''
     channel_dir, info_dir, global_settings = find_settings()
     run_info = os.path.join(output_dir, 'run_info')
-    if not os.path.exists(run_info):
-        os.makedirs(run_info)
     shutil.copytree(channel_dir, run_info)
 
 
