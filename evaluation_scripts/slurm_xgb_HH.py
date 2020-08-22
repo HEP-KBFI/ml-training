@@ -24,7 +24,6 @@ import json
 def main(hyperparameter_file, output_dir):
     settings_dir = os.path.join(output_dir, 'run_settings')
     global_settings = ut.read_settings(settings_dir, 'global')
-    num_classes = global_settings['num_classes']
     nthread = global_settings['nthread']
     path = Path(hyperparameter_file)
     save_dir = str(path.parent)
