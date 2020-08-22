@@ -33,7 +33,7 @@ python gen_mHH_profiling.py -i 1 -f 1
 
 ## Optimizing the training variables
 
-Having too many features (or trainigvariables) will cause the model to be overfitted, so it generalizes bad on the unseen data.
+Having too many features (or trainig variables) will cause the model to be overfitted, so it generalizes bad on the unseen data.
 To overcome this overtraining problem, one needs to reduce the number of training variables.
 For this purpose, one can use the cript **trainvar_optimization.py**.
 
@@ -64,4 +64,44 @@ Or simply by using the defaults:
 
 ````console
 python gen_mHH_profiling.py
+````
+
+
+## Optimizing the training variables
+
+Choosing the optimal set of hyperparameters for the machine learning model is vital in order to gain performance and to reduce overtraining. Often this task is done either manually or using some not optimal method (e.g grid search or random guessing).
+In this package this optimization is done by a algorithm called 'Particle Swarm Optimization' (PSO).
+
+To start the optimization, no extra commandline arguments are needed. The settings for the are located in **settings/pso_settings.json**. The recommended defaults are already pre-set:
+
+````console
+    iterations:                     Maximum number of evolutions of the swarm [default: 50]
+    sample_size:                    Number of particles in the swarm [default: 70]
+    compactness_threshold:          A measure of the relative similarity of the different particles. Used as a stopping criteria: Also known as the 'mean coefficient of variation'. [default: 0.1]
+    nr_informants:                  Number of particles informing each particle each iteration about their personally found best location. [default: 10]
+````
+
+To run the hyperparameter optimization one also needs to set the correct settings in the **settings/global_settings.json**
+
+````console
+    output_dir:         The directory where the information of the optimization will be outputted. This is also used by gen_mHH_profiling.py, hh_bdtTraining.py and trainvar_optimization.py [default: '$HOME/foobar']
+    ml_method:          The ML method to be used for the training. Other possibility was 'nn', which is currently deprecated. [default: 'xgb']
+    process:            The process for which the data will be loaded [default: 'HH']
+    bdtType:            Type of the boosted decision tree. Usually either resonant or nonresonant. [default: 'evtLevelSUM_HH_2l_2tau_res']
+    tauID_training:     The name of the working point to be used. [default: 'deepVSjVVVLoose']
+    bkg_mass_rand:      The background randomization method. [default: 'oversampling']
+    channel:            The name of the channel for which the data is loaded. [default: '2l_2tau']
+    fitness_fn:         Name of the fitness function to be used in the optimization. [default: 'd_roc'] Other possibility is 'd_ams'.
+    use_kfold:          Whether to use k-fold cross validation when evaluationg each set of hyperparameters. [default: 1]
+    nthread:            Number of threads to be used in the optimization. Please be considerate and don't use more than necessary. [default: 8]
+    kappa:              The weight of the poenalty term to avoid overtraining. [default: 2.0]
+    spinCase:           Applies only for the HH resonant case. [default: 'spin0'] Other possibility is 'spin2'
+````
+
+Usually one only needs to change the 'output_dir', 'bdtType' and 'process' and 'channel'.
+
+To perform the hyperparameter optimization, simply run the following:
+
+````console
+python hyperparameterOptimization.py
 ````

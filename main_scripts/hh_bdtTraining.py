@@ -1,5 +1,5 @@
 '''
-Call with 'python3'
+Call with 'python'
 
 Usage: 
     bdtTraining.py
@@ -41,24 +41,14 @@ def main(output_dir, settings_dir, hyperparameter_file):
         global_settings['output_dir'])
     if not os.path.exists(global_settings['output_dir']):
         os.makedirs(global_settings['output_dir'])
-    if 'nonres' in global_settings['bdtType']:
-        mode = 'nonRes'
-    else:
-        mode = 'res'
-    channel_dir = os.path.join(
-        os.path.expandvars('$CMSSW_BASE'),
-        'src/machineLearning/machineLearning/info',
-        global_settings['process'],
-        global_settings['channel'],
-        mode
-    )
-    preferences = dlt.get_hh_parameters(
-        global_settings['channel'],
+    channel_dir, info_dir, _ = ut.find_settings()
+    preferences = hhat.get_hh_parameters(
+        channel_dir,
         global_settings['tauID_training'],
-        channel_dir
+        info_dir
     )
     if hyperparameter_file == 'None':
-        hyperparameter_file = os.path.join(channel_dir, 'hyperparameters.json')
+        hyperparameter_file = os.path.join(info_dir, 'hyperparameters.json')
     hyperparameters = ut.read_parameters(hyperparameter_file)[0]
     evaluation_main(global_settings, preferences, hyperparameters)
 

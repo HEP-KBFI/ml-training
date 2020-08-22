@@ -25,32 +25,14 @@ import json
 
 
 def prepare_data():
-    cmssw_base = os.path.expandvars('$CMSSW_BASE')
-    settings_dir = os.path.join(
-        cmssw_base,
-        'src/machineLearning/machineLearning/settings'
-    )
-    global_settings = ut.read_settings(settings_dir, 'global')
-    num_classes = global_settings['num_classes']
-    nthread = global_settings['nthread']
-    if 'nonres' in global_settings['bdtType']:
-        mode = 'nonRes'
-    else:
-        mode = 'res'
-    channel_dir = os.path.join(
-        cmssw_base,
-        'src/machineLearning/machineLearning/info',
-        global_settings['process'],
-        global_settings['channel'],
-    )
-    mode_dir = os.path.join(channel_dir, mode)
-    trainvars_path = os.path.join(mode_dir, 'trainvars.json')
+    channel_dir, info_dir, global_settings = ut.find_settings()
+    trainvars_path = os.path.join(info_dir, 'trainvars.json')
     all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
     shutil.copy(all_trainvars_path, trainvars_path)
-    preferences = dlt.get_hh_parameters(
-        global_settings['channel'],
+    preferences = hhat.get_hh_parameters(
+        channel_dir,
         global_settings['tauID_training'],
-        mode_dir
+        info_dir
     )
     data = hhat.load_hh_data(preferences, global_settings)
     return data, preferences, global_settings, trainvars_path

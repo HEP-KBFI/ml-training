@@ -29,11 +29,13 @@ def main(hyperparameter_file, output_dir):
     path = Path(hyperparameter_file)
     save_dir = str(path.parent)
     hyperparameters = ut.read_parameters(hyperparameter_file)[0]
+    addition = ut.create_infoPath_addition(global_settings)
     channel_dir = os.path.join(output_dir, 'run_info')
-    preferences = dlt.get_hh_parameters(
-        global_settings['channel'],
+    info_dir = os.path.join(channel_dir, addition)
+    preferences = hhat.get_hh_parameters(
+        channel_dir,
         global_settings['tauID_training'],
-        channel_dir
+        info_dir
     )
     data = hhat.load_hh_data(preferences, global_settings)
     if bool(global_settings['use_kfold']):

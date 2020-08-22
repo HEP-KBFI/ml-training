@@ -21,35 +21,7 @@ from ROOT import TCanvas,TProfile, TF1
 from ROOT import TFitResultPtr
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import data_loading_tools as dlt
-
-
-def get_info_dir():
-    ''' Gets info directory path and returns it together with the global
-    settings
-
-    Parameters:
-    ----------
-    None
-
-    Returns:
-    -------
-    info_dir : str
-        Path to the info directory of the specified channel
-    '''
-    package_dir = os.path.join(
-        os.path.expandvars('$CMSSW_BASE'),
-        'src/machineLearning/machineLearning/'
-    )
-    settings_dir = os.path.join(package_dir, 'settings')
-    global_settings = ut.read_settings(settings_dir, 'global')
-    channel = global_settings['channel']
-    process = global_settings['process']
-    if 'nonres' in global_settings['bdtType']:
-        mode = 'nonRes'
-    else:
-        mode = 'res'
-    info_dir = os.path.join(package_dir, 'info', process, channel, mode)
-    return info_dir, global_settings
+from machineLearning.machineLearning import hh_aux_tools as hhat
 
 
 def get_all_trainvars(info_dir):
@@ -353,7 +325,7 @@ def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
     trainvars = list(get_all_trainvars(info_dir))
     if 'gen_mHH' in trainvars:
         trainvars.remove('gen_mHH')
-    masses = find_masses(info_dir, global_settings, masses_type)
+    masses = find_masses(masses_type)
     histo_dicts_json = os.path.join(info_dir, 'histo_dict.json')
     histo_dicts = ut.read_parameters(histo_dicts_json)
     for trainvar in trainvars:
@@ -365,7 +337,7 @@ def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
         filename = '_'.join(['TProfile_signal_fit_func', str(trainvar)])
         out_file = os.path.join(weight_dir, filename + '.root')
         fit_function = 'fitFunction_' + str(trainvar)
-        masses = find_masses(info_dir, global_settings, masses_type)
+        masses = find_masses(masses_type)
         mass_min = min(masses)
         mass_max = max(masses)
         print('Fitfunction: ' + fit_function)
@@ -406,7 +378,7 @@ def get_fit_function(histo_dict, masses_type):
     return poly_order
 
 
-def find_masses(info_dir, global_settings, masses_type):
+def find_masses(masses_type):
     ''' Finds the masses to be used in the fit
 
     Parameters:
@@ -423,8 +395,9 @@ def find_masses(info_dir, global_settings, masses_type):
     masses : list
         List of masses to be used.
     '''
-    preferences = dlt.get_hh_parameters(
-        global_settings['channel'],
+    channel_dir, info_dir, global_settings = ut.find_settings()
+    preferences = hhat.get_hh_parameters(
+        channel_dir,
         global_settings['tauID_training'],
         info_dir
     )
@@ -517,7 +490,7 @@ def plotting_main(
     --------
     Nothing
     '''
-    masses = find_masses(info_dir, global_settings, masses_type)
+    masses = find_masses(masses_type)
     histo_dicts_json = os.path.join(info_dir, 'histo_dict.json')
     histo_dicts = ut.read_parameters(histo_dicts_json)
     histo_dict = dlt.find_correct_dict(
@@ -547,9 +520,9 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
     --------
     Nothing
     '''
-    info_dir, global_settings = get_info_dir()
-    preferences = dlt.get_hh_parameters(
-        global_settings['channel'],
+    channel_dir, info_dir, global_settings = ut.find_settings()
+    preferences = hhat.get_hh_parameters(
+        channel_dir,
         global_settings['tauID_training'],
         info_dir
     )
@@ -567,7 +540,7 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
                 masses_type, global_settings, label='raw'
             )
             try:
-                dlt.reweigh_dataframe(
+                hhat.reweigh_dataframe(
                     data,
                     preferences['weight_dir'],
                     preferences['trainvar_info'],

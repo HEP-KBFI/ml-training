@@ -30,7 +30,7 @@ def main(hyperparameter_file, output_dir):
     save_dir = str(path.parent)
     hyperparameters = ut.read_parameters(hyperparameter_file)[0]
     channel_dir = os.path.join(output_dir, 'run_info')
-    preferences = dlt.get_tth_parameters(
+    preferences = tthat.get_tth_parameters(
         global_settings['channel'],
         global_settings['bdtType'],
         channel_dir
