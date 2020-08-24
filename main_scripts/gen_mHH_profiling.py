@@ -545,7 +545,8 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
                     preferences['weight_dir'],
                     preferences['trainvar_info'],
                     ['gen_mHH'],
-                    preferences['masses']
+                    preferences['masses'],
+                    preferences['trainvars']
                 )
                 create_TProfiles(
                     info_dir, weight_dir, data,

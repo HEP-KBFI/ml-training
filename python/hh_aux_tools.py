@@ -146,7 +146,8 @@ def load_hh_data(preferences, global_settings):
             preferences['weight_dir'],
             preferences['trainvar_info'],
             ['gen_mHH'],
-            preferences['masses']
+            preferences['masses'],
+            preferences['trainvars']
         )
     elif 'nodeX' not in preferences['trainvars']:
         preferences['trainvars'].append('nodeX')
@@ -1540,6 +1541,7 @@ def reweigh_dataframe(
         trainvar_info,
         cancelled_trainvars,
         masses,
+        trainvars,
         skip_int_vars=True
 ):
     '''Reweighs the dataframe
@@ -1562,7 +1564,6 @@ def reweigh_dataframe(
     -------
     Nothing
     '''
-    trainvars = list(trainvar_info.keys())
     for trainvar in trainvars:
         if trainvar in cancelled_trainvars:
             continue
