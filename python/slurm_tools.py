@@ -133,6 +133,7 @@ def prepare_job_file(
 #SBATCH -e %s
 #SBATCH -o %s
 env
+date
 python %s --parameter_file %s --output_dir %s
         ''' % (global_settings['nthread'], error_file, output_file, run_script,
                parameter_file, output_dir))

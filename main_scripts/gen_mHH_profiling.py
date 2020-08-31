@@ -542,7 +542,7 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
             try:
                 hhat.reweigh_dataframe(
                     data,
-                    preferences['weight_dir'],
+                    weight_dir,
                     preferences['trainvar_info'],
                     ['gen_mHH'],
                     preferences['masses'],
