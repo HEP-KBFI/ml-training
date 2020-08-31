@@ -13,6 +13,7 @@ import copy
 import os
 import ROOT
 import matplotlib
+import json
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 ROOT.gROOT.SetBatch(True)
