@@ -31,11 +31,17 @@ When running the analysis, be sure to use the correct channel information in the
 ### Brief description of HH analysis info folder content:
 
 **histo_dict.json**: used for storing the fit function shapes for each variable. Recommended that all trainvars are listed there.
+
 **hyperparameters.json**: the hyperparameters used in creating the BDT model
+
 **info.json**: Used to store the info, which masses, benchmark points etc. to use and where the weights for reweighing are stored.
+
 **keys.json**: Used for storing the information, which sampoles to use
+
 **tauID_application.json**: Contains the datacard numbers
+
 **tauID_training.json**: Contains the locations of the ntuples for different tauID workingpoints
+
 **trainvars.json**: Contains the columns (branches from the ntuple) to be used in the training.
 
 
