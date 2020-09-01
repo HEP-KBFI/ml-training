@@ -17,6 +17,10 @@ def plot_sampleWise_bdtOutput(
 ):
     output_dir = global_settings['output_dir']
     data_even = data_even.copy()
+    if 'nonres' in global_settings['bdtType']:
+        sig_name = 'HH_nonres_decay'
+    else:
+        sig_name = 'signal'
     data_even.loc[
         data_even['process'].str.contains('signal'), ['process']] = 'signal'
     bkg_predictions = []
@@ -24,7 +28,7 @@ def plot_sampleWise_bdtOutput(
     bkg_weights = []
     bins = np.linspace(0., 1., 11)
     for process in set(data_even['process']):
-        if process == 'signal':
+        if process == sig_name:
             continue
         process_data = data_even.loc[data_even['process'] == process]
         process_prediction = np.array(model_odd.predict_proba(
@@ -38,13 +42,13 @@ def plot_sampleWise_bdtOutput(
         bkg_predictions, histtype='bar', label=bkg_labels, lw=2, bins=bins,
         weights=bkg_weights, alpha=1, stacked=True, normed=True
     )
-    process_data = data_even.loc[data_even['process'] == 'signal']
+    process_data = data_even.loc[data_even['process'] == sig_name]
     process_prediction = np.array(model_odd.predict_proba(
         process_data[preferences['trainvars']]
     )[:,1])
     weights = np.array(process_data['totalWeight'])
     plt.hist(
-        process_prediction, histtype='step', label='signal',
+        process_prediction, histtype='step', label=sig_name,
         lw=2, ec='k', alpha=1, normed=True, bins=bins, weights=weights
     )
     plt.legend()
