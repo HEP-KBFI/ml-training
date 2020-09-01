@@ -22,6 +22,21 @@ cd $CMSSW_BASE/src/machineLearning/machineLearning
 pip install -r requirements.txt --user
 ````
 
+## Analysis & info folders
+
+For each process and channel, the responsible person should keep the folder up-to-date. For example person responsible for the channel 0l_4tau should create/update 
+
+
+### Brief description of HH analysis info folder content:
+    
+    **histo_dict.json**: used for storing the fit function shapes for each variable. Recommended that all trainvars are listed there.
+    **hyperparameters.json**: the hyperparameters used in creating the BDT model
+    **info.json**: Used to store the info, which masses, benchmark points etc. to use and where the weights for reweighing are stored.
+    **keys.json**: Used for storing the information, which sampoles to use
+    **tauID_application.json**: Contains the datacard numbers
+    **tauID_training.json**: Contains the locations of the ntuples for different tauID workingpoints
+    **trainvars.json**: Contains the columns (branches from the ntuple) to be used in the training.
+
 
 
 
