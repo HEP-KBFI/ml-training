@@ -1549,7 +1549,7 @@ def reweigh_dataframe(
         trainvars,
         skip_int_vars=True
 ):
-    '''Reweighs the dataframe
+    '''Reweighs the dataframeT
 
     Parameters:
     ----------
@@ -1573,9 +1573,9 @@ def reweigh_dataframe(
         if trainvar in cancelled_trainvars:
             continue
         filename = '_'.join(['TProfile_signal_fit_func', trainvar]) + '.root'
-        file_path = os.path.join(weight_files_dir, filename)
+        file_path = str(os.path.join(weight_files_dir, filename))
         tfile = ROOT.TFile.Open(file_path)
-        fit_function_name = '_'.join(['fitFunction', trainvar])
+        fit_function_name = str('_'.join(['fitFunction', trainvar]))
         function = tfile.Get(fit_function_name)
         if bool(trainvar_info[trainvar]) and skip_int_vars:
             data[trainvar] = data[trainvar].astype(int)
