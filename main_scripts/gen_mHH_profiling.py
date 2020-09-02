@@ -12,16 +12,18 @@ Options:
     -w --weight_dir=DIR               Directory where the weights will be saved [default: $HOME/gen_mHH_weight_dir]
     -m --masses_type=STR              'low', 'high' or 'all' [default: all]
 '''
+from machineLearning.machineLearning import universal_tools as ut
+from machineLearning.machineLearning import data_loading_tools as dlt
+from machineLearning.machineLearning import hh_aux_tools as hhat
+from ROOT import TCanvas, TProfile, TF1
+from ROOT import TFitResultPtr
 import os
 import json
 import ROOT
 import numpy as np
 import docopt
-from ROOT import TCanvas,TProfile, TF1
-from ROOT import TFitResultPtr
-from machineLearning.machineLearning import universal_tools as ut
-from machineLearning.machineLearning import data_loading_tools as dlt
-from machineLearning.machineLearning import hh_aux_tools as hhat
+import glob
+import subprocess
 
 
 def get_all_trainvars(info_dir):
@@ -302,7 +304,7 @@ def choose_file_name(weight_dir, dtype, label, trainvar):
 ##################################################################
 
 
-def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
+def do_fit(weight_dir, info_dir, data, masses_type):
     ''' Fits the Data with a given order of polynomial
 
     Parameters:
@@ -311,8 +313,6 @@ def do_fit(weight_dir, info_dir, global_settings, data, masses_type):
         Path to the directory where the TProfiles will be saved
     info_dir : str
         Path to the info_directory of the required channel
-    global_settings : dict
-        Global settings (channel, bdtType etc.)
     data : pandas DataFrame
         Data to be used for creating the TProfiles & fits
     masses_type : str
@@ -499,6 +499,14 @@ def plotting_main(
     canvas.SaveAs(filename)
 
 
+def create_all_fitFunc_fil(weight_dir):
+    wild_card_path = os.path.join(weight_dir, '*signal_fit_func*')
+    all_single_files = glob.glob(wild_card_path)
+    all_paths_str = ' '.join(all_single_files)
+    resulting_file = os.path.join(weight_dir, 'all_fitFuncs.root')
+    subprocess.call('hadd ' + resulting_file + ' ' + all_paths_str, shell=True)
+
+
 def main(fit, create_info, weight_dir, masses_type, create_profile):
     ''' Main function for operating the fitting, plotting and creation of
     histo_dict
@@ -533,7 +541,14 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
         if not os.path.exists(weight_dir):
             os.makedirs(weight_dir)
         if fit:
-            do_fit(weight_dir, info_dir, global_settings, data, masses_type)
+            do_fit(weight_dir, info_dir, data, masses_type)
+            resulting_hadd_file = os.path.join(weight_dir, 'all_fitFunc.root')
+            print(
+                'Creating a single fit file with "hadd" to: ' + str(
+                    resulting_hadd_file
+                )
+            )
+            create_all_fitFunc_fil(weight_dir)
         if create_profile:
             create_TProfiles(
                 info_dir, weight_dir, data,
