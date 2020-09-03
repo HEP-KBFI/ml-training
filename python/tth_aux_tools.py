@@ -77,7 +77,7 @@ def get_tth_parameters(channel, bdt_type, channel_dir):
         parameters.update(multidict)
     parameters['HTT_var'] = read_list(htt_var_path)
     parameters['trainvars'] = read_list(trainvar_path)
-    info_dict = ut.read_multiline_json_to_dict(info_path)
+    info_dict = ut.read_json_cfg(info_path)
     if os.path.exists(keys_path):
         parameters['keys'] = read_list(keys_path)
     else:

@@ -105,7 +105,7 @@ def load_data_from_one_era(
         os.path.expandvars('$CMSSW_BASE'),
         'src/machineLearning/machineLearning/info/samplename_info.json'
     )
-    samplename_info = ut.read_parameters(samplename_info_path)
+    samplename_info = ut.read_json_cfg(samplename_info_path)
     for folder_name in keys:
         data = data_main_loop(
             folder_name,

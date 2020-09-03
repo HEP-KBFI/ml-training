@@ -1,4 +1,6 @@
-{"iterations": 50}
-{"sample_size": 70}
-{"compactness_threshold": 0.1}
-{"nr_informants": 10}
+{
+    "iterations": 50,
+    "sample_size": 70,
+    "compactness_threshold": 0.1,
+    "nr_informants": 10
+}

@@ -21,17 +21,3 @@ def test_read_parameters():
         {'stuff': 1}
     ]
     assert result == expected
-
-
-def test_read_settings():
-    pso_settings = ut.read_settings(settings_dir, 'pso')
-    global_settings = ut.read_settings(settings_dir, 'global')
-    assert len(pso_settings.keys()) == 7
-    assert len(global_settings.keys()) == 14
-
-
-def test_to_one_dict():
-    list_of_dicts = [{'foo': 1}, {'bar': 2}, {'baz': 3}]
-    all_in_one_dict = ut.to_one_dict(list_of_dicts)
-    expected = {'foo': 1, 'bar': 2, 'baz': 3}
-    assert all_in_one_dict == expected

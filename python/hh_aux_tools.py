@@ -1516,7 +1516,7 @@ def get_hh_parameters(
         info_dir, 'tauID_application.json')
     tau_id_training_path = os.path.join(info_dir, 'tauID_training.json')
     trainvars_path = os.path.join(info_dir, 'trainvars.json')
-    info_dict = ut.read_multiline_json_to_dict(info_path)
+    info_dict = ut.read_json_cfg(info_path)
     tau_id_trainings = ut.read_parameters(tau_id_training_path)
     tau_id_applications = ut.read_parameters(tau_id_application_path)
     parameters = dlt.find_correct_dict(

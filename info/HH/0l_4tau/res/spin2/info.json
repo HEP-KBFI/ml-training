@@ -1,12 +1,108 @@
-{"masses": [250, 260, 270, 280, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 1000]}
-{"masses_test": [300, 500, 800]}
-{"masses_low": [250,260,270,280,300,350,400]}
-{"masses_test_low": [300]}
-{"masses_high": [450,500,550,600,650,700,750,800,850,900,1000]}
-{"masses_test_high": [500, 800]}
-{"channelInTree": "hh_0l_4tau_OS_forBDTtraining"}
-{"default_tauID_application": "deepVSjMedium"}
-{"weight_dir": "/hdfs/local/laurits/spin2_gen_mHH/"}
-{"included_eras": ["16","17","18"]}
-{"nonResScenarios": ["SM","BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"]}
-{"nonResScenarios_test": ["SM","BM4","BM7","BM12"]}
+{
+    "masses": [250, 260, 270, 280, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 1000],
+    "masses_test": [300, 500, 800],
+    "masses_low": [250,260,270,280,300,350,400],
+    "masses_test_low": [300],
+    "masses_high": [450,500,550,600,650,700,750,800,850,900,1000],
+    "masses_test_high": [500, 800],
+    "channelInTree": "hh_0l_4tau_OS_forBDTtraining",
+    "default_tauID_application": "deepVSjMedium",
+    "weight_dir": "/hdfs/local/laurits/spin2_gen_mHH/",
+    "included_eras": ["16","17","18"],
+    "nonResScenarios": ["SM","BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"],
+    "nonResScenarios_test": ["SM","BM4","BM7","BM12"],
+    "tauID_application": {
+        "deepVSjMedium": {
+            "signal_ggf_spin0_400_hh_4tdatacard": 0.35,
+            "signal_ggf_spin0_400_hh_2v2tdatacard": 0.02,
+            "signal_ggf_spin0_400_hh_4vdatacard": 0.0,
+            "signal_ggf_spin0_700_hh_4tdatacard": 0.87,
+            "signal_ggf_spin0_700_hh_2v2tdatacard": 0.04,
+            "signal_ggf_spin0_700_hh_4vdatacard": 0.0,
+            "TTdatacard": 0.08,
+            "ZZdatacard": 0.23,
+            "WZdatacard": 0.06,
+            "WWdatacard": 0.0,
+            "DYdatacard": 1.45
+        },
+        "deepVSjLoose": {
+            "signal_ggf_spin0_400_hh_4tdatacard": 0.53,
+            "signal_ggf_spin0_400_hh_2v2tdatacard": 0.04,
+            "signal_ggf_spin0_400_hh_4vdatacard": 0.0,
+            "signal_ggf_spin0_700_hh_4tdatacard": 1.21,
+            "signal_ggf_spin0_700_hh_2v2tdatacard": 0.08,
+            "signal_ggf_spin0_700_hh_4vdatacard": 0.0, "TTdatacard": 0.38,
+            "ZZdatacard": 0.35,
+            "WZdatacard": 0.06,
+            "WWdatacard": 0.0,
+            "DYdatacard": 2.63
+        },
+        "deepVSjVLoose": {
+            "signal_ggf_spin0_400_hh_4tdatacard": 0.77,
+            "signal_ggf_spin0_400_hh_2v2tdatacard": 0.06,
+            "signal_ggf_spin0_400_hh_4vdatacard": 0.0,
+            "signal_ggf_spin0_700_hh_4tdatacard": 1.72,
+            "signal_ggf_spin0_700_hh_2v2tdatacard": 0.17,
+            "signal_ggf_spin0_700_hh_4vdatacard": 0.0,
+            "TTdatacard": 0.96,
+            "ZZdatacard": 0.52,
+            "WZdatacard": 0.14,
+            "WWdatacard": 0.0,
+            "DYdatacard": 6.28
+    },
+    "tauID_training": {
+        "deepVSjVVVLoose": {
+            "inputPath16": "/hdfs/local/laurits/hhAnalysis/2016/VVVLoose_BDTtraining/histograms/hh_0l_4tau/forBDTtraining_OS",
+            "inputPath17": "/hdfs/local/laurits/hhAnalysis/2017/VVVLoose_BDTtraining/histograms/hh_0l_4tau/forBDTtraining_OS",
+            "inputPath18": "/hdfs/local/laurits/hhAnalysis/2018/VVVLoose_BDTtraining/histograms/hh_0l_4tau/forBDTtraining_OS"
+        }
+    },
+    "keys": {
+        "DY": [16,17,18],
+        "TTTo": [16,17,18],
+        "TTTJ": [16,17,18],
+        "TTTT": [16,17,18],
+        "TTTW": [16,17,18],
+        "TTWW": [16,17,18],
+        "ZZ": [16,17,18],
+        "VH": [16,17,18],
+        "WZ": [16,17,18],
+        "TTZJets": [16,17,18],
+        "ttH": [16,17,18],
+        "signal_ggf_spin2_250_hh_4t": [16,17,18],
+        "signal_ggf_spin2_260_hh_4t": [16,17,18],
+        "signal_ggf_spin2_270_hh_4t": [16,17,18],
+        "signal_ggf_spin2_280_hh_4t": [16,17,18],
+        "signal_ggf_spin2_300_hh_4t": [16,17,18],
+        "signal_ggf_spin2_350_hh_4t": [16,17,18],
+        "signal_ggf_spin2_400_hh_4t": [16,17,18],
+        "signal_ggf_spin2_450_hh_4t": [16,17,18],
+        "signal_ggf_spin2_500_hh_4t": [16,17,18],
+        "signal_ggf_spin2_550_hh_4t": [16,17,18],
+        "signal_ggf_spin2_600_hh_4t": [16,17,18],
+        "signal_ggf_spin2_650_hh_4t": [16,17,18],
+        "signal_ggf_spin2_700_hh_4t": [16,17,18],
+        "signal_ggf_spin2_750_hh_4t": [16,17,18],
+        "signal_ggf_spin2_800_hh_4t": [16,17,18],
+        "signal_ggf_spin2_850_hh_4t": [16,17,18],
+        "signal_ggf_spin2_900_hh_4t": [16,17,18],
+        "signal_ggf_spin21000_hh_4t": [16,17,18],
+        "signal_ggf_spin2_250_hh_2v2t": [16,17,18],
+        "signal_ggf_spin2_260_hh_2v2t": [16,17,18],
+        "signal_ggf_spin2_270_hh_2v2t": [16,17,18],
+        "signal_ggf_spin2_280_hh_2v2t": [16,17,18],
+        "signal_ggf_spin2_300_hh_2v2t": [16,17,18],
+        "signal_ggf_spin2_350_hh_2v2t": [16,17,18],
+        "signal_ggf_spin2_400_hh_2v2t": [16,17,18],
+        "signal_ggf_spin2_450_hh_2v2t": [16,17,18],
+        "signal_ggf_spin2_500_hh_2v2t": [16,17,18],
+        "signal_ggf_spin2_550_hh_2v2t": [16,17,18],
+        "signal_ggf_spin2_600_hh_2v2t": [16,17,18],
+        "signal_ggf_spin2_650_hh_2v2t": [16,17,18],
+        "signal_ggf_spin2_700_hh_2v2t": [16,17,18],
+        "signal_ggf_spin2_750_hh_2v2t": [16,17,18],
+        "signal_ggf_spin2_800_hh_2v2t": [16,17,18],
+        "signal_ggf_spin2_850_hh_2v2t": [16,17,18],
+        "signal_ggf_spin2_900_hh_2v2t": [16,17,18],
+        "signal_ggf_spin21000_hh_2v2t": [16,17,18]
+    }

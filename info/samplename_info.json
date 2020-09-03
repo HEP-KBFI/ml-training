@@ -1,18 +1,76 @@
-{"type": "TTTo", "sampleName": "TT", "target": 0}
-{"type": "TTZ", "sampleName": "TTZ", "target": 0}
-{"type": "DY", "sampleName": "DY", "target": 0}
-{"type": "W", "sampleName": "W", "target": 0}
-{"type": "ZZ", "sampleName": "ZZ", "target": 0}
-{"type": "WW", "sampleName": "WW", "target": 0}
-{"type": "WZ", "sampleName": "WZ", "target": 0}
-{"type": "WWZ", "sampleName": "WW", "target": 0}
-{"type": "WpWp", "sampleName": "Other", "target": 0}
-{"type": "VH", "sampleName": "VH", "target": 0}
-{"type": "TTW", "sampleName": "TTW", "target": 0}
-{"type": "TTTJ", "sampleName": "Other", "target": 0}
-{"type": "TTTT", "sampleName": "Other", "target": 0}
-{"type": "TTTW", "sampleName": "Other", "target": 0}
-{"type": "TTWW", "sampleName": "TTWW", "target": 0}
-{"type": "THQ_ctcvcp", "sampleName": "tHq", "sampleNameF": "tHq", "target": 0}
-{"type": "THW_ctcvcp", "sampleName": "tHW", "sampleNameF": "tHW", "target": 0}
-{"type": "ttH", "sampleName": "TTH", "target": 0}
+{
+    "TTTo": {
+        "sampleName": "TT",
+        "target": 0
+    },
+    "TTZ": {
+        "sampleName": "TTZ",
+        "target": 0
+    },
+    "DY": {
+        "sampleName": "DY",
+        "target": 0
+    },
+    "W": {
+        "sampleName": "W",
+        "target": 0
+    },
+    "ZZ": {
+        "sampleName": "ZZ",
+        "target": 0
+    },
+    "WW": {
+        "sampleName": "WW",
+        "target": 0
+    },
+    "WZ": {
+        "sampleName": "WZ",
+        "target": 0
+    },
+    "WWZ": {
+        "sampleName": "WW",
+        "target": 0
+    },
+    "WpWp": {
+        "sampleName": "Other",
+        "target": 0
+    },
+    "VH": {
+        "sampleName": "VH",
+        "target": 0
+    },
+    "TTW": {
+        "sampleName": "TTW",
+        "target": 0
+    },
+    "TTTJ": {
+        "sampleName": "Other",
+        "target": 0
+    },
+    "TTTT": {
+        "sampleName": "Other",
+        "target": 0
+    },
+    "TTTW": {
+        "sampleName": "Other",
+        "target": 0
+    },
+    "TTWW": {
+        "sampleName": "TTWW",
+        "target": 0
+    },
+    "THQ_ctcvcp": {
+        "sampleName": "tHq",
+        "sampleNameF": "tHq",
+        "target": 0
+    },
+    "THW_ctcvcp": {
+        "sampleName": "tHW",
+        "sampleNameF": "tHW",
+        "target": 0
+    },
+    "ttH": {
+        "sampleName": "TTH",
+        "target": 0
+    }
+}
