@@ -48,10 +48,22 @@ def optimization(
             hyperparameters, data_dict, global_settings['nthread'],
             'auc', 'totalWeight'
         )
+        trainvars = drop_not_used_variables(model, trainvars)
         trainvars = drop_worst_performing_ones(
             model, trainvars, step_size, min_nr_trainvars, global_settings,
             preferences
         )
+    return trainvars
+
+
+def drop_not_used_variables(model, trainvars):
+    booster = model.get_booster()
+    feature_importances = list((booster.get_fscore()).keys())
+    for trainvar in trainvars:
+        if trainvar not in feature_importances:
+            print(
+                'Removing  -- %s -- due to it not being used at all' %(trainvar))
+            trainvars.remove(trainvar)
     return trainvars
 
 
