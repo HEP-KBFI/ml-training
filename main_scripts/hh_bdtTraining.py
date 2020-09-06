@@ -17,6 +17,7 @@ from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_visualization_tools as hhvt
 from machineLearning.machineLearning import hh_aux_tools as hhat
 from machineLearning.machineLearning import xgb_tools as xt
+from machineLearning.machineLearning import coverter_tools as ct
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 import numpy as np
@@ -103,9 +104,19 @@ def model_creation(
         hyperparameters, data_dict, global_settings['nthread'],
         objective='auc', weight='totalWeight'
     )
+    save_xmlFile(global_settings, model, addition)
     save_pklFile(global_settings, model, addition)
     hhvt.plot_feature_importances(model, global_settings, addition)
     return model
+
+
+def save_xmlFile(global_settings, model, addition):
+    xmlFile = os.path.join(global_settings['output_dir'], addition + '_model.xml')
+    bst = model.get_booster()
+    features = bst.feature_names
+    bdtModel = ct.BDTxgboost(pklData, features, ['Background', 'Signal'])
+    bdtModel.to_tmva(xmlFile)
+    print('.xml BDT model saved to ' + str(xmlFile))
 
 
 def nodeWise_modelPredictions(
