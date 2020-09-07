@@ -326,35 +326,6 @@ def define_new_variables(
     chunk_df['key'] = folder_name
     chunk_df['target'] = int(target)
     chunk_df['totalWeight'] = chunk_df['evtWeight']
-    if "HH_bb2l" in bdt_type:
-        chunk_df["max_dR_b_lep"] = chunk_df[
-            ["dR_b1lep1", "dR_b2lep1", "dR_b2lep1", "dR_b2lep2"]
-        ].max(axis=1)
-        chunk_df["max_lep_pt"] = chunk_df[["lep1_pt", "lep2_pt"]].max(axis=1)
-    if "HH_bb1l" in bdt_type:
-        chunk_df["max_dR_b_lep"] = chunk_df[
-            ["dR_b1lep", "dR_b2lep"]].max(axis=1)
-        chunk_df["max_bjet_pt"] = chunk_df[
-            ["bjet1_pt", "bjet2_pt"]].max(axis=1)
-    if (("HH_0l_2tau" in bdt_type) or ("HH_2l_2tau" in bdt_type)):
-        chunk_df["tau1_eta"] = abs(chunk_df["tau1_eta"])
-        chunk_df["tau2_eta"] = abs(chunk_df["tau2_eta"])
-        chunk_df["max_tau_eta"] = chunk_df[
-            ["tau1_eta", "tau2_eta"]].max(axis=1)
-    if "HH_2l_2tau" in bdt_type:
-        chunk_df["min_dr_lep_tau"] = chunk_df[
-            ["dr_lep1_tau1", "dr_lep1_tau2", "dr_lep2_tau1", "dr_lep2_tau2"]
-        ].min(axis=1)
-        chunk_df["max_dr_lep_tau"] = chunk_df[
-            ["dr_lep1_tau1", "dr_lep1_tau2", "dr_lep2_tau1", "dr_lep2_tau2"]
-        ].max(axis=1)
-        chunk_df["lep1_eta"] = abs(chunk_df["lep1_eta"])
-        chunk_df["lep2_eta"] = abs(chunk_df["lep2_eta"])
-        chunk_df["max_lep_eta"] = chunk_df[
-            ["lep1_eta", "lep2_eta"]].max(axis=1)
-        chunk_df["sum_lep_charge"] = sum(
-            [chunk_df["lep1_charge"], chunk_df["lep2_charge"]]
-        )
     HHRes = ('HH' in bdt_type) and 'nonres' not in bdt_type
     if HHRes:
         if target == 1:
@@ -522,23 +493,7 @@ def advanced_sample_name(bdt_type, folder_name, masses):
     sample_dict : dict
         Dictionary containing 'sampleName' and 'target'
     '''
-    if 'evtLevelSUM_HH_bb2l' in bdt_type or 'evtLevelSUM_HH_bb1l' in bdt_type:
-        if 'signal_ggf' in folder_name:
-            if 'evtLevelSUM_HH_bb2l_res' in bdt_type:
-                sample_name = 'signal_ggf_spin0'
-            else:
-                sample_name = 'signal_ggf_nonresonant_node'
-            for mass in masses:
-                if mass == 20:
-                    sample_name = sample_name + '_' + 'sm' + '_'
-                    break
-                elif '_' + str(mass) + '_' in folder_name:
-                    sample_name = sample_name + '_' + str(mass) + '_'
-                    break
-            if '_2b2v' in folder_name:
-                sample_name = sample_name + 'hh_bbvv'
-            target = 1
-    elif 'HH' in bdt_type:
+    if 'HH' in bdt_type:
         isSpin0 = 'signal_ggf_spin0' in folder_name
         isSpin2 = 'signal_ggf_spin2' in folder_name
         if isSpin0 or isSpin2:
@@ -556,6 +511,15 @@ def advanced_sample_name(bdt_type, folder_name, masses):
             if '_2v2t' in folder_name:
                 sample_name = sample_name + '_hh_wwtt'
             target = 1
+        if 'nonres' in bdt_type:
+            target = 1
+            sample_name = "signal_ggf_nonresonant"
+            if '_4t' in folder_name:
+                sample_name = sample_name + '_hh_tttt'
+            if '_4v' in folder_name:
+                sample_name = sample_name + '_hh_wwww'
+            if '_2v2t' in folder_name:
+                sample_name = sample_name + '_hh_wwtt'
     if 'ttH' in folder_name:
         if 'HH' in bdt_type:
             target = 0
@@ -563,16 +527,6 @@ def advanced_sample_name(bdt_type, folder_name, masses):
         else:
             target = 1
             sample_name = 'ttH'  # changed from 'signal'
-    if 'nonres' in bdt_type:
-        target = 1
-        sample_name = "signal_ggf_nonresonant"
-        if '_4t' in folder_name:
-            sample_name = sample_name + '_hh_tttt'
-        if '_4v' in folder_name:
-            sample_name = sample_name + '_hh_wwww'
-        if '_2v2t' in folder_name:
-            sample_name = sample_name + '_hh_wwtt'
-        #  sample_name = 'HH_nonres_decay'
     sample_dict = {
         'sampleName': sample_name,
         'target': target
@@ -619,20 +573,6 @@ def signal_background_calc(data, bdt_type, folder_name):
     Nothing
     '''
     try:
-        if 'evtLevelSUM_HH_bb2l' in bdt_type and folder_name == 'TTTo2L2Nu':
-            data.drop(data.tail(6000000).index, inplace=True)
-        elif 'evtLevelSUM_HH_bb1l' in bdt_type:
-            if folder_name == 'TTToSemiLeptonic_PSweights':
-                data.drop(data.tail(24565062).index, inplace=True)
-            if folder_name == 'TTTo2L2Nu_PSweights':
-                data.drop(data.tail(11089852).index, inplace=True)  # 12089852
-            if folder_name.find('signal') != -1:
-                if folder_name.find('900') == -1 and folder_name.find('1000') == -1:
-                    data.drop(data.tail(15000).index, inplace=True)
-                if bdt_type.find('nonres') != -1:
-                    data.drop(data.tail(20000).index, inplace=True)
-            elif folder_name == 'W':
-                data.drop(data.tail(2933623).index, inplace=True)
         nS = len(
             data.loc[(data.target.values == 1) & (data.key.values == folder_name)])
         nB = len(
