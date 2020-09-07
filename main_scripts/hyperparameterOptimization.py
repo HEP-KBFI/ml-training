@@ -28,12 +28,12 @@ def main():
         settings_dir,
         'xgb_parameters.json'
     )
-    value_dicts = ut.read_parameters(param_file)
+    value_dicts = ut.read_json_cfg(param_file)
     pso_settings = ut.read_settings(settings_dir, 'pso')
     pso_settings.update(global_settings)
     print("\n============ Starting hyperparameter optimization ==========\n")
-    best_hyperparameters = pt.particleSwarmOptimization(
-        pso_settings, st.get_fitness_score, value_dicts)[0]
+    swarm = pm.ParticleSwarm(pso_settings, st.get_fitness_score, hyperparameter_info)
+    optimal_hyperparameters = swarm.particleSwarmOptimization()[0]
     print("\n============ Saving results ================\n")
     best_parameters_path = os.path.join(
         output_dir, 'best_hyperparameters.json')

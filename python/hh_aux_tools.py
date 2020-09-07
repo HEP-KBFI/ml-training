@@ -1511,22 +1511,12 @@ def get_hh_parameters(
         The necessary info for loading data
     '''
     info_path = os.path.join(info_dir, 'info.json')
-    keys_path = os.path.join(info_dir, 'keys.json')
-    tau_id_application_path = os.path.join(
-        info_dir, 'tauID_application.json')
-    tau_id_training_path = os.path.join(info_dir, 'tauID_training.json')
     trainvars_path = os.path.join(info_dir, 'trainvars.json')
     info_dict = ut.read_json_cfg(info_path)
-    tau_id_trainings = ut.read_parameters(tau_id_training_path)
-    tau_id_applications = ut.read_parameters(tau_id_application_path)
-    parameters = dlt.find_correct_dict(
-        'tauID_application',
-        info_dict['default_tauID_application'],
-        tau_id_applications
-    )
-    parameters.update(dlt.find_input_paths(
-        info_dict, tau_id_trainings, tau_id_training))
-    parameters['keys'] = dlt.load_era_keys(keys_path)
+    default_tauID = info_dict['default_tauID_application']
+    parameters = info_dict['tauID_application'][default_tauID]
+    parameters.update(dlt.find_input_paths(info_dict, tau_id_training))
+    parameters['keys'] = dlt.load_era_keys(info_dict)
     trainvar_info = dlt.read_trainvar_info(trainvars_path)
     parameters['trainvars'] = []
     with open(trainvars_path, 'rt') as infile:

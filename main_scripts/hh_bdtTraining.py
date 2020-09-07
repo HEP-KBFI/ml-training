@@ -50,7 +50,7 @@ def main(output_dir, settings_dir, hyperparameter_file):
     )
     if hyperparameter_file == 'None':
         hyperparameter_file = os.path.join(info_dir, 'hyperparameters.json')
-    hyperparameters = ut.read_parameters(hyperparameter_file)[0]
+    hyperparameters = ut.read_json_cfg(hyperparameter_file)
     evaluation_main(global_settings, preferences, hyperparameters)
 
 

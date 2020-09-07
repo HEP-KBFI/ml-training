@@ -124,7 +124,7 @@ def read_json_cfg(path):
         The json dict that was loaded
     '''
     with open(path, 'rt') as jsonFile:
-        info = json.load(path)
+        info = json.load(jsonFile)
     return info
 
 

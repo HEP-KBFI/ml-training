@@ -480,9 +480,9 @@ def get_all_paths(input_path, folder_name, bdt_type):
                 'HH',
                 'sample_categories.json'
             )
-            sample_categories = ut.read_parameters(catfile)
-        if (folder_name in sample_categories[0].keys()):
-            for fname in sample_categories[0][folder_name]:
+            sample_categories = ut.read_json_cfg(catfile)
+        if (folder_name in sample_categories.keys()):
+            for fname in sample_categories[folder_name]:
                 wild_card_path = os.path.join(
                     input_path, fname + '*', 'central', '*.root')
                 addpaths = glob.glob(wild_card_path)
@@ -654,23 +654,22 @@ def signal_background_calc(data, bdt_type, folder_name):
             print('Error: No data (!!!)')
 
 
-def load_era_keys(keys_path):
-    key_infos = ut.read_parameters(keys_path)
+def load_era_keys(info):
+    samples = info['keys'].keys()
     era_wise_keys = {'keys16': [], 'keys17': [], 'keys18': []}
-    for key_info in key_infos:
-        key = key_info['key']
-        if 16 in key_info['eras']:
-            era_wise_keys['keys16'].append(key)
-        if 17 in key_info['eras']:
-            era_wise_keys['keys17'].append(key)
-        if 18 in key_info['eras']:
-            era_wise_keys['keys18'].append(key)
+    for sample in samples:
+        included_eras = info['keys'][sample]
+        if 16 in included_eras:
+            era_wise_keys['keys16'].append(sample)
+        if 17 in included_eras:
+            era_wise_keys['keys17'].append(sample)
+        if 18 in included_eras:
+            era_wise_keys['keys18'].append(sample)
     return era_wise_keys
 
 
 def find_input_paths(
         info_dict,
-        tau_id_trainings,
         tau_id_training,
 ):
     '''Finds era-wise inputPaths
@@ -691,11 +690,10 @@ def find_input_paths(
     '''
     eras = info_dict['included_eras']
     input_paths_dict = {}
-    correct_dict = find_correct_dict(
-        'tauID_training', tau_id_training, tau_id_trainings)
+    tauID_training = info_dict['tauID_training'][tau_id_training]
     for era in eras:
         key = 'inputPath' + era
-        input_paths_dict[key] = correct_dict[key]
+        input_paths_dict[key] = tauID_training[key]
     return input_paths_dict
 
 

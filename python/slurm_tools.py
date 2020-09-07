@@ -182,7 +182,7 @@ def read_fitness(output_dir, fitness_key='d_roc'):
     score_dicts = []
     for number in range(number_samples):
         path = os.path.join(samples, str(number), 'score.json')
-        score_dict = ut.read_parameters(path)[0]
+        score_dict = ut.read_json_cfg(path)
         score_dicts.append(score_dict)
     scores = [score_dict[fitness_key] for score_dict in score_dicts]
     return scores
