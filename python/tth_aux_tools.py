@@ -106,7 +106,7 @@ def set_signal_sample_info(bdt_type, folder_name):
 
 
 def set_background_sample_info(folder_name, samplename_info):
-    sample_name, target = dlt.set_background_sample_info(
+    sample_name, target = set_background_sample_info_d(
         folder_name, samplename_info)
     return sample_name, target
 
@@ -139,3 +139,29 @@ def get_ntuple_paths(input_path, folder_name, bdt_type):
                 input_path, folder_name + '*', '*.root')
             paths = glob.glob(wild_card_path)
     return paths
+
+
+
+def set_background_sample_info_d(folder_name, samplename_info):
+    '''Finds which sample corresponds to the given folder name
+
+    Parameters:
+    ----------
+    folder_name : str
+        Name of the folder where data would be loaded
+    samplename_info : dict
+        Info regarding what sample name and target each folder has
+
+    Returns:
+    -------
+    sample_dict : dict
+        Dictionary containing the info of the sample for the folder.
+    '''
+    sample_name = None
+    target = None
+    for sample in samplename_info.keys():
+        if sample in folder_name:
+            sample_dict = samplename_info[sample]
+            sample_name = sample_dict['sampleName']
+            target = sample_dict['target']
+    return sample_name, target

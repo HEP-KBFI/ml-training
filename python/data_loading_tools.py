@@ -1,5 +1,5 @@
 from machineLearning.machineLearning import universal_tools as ut
-from machineLearning.machineLearning import hh_aux_tools as hhat
+from machineLearning.machineLearning import hh_data_tools as hhdt
 from machineLearning.machineLearning import tth_aux_tools as tthat
 import os
 import json
@@ -309,7 +309,7 @@ def define_new_variables(
     chunk_df['target'] = int(target)
     chunk_df['totalWeight'] = chunk_df['evtWeight']
     if 'HH' in bdt_type:
-        data = hhat.define_new_variables(
+        data = hhdt.define_new_variables(
             chunk_df, sample_name, folder_name, target, bdt_type, masses,
             mass_randomization, nonResScenarios, data
         )
@@ -372,7 +372,7 @@ def get_all_paths(input_path, folder_name, bdt_type):
     if 'TTH' in bdt_type:
         paths = tthat.get_ntuple_paths(input_path, folder_name, bdt_type)
     elif 'HH' in bdt_type:
-        paths = hhat.get_ntuple_paths(input_path, folder_name, bdt_type)
+        paths = hhdt.get_ntuple_paths(input_path, folder_name, bdt_type)
     else:
         return ValueError('Unknown bdtType')
     return paths
@@ -385,7 +385,7 @@ def find_sample_info(folder_name, bdt_type, masses):
     )
     samplename_info = ut.read_json_cfg(samplename_info_path)
     if 'HH' in bdt_type:
-        sample_name, target = hhat.set_sample_info(
+        sample_name, target = hhdt.set_sample_info(
             folder_name, samplename_info, masses, bdt_type
         )
     elif 'TTH' in bdt_type:
@@ -394,31 +394,6 @@ def find_sample_info(folder_name, bdt_type, masses):
         )
     else:
         raise ValueError("Unknown bdtType")
-    return sample_name, target
-
-
-def set_background_sample_info(folder_name, samplename_info):
-    '''Finds which sample corresponds to the given folder name
-
-    Parameters:
-    ----------
-    folder_name : str
-        Name of the folder where data would be loaded
-    samplename_info : dict
-        Info regarding what sample name and target each folder has
-
-    Returns:
-    -------
-    sample_dict : dict
-        Dictionary containing the info of the sample for the folder.
-    '''
-    sample_name = None
-    target = None
-    for sample in samplename_info.keys():
-        if sample in folder_name:
-            sample_dict = samplename_info[sample]
-            sample_name = sample_dict['sampleName']
-            target = sample_dict['target']
     return sample_name, target
 
 
