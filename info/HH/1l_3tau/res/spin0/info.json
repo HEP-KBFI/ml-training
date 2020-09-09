@@ -5,7 +5,7 @@
     "masses_test_low": [300],
     "masses_high": [450,500,550,600,650,700,750,800,850,900,1000],
     "masses_test_high": [500, 800],
-    "channelInTree": "hh_0l_4tau_OS_forBDTtraining",
+    "channelInTree": "hh_1l_3tau_OS_Tight",
     "default_tauID_application": "deepVSjLoose",
     "weight_dir": "/hdfs/local/laurits/spin0_gen_mHH/",
     "included_eras": ["16","17","18"],
