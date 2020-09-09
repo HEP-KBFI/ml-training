@@ -47,17 +47,18 @@ def test_check_input_path_existance():
     missing_inputPaths = []
     for resInfo in glob.glob(res_wildcard):
         info_dict = ut.read_json_cfg(resInfo)
-        tauID_wps = info_dict['tauID_training'].keys()
-        for wp in tauID_wps:
-            input_paths = wp.keys()
-            for inPath in input_paths:
-                if not os.path.exists(inPath):
-                    missing_inputPaths.append(inPath)
+        tauID_wps = info_dict['tauID_training']
+        for wp in tauID_wps.keys():
+            input_paths = tauID_wps[wp]
+            for inPath in input_paths.keys():
+                if not os.path.exists(input_paths[inPath]):
+                    missing_inputPaths.append(input_paths[inPath])
     for nonResInfo in glob.glob(nonRes_wildcard):
-        tauID_wps = info_dict['tauID_training'].keys()
-        for wp in tauID_wps:
-            input_paths = wp.keys()
-            for inPath in input_paths:
-                if not os.path.exists(inPath):
-                    missing_inputPaths.append(inPath)
+        info_dict = ut.read_json_cfg(nonResInfo)
+        tauID_wps = info_dict['tauID_training']
+        for wp in tauID_wps.keys():
+            input_paths = tauID_wps[wp]
+            for inPath in input_paths.keys():
+                if not os.path.exists(input_paths[inPath]):
+                    missing_inputPaths.append(input_paths[inPath])
     assert len(missing_directories) == 0, "Missing ntuple directories: " + str(set(missing_directories))
