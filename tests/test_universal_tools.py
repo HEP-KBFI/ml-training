@@ -15,9 +15,8 @@ settings_dir = os.path.join(
 def test_read_parameters():
     path_to_test_file = os.path.join(
         resources_dir, 'best_parameters.json')
-    result = ut.read_parameters(path_to_test_file)
+    result = ut.read_json_cfg(path_to_test_file)
     expected = [
         {'a': 1, 'b': 2, 'c': 3},
-        {'stuff': 1}
     ]
     assert result == expected
