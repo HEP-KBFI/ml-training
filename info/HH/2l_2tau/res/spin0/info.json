@@ -77,7 +77,7 @@
         "signal_ggf_spin0_800_hh_4t": [16,17,18],
         "signal_ggf_spin0_850_hh_4t": [16,17,18],
         "signal_ggf_spin0_900_hh_4t": [16,17,18],
-        "signal_g1000_hh_4t": [16,17,18],
+        "signal_ggf_spin0_1000_hh_4t": [16,17,18],
         "signal_ggf_spin0_250_hh_4v": [16,17,18],
         "signal_ggf_spin0_260_hh_4v": [16,17,18],
         "signal_ggf_spin0_270_hh_4v": [16,17,18],
@@ -95,7 +95,7 @@
         "signal_ggf_spin0_800_hh_4v": [16,17,18],
         "signal_ggf_spin0_850_hh_4v": [16,17,18],
         "signal_ggf_spin0_900_hh_4v": [16,17,18],
-        "signal_g1000_hh_4v": [16,17,18],
+        "signal_ggf_spin0_1000_hh_4v": [16,17,18],
         "signal_ggf_spin0_250_hh_2v2t": [16,17,18],
         "signal_ggf_spin0_260_hh_2v2t": [16,17,18],
         "signal_ggf_spin0_270_hh_2v2t": [16,17,18],
@@ -113,6 +113,6 @@
         "signal_ggf_spin0_800_hh_2v2t": [16,17,18],
         "signal_ggf_spin0_850_hh_2v2t": [16,17,18],
         "signal_ggf_spin0_900_hh_2v2t": [16,17,18],
-        "signal_g1000_hh_2v2t": [16,17,18]
+        "signal_ggf_spin0_1000_hh_2v2t": [16,17,18]
     }
 }
