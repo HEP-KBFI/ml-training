@@ -48,13 +48,13 @@ def test_check_input_path_existance():
     for resInfo in glob.glob(res_wildcard):
         info_dict = ut.read_json_cfg(resInfo)
         for inputPath in inputpaths:
-            inPath = info_dict[inputPath]
+            inPath = dlt.load_era_keys(info_dict)[inputPath]
             if not os.path.exists(inPath):
                 missing_inputPaths.append(inPath)
     for nonResInfo in glob.glob(nonRes_wildcard):
         info_dict = ut.read_json_cfg(nonResInfo)
         for inputPath in inputpaths:
-            inPath = info_dict[inputPath]
+            inPath = dlt.load_era_keys(info_dict)[inputPath]
             if not os.path.exists(inPath):
                 missing_inputPaths.append(inPath)
     assert len(missing_directories) == 0, "Missing ntuple directories: " + str(set(missing_directories))
