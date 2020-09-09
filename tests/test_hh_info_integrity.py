@@ -4,8 +4,8 @@ import glob
 import os
 
 
-def check_info_files():
-    package_path = ml.__path__[0]
+def test_check_info_files():
+    package_path = ml.__path__[0].replace('python', 'src')
     res_wildcard = os.path.join(
         package_path, 'info', 'HH', '*', 'res', '*', 'info.json')
     nonRes_wildcard = os.path.join(
@@ -21,4 +21,4 @@ def check_info_files():
             ut.read_json_cfg(nonResInfo)
         except:
             faulty_files.append(nonResInfo)
-    assert(len(faulty_files) == 0, "Faulty files: " + str(faulty_files))
+    assert len(faulty_files) == 0, "Faulty files: " + str(faulty_files)

@@ -53,6 +53,7 @@
             "inputPath17": "/hdfs/local/ram/hhAnalysis/2017/2020Feb18_BDTtraining_2017_deepVSjLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/",
             "inputPath18": "/hdfs/local/ram/hhAnalysis/2017/2020Feb18_BDTtraining_2017_deepVSjLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/"
         },
+    },
     "keys": {
         "TTTo2L2Nu": [16,17,18],
         "TTToSemiLeptonic": [16,17,18],

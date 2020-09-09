@@ -17,7 +17,7 @@ from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_visualization_tools as hhvt
 from machineLearning.machineLearning import hh_aux_tools as hhat
 from machineLearning.machineLearning import xgb_tools as xt
-from machineLearning.machineLearning import coverter_tools as ct
+from machineLearning.machineLearning import converter_tools as ct
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 import numpy as np
