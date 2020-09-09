@@ -53,6 +53,7 @@ def plot_sampleWise_bdtOutput(
     )
     plt.legend()
     output_path = os.path.join(output_dir, 'sampleWise_bdtOutput.png')
+    plt.tight_layout()
     plt.savefig(output_path, bbox_inches='tight')
     plt.close('all')
 
@@ -60,11 +61,12 @@ def plot_sampleWise_bdtOutput(
 def plot_feature_importances(model, global_settings, addition):
     fig, ax = plt.subplots()
     xgb.plot_importance(model, max_num_features=50, height=0.8, ax=ax)
+    plt.tight_layout()
     plot_out = os.path.join(
         global_settings['output_dir'],
         addition + '_feature_importances.png'
     )
-    fig.savefig(plot_out, bbox_inces='tight')
+    fig.savefig(plot_out, bbox_inches='tight')
 
 
 def plotROC(odd_infos, even_infos, global_settings):
@@ -74,12 +76,13 @@ def plotROC(odd_infos, even_infos, global_settings):
     for odd_info, linestyle in zip(odd_infos, linestyles):
         ax.plot(
             odd_info['fpr'], odd_info['tpr'], ls=linestyle, color='g',
-            label='odd_' + odd_info['type'] + 'AUC = ' + str(odd_info['auc'])
+            label='odd_' + odd_info['type'] + 'AUC = ' + str(
+                round(odd_info['auc'], 4))
         )
     for even_info, linestyle in zip(even_infos, linestyles):
         ax.plot(
-            even_info['fpr'], even_info['tpr'], ls=linestyle, color='r',
-            label='even_' + even_info['type'] + 'AUC = ' + str(even_info['auc'])
+            label='even_' + even_info['type'] + 'AUC = ' + str(
+                round(even_info['auc'], 4))
         )
     ax.set_ylim([0.0, 1.0])
     ax.set_xlim([0.0, 1.0])
@@ -88,7 +91,8 @@ def plotROC(odd_infos, even_infos, global_settings):
     ax.legend(loc="lower right")
     ax.grid()
     plot_out = os.path.join(output_dir, 'ROC_curve.png')
-    fig.savefig(plot_out, bbox_inces='tight')
+    plt.tight_layout()
+    fig.savefig(plot_out, bbox_inches='tight')
     plt.close('all')
 
 
@@ -193,6 +197,9 @@ def plot_nodeWise_performance(
         )
         ###########################################
         plt.legend()
+        plt.ylim([0.0, 1.0])
+        plt.xlim([0.0, 1.0])
+        plt.tight_layout()
         plt.savefig(plot_out, bbox_inches='tight')
         plt.close('all')
 
@@ -229,5 +236,6 @@ def plot_nodeWise_roc(global_settings, roc_infos, mode):
     plot_out = os.path.join(output_dir, 'nodeWiseROC_performance.png')
     plt.grid()
     plt.legend()
+    plt.tight_layout()
     plt.savefig(plot_out, bbox_inches='tight')
     plt.close('all')
