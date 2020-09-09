@@ -1,25 +1,23 @@
 from machineLearning.machineLearning import universal_tools as ut
 import numpy as np
+import os
 
 
 def set_signal_sample_info(bdt_type, folder_name, masses):
     sample_name = None
-    target = None
+    target = 1
     if 'nonres' in bdt_type:
         sample_name = "signal_ggf_nonresonant"
-        convert_special_sample(sample_name, folder_name)
-        target = 1
+        sample_name = convert_special_sample(sample_name, folder_name)
     elif 'res' in bdt_type:
-        if 'signal_ggf_spin' in folder_name:
-            if 'signal_ggf_spin0' in folder_name:
-                sample_name = 'signal_ggf_spin0_'
-            else:
-                sample_name = 'signal_ggf_spin2_'
-            for mass in masses:
-                if str(mass) in folder_name:
-                    sample_name = sample_name + str(mass)
-            convert_special_sample(sample_name, folder_name)
-            target = 1
+        if 'signal_ggf_spin0' in folder_name:
+            sample_name = 'signal_ggf_spin0_'
+        elif 'signal_ggf_spin2' in folder_name:
+            sample_name = 'signal_ggf_spin2_'
+        for mass in masses:
+            if str(mass) in folder_name:
+                sample_name = sample_name + str(mass)
+        sample_name = convert_special_sample(sample_name, folder_name)
     return sample_name, target
 
 
