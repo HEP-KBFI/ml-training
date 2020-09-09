@@ -162,13 +162,7 @@ def data_main_loop(
     data : pandas DataFrame
         All the loaded data so far.
     '''
-    sample_dict = find_sample(folder_name, samplename_info)
-    if sample_dict == {}:
-        sample_dict = advanced_sample_name(
-            bdt_type, folder_name, masses
-        )
-    sample_name = sample_dict['sampleName']
-    target = sample_dict['target']
+    sample_name, target = find_sample_info(folder_name, bdt_type, masses)
     print(':::::::::::::::::')
     print('input_path:\t' + str(input_path))
     print('folder_name:\t' + str(folder_name))
