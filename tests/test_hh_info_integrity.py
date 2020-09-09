@@ -46,7 +46,7 @@ def test_check_input_path_existance():
         package_path, 'info', 'HH', '*', 'nonRes', 'info.json')
     missing_inputPaths = []
     for resInfo in glob.glob(res_wildcard):
-        info_dict = ut.read_json_cfg(path)
+        info_dict = ut.read_json_cfg(resInfo)
         for inputPath in inputpaths:
             inPath = info_dict[inputPath]
             if not os.path.exists(inPath):
