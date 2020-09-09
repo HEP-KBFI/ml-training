@@ -1517,7 +1517,6 @@ def get_hh_parameters(
     parameters = info_dict['tauID_application'][default_tauID]
     parameters.update(dlt.find_input_paths(info_dict, tau_id_training))
     parameters.update(dlt.load_era_keys(info_dict))
-    print(parameters['keys'])
     trainvar_info = dlt.read_trainvar_info(trainvars_path)
     parameters['trainvars'] = []
     with open(trainvars_path, 'rt') as infile:

@@ -550,9 +550,9 @@ def find_sample(folder_name, samplename_info):
         Dictionary containing the info of the sample for the folder.
     '''
     sample_dict = {}
-    for sample in samplename_info:
-        if sample['type'] in folder_name:
-            sample_dict = sample
+    for sample in samplename_info.keys():
+        if sample in folder_name:
+            sample_dict = samplename_info[sample]
     return sample_dict
 
 
