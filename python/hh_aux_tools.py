@@ -1587,7 +1587,7 @@ def set_signal_sample_info(bdt_type, folder_name, masses):
         if 'signal_ggf_spin' in folder_name:
             if 'signal_ggf_spin0' in folder_name:
                 sample_name = 'signal_ggf_spin0_'
-            else 'signal_ggf_spin2' in folder_name:
+            else:
                 sample_name = 'signal_ggf_spin2_'
             for mass in masses:
                 if str(mass) in folder_name:
