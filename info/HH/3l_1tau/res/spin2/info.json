@@ -29,7 +29,7 @@
         "deepVSJVVVLoose_old": {
             "inputPath16": "/hdfs/local/tolange/hhAnalysis/2017/2020_May_26_newTrainingNtuple_VVVLoose/histograms/hh_3l_1tau/forBDTtraining_OS/",
             "inputPath17": "/hdfs/local/tolange/hhAnalysis/2017/2020_May_26_newTrainingNtuple_VVVLoose/histograms/hh_3l_1tau/forBDTtraining_OS/",
-            "inputPath18": "/hdfs/local/tolange/hhAnalysis/2017/2020_May_26_newTrainingNtuple_VVVLoose/histograms/hh_3l_1tau/forBDTtraining_OS/",
+            "inputPath18": "/hdfs/local/tolange/hhAnalysis/2017/2020_May_26_newTrainingNtuple_VVVLoose/histograms/hh_3l_1tau/forBDTtraining_OS/"
         },
         "deepVSJVVVLoose": {
             "inputPath16": "/hdfs/local/tolange/hhAnalysis/2017/2020_May_27_TrainingNtuple_VVVLoose/histograms/hh_3l_1tau/forBDTtraining_OS/",
