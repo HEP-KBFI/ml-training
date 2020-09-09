@@ -35,7 +35,7 @@ def load_data(
     eras = preferences['included_eras']
     total_data = pandas.DataFrame({})
     for era in eras:
-        input_path_key = 'inputPath' + era
+        input_path_key = 'inputPath' + str(era)
         input_path = preferences[input_path_key]
         era_keys = preferences['keys' + str(era)]
         data = load_data_from_one_era(
