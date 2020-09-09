@@ -31,7 +31,8 @@
             "TTdatacard": 1.0,
             "DYdatacard": 1.0,
             "ZZdatacard": 1.0
-        },
+        }
+    },
     "tauID_training": {
         "deepVSjLoose": {
             "inputPath16": "/hdfs/local/ram/hhAnalysis/2017/2020Feb18_BDTtraining_2017_deepVSjLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/",
