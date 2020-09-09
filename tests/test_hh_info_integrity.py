@@ -30,7 +30,7 @@ def test_check_weights_dir_existance():
         package_path, 'info', 'HH', '*', 'res', '*', 'info.json')
     missing_directories = []
     for path in glob.glob(res_wildcard):
-        info_dict = ut.read_json_cfg(resInfo)
+        info_dict = ut.read_json_cfg(path)
         weight_dir = info_dict['weight_dir']
         if not os.path.exists(weight_dir):
             missing_directories.append(weight_dir)
