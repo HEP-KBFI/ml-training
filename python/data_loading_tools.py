@@ -1,4 +1,6 @@
 from machineLearning.machineLearning import universal_tools as ut
+from machineLearning.machineLearning import hh_aux_tools as hhat
+from machineLearning.machineLearning import tth_aux_tools as tthat
 import os
 import json
 from pathlib import Path
@@ -101,22 +103,15 @@ def load_data_from_one_era(
     if 'HH_nonres' in bdt_type:
         my_cols_list += ['nodeX']
     data = pandas.DataFrame(columns=my_cols_list)
-    samplename_info_path = os.path.join(
-        os.path.expandvars('$CMSSW_BASE'),
-        'src/machineLearning/machineLearning/info/samplename_info.json'
-    )
-    samplename_info = ut.read_json_cfg(samplename_info_path)
     for folder_name in keys:
         data = data_main_loop(
             folder_name,
-            samplename_info,
             channel_in_tree,
             masses,
             nonResScenarios,
             input_path,
             bdt_type,
             data,
-            variables,
             mass_randomization,
         )
         signal_background_calc(data, bdt_type, folder_name)
@@ -134,14 +129,12 @@ def load_data_from_one_era(
 
 def data_main_loop(
         folder_name,
-        samplename_info,
         channel_in_tree,
         masses,
         nonResScenarios,
         input_path,
         bdt_type,
         data,
-        variables,
         mass_randomization,
 ):
     ''' Defines new variables based on the old ones that can be used in the
@@ -151,9 +144,6 @@ def data_main_loop(
     ----------
     folder_name : str
         Folder from the keys where .root file is searched.
-    sample_name_info : dict
-        dictionary containing info which samples are signal and which
-        background.
     channel_in_tree : str
         path where data is located in the .root file
     masses : list
@@ -164,8 +154,6 @@ def data_main_loop(
         Boosted decision tree type
     data : str
         The loaded data so far
-    variables : list
-        List of training variables to be used.
     mass_randomization : str
         Which kind of mass randomization to use: "default" or "oversampling"
 
@@ -206,7 +194,6 @@ def data_main_loop(
             mass_randomization,
             nonResScenarios,
             data,
-            variables,
         )
     return data
 
@@ -222,7 +209,6 @@ def load_data_from_tfile(
         mass_randomization,
         nonResScenarios,
         data,
-        variables,
 ):
     ''' Loads data from the ROOT TTree.
 
@@ -246,8 +232,6 @@ def load_data_from_tfile(
         Which kind of mass randomization to use: "default" or "oversampling"
     data : pandas DataFrame
         All the loaded data will be appended there.
-    variables : list
-        List of training variables to be used.
 
     Returns:
     -------
@@ -274,7 +258,6 @@ def load_data_from_tfile(
                 mass_randomization,
                 nonResScenarios,
                 data,
-                variables,
             )
     else:
         tfile.Close()
@@ -291,8 +274,7 @@ def define_new_variables(
         masses,
         mass_randomization,
         nonResScenarios,
-        data,
-        variables,
+        data
 ):
     ''' Defines new variables based on the old ones that can be used in the
     training
@@ -326,44 +308,17 @@ def define_new_variables(
     chunk_df['key'] = folder_name
     chunk_df['target'] = int(target)
     chunk_df['totalWeight'] = chunk_df['evtWeight']
-    HHRes = ('HH' in bdt_type) and 'nonres' not in bdt_type
-    if HHRes:
-        if target == 1:
-            for mass in masses:
-                if str(mass) in folder_name:
-                    chunk_df["gen_mHH"] = float(mass)
-        elif target == 0:
-            if mass_randomization == "default":
-                chunk_df["gen_mHH"] = float(np.random.choice(
-                    masses, size=len(chunk_df)))
-            elif mass_randomization == "oversampling":
-                for mass in masses:
-                    chunk_df["gen_mHH"] = float(mass)
-                    data = data.append(chunk_df, ignore_index=True, sort=False)
-            else:
-                raise ValueError(
-                    'Cannot use ', mass_randomization, "as mass_randomization")
-        else:
-            raise ValueError('Cannot use ', target, 'as target')
-    elif "nonres" in bdt_type:
-        for i in range(len(nonResScenarios)):
-            chunk_df_node = chunk_df.copy()
-            scenario = nonResScenarios[i]
-            chunk_df_node['nodeX'] = i
-            for idx, node in enumerate(nonResScenarios):
-                chunk_df_node[node] = 1 if idx == i else 0
-            chunk_df_node['nodeXname'] = scenario
-            if target == 1:
-                if scenario is not "SM":
-                    nodeWeight = chunk_df_node['Weight_' + scenario]
-                    nodeWeight /= chunk_df_node['Weight_SM']
-                    chunk_df_node['totalWeight'] *= nodeWeight
-            data = data.append(chunk_df_node, ignore_index=True, sort=False)
+    if 'HH' in bdt_type:
+        data = hhat.define_new_variables(
+            chunk_df, sample_name, folder_name, target, bdt_type, masses,
+            mass_randomization, nonResScenarios, data
+        )
         return data
-    case1 = mass_randomization != "oversampling"
-    case2 = mass_randomization == "oversampling" and target == 1
-    if case1 or case2:
-        data = data.append(chunk_df, ignore_index=True, sort=False)
+    else:
+        case1 = mass_randomization != "oversampling"
+        case2 = mass_randomization == "oversampling" and target == 1
+        if case1 or case2:
+            data = data.append(chunk_df, ignore_index=True, sort=False)
     return data
 
 
@@ -415,126 +370,34 @@ def get_all_paths(input_path, folder_name, bdt_type):
         included in the dataframe.
     '''
     if 'TTH' in bdt_type:
-        if folder_name == 'ttHToNonbb':
-            wild_card_path = os.path.join(
-                input_path, folder_name + '_M125_powheg',
-                folder_name + '*.root'
-            )
-            paths = glob.glob(wild_card_path)
-        elif ('TTW' in folder_name) or ('TTZ' in folder_name):
-            wild_card_path = os.path.join(
-                input_path, folder_name + '_LO*', folder_name + '*.root')
-            paths = glob.glob(wild_card_path)
-        else:
-            if 'ttH' in folder_name:
-                wild_card_path = os.path.join(
-                    input_path,
-                    folder_name + '*Nonbb*',
-                    'central',
-                    folder_name + '*.root'
-                )
-                paths = glob.glob(wild_card_path)
-            wild_card_path = os.path.join(
-                input_path, folder_name + "*", folder_name + '*.root')
-            paths = glob.glob(wild_card_path)
-            if len(paths) == 0:
-                wild_card_path = os.path.join(
-                    input_path, folder_name + '*', '*.root')
-                paths = glob.glob(wild_card_path)
+        paths = tthat.get_ntuple_paths(input_path, folder_name, bdt_type)
+    elif 'HH' in bdt_type:
+        paths = hhat.get_ntuple_paths(input_path, folder_name, bdt_type)
     else:
-        paths = []
-        sample_categories = [{}]
-        if 'HH' in bdt_type:  # hardcoded path
-            catfile = os.path.join(
-                os.path.expandvars('$CMSSW_BASE'),
-                'src/machineLearning/machineLearning/info',
-                'HH',
-                'sample_categories.json'
-            )
-            sample_categories = ut.read_json_cfg(catfile)
-        if (folder_name in sample_categories.keys()):
-            for fname in sample_categories[folder_name]:
-                wild_card_path = os.path.join(
-                    input_path, fname + '*', 'central', '*.root')
-                addpaths = glob.glob(wild_card_path)
-                if len(addpaths) == 0:
-                    wild_card_path = os.path.join(
-                        input_path, fname + '*', '*.root')
-                    addpaths = glob.glob(wild_card_path)
-                paths.extend(addpaths)
-            paths = list(dict.fromkeys(paths))
-        else:
-            wild_card_path = os.path.join(
-                input_path, folder_name + '*', 'central', '*.root')
-            paths = glob.glob(wild_card_path)
-            if len(paths) == 0:
-                wild_card_path = os.path.join(
-                    input_path, folder_name + '*', '*.root')
-                paths = glob.glob(wild_card_path)
-        paths = [path for path in paths if 'hadd' not in path]
+        return ValueError('Unknown bdtType')
     return paths
 
 
-def advanced_sample_name(bdt_type, folder_name, masses):
-    ''' If easily classified samples are not enough to get 'target' and
-    'sample_name'
-
-    Parameters:
-    ----------
-    bdt_type: str
-        Type of the boosted decision tree (?)
-    folder_name : str
-        Name of the folder in the keys currently loading the data from
-    masses : list
-        list of int. Masses that are used
-
-    Returns:
-    -------
-    sample_dict : dict
-        Dictionary containing 'sampleName' and 'target'
-    '''
+def find_sample_info(folder_name, bdt_type, masses):
+    samplename_info_path = os.path.join(
+        os.path.expandvars('$CMSSW_BASE'),
+        'src/machineLearning/machineLearning/info/samplename_info.json'
+    )
+    samplename_info = ut.read_json_cfg(samplename_info_path)
     if 'HH' in bdt_type:
-        isSpin0 = 'signal_ggf_spin0' in folder_name
-        isSpin2 = 'signal_ggf_spin2' in folder_name
-        if isSpin0 or isSpin2:
-            if 'signal_ggf_spin0' in folder_name:
-                sample_name = 'signal_ggf_spin0_'
-            elif 'signal_ggf_spin2' in folder_name:
-                sample_name = 'signal_ggf_spin2_'
-            for mass in masses:
-                if str(mass) in folder_name:
-                    sample_name = sample_name + str(mass)
-            if '_4t' in folder_name:
-                sample_name = sample_name + '_hh_tttt'
-            if '_4v' in folder_name:
-                sample_name = sample_name + '_hh_wwww'
-            if '_2v2t' in folder_name:
-                sample_name = sample_name + '_hh_wwtt'
-            target = 1
-        if 'nonres' in bdt_type:
-            target = 1
-            sample_name = "signal_ggf_nonresonant"
-            if '_4t' in folder_name:
-                sample_name = sample_name + '_hh_tttt'
-            if '_4v' in folder_name:
-                sample_name = sample_name + '_hh_wwww'
-            if '_2v2t' in folder_name:
-                sample_name = sample_name + '_hh_wwtt'
-    if 'ttH' in folder_name:
-        if 'HH' in bdt_type:
-            target = 0
-            sample_name = 'TTH'
-        else:
-            target = 1
-            sample_name = 'ttH'  # changed from 'signal'
-    sample_dict = {
-        'sampleName': sample_name,
-        'target': target
-    }
-    return sample_dict
+        sample_name, target = hhat.set_sample_info(
+            folder_name, samplename_info, masses, bdt_type
+        )
+    elif 'TTH' in bdt_type:
+        sample_name, target = tthat.set_sample_info(
+            folder_name, samplename_info, masses, bdt_type
+        )
+    else:
+        raise ValueError("Unknown bdtType")
+    return sample_name, target
 
 
-def find_sample(folder_name, samplename_info):
+def set_background_sample_info(folder_name, samplename_info):
     '''Finds which sample corresponds to the given folder name
 
     Parameters:
@@ -549,11 +412,14 @@ def find_sample(folder_name, samplename_info):
     sample_dict : dict
         Dictionary containing the info of the sample for the folder.
     '''
-    sample_dict = {}
+    sample_name = None
+    target = None
     for sample in samplename_info.keys():
         if sample in folder_name:
             sample_dict = samplename_info[sample]
-    return sample_dict
+            sample_name = sample_dict['sampleName']
+            target = sample_dict['target']
+    return sample_name, target
 
 
 def signal_background_calc(data, bdt_type, folder_name):

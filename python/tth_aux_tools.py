@@ -84,3 +84,58 @@ def get_tth_parameters(channel, bdt_type, channel_dir):
         print('Error: File %s does not exist. No keys found' % (keys_path))
     parameters.update(info_dict)
     return parameters
+
+
+def set_sample_info(folder_name, samplename_info, bdt_type):
+    sample_name = None
+    target = None
+    if 'signal' in folder_name:
+        sample_name, target = set_signal_sample_info(
+            bdt_type, folder_name)
+    else:
+        sample_name, target = set_background_sample_info(
+            folder_name, samplename_info)
+    return sample_name, target
+
+
+def set_signal_sample_info(bdt_type, folder_name):
+    if 'ttH' in folder_name:
+        target = 1
+        sample_name = 'ttH'
+    return sample_name, target
+
+
+def set_background_sample_info(folder_name, samplename_info):
+    sample_name, target = dlt.set_background_sample_info(
+        folder_name, samplename_info)
+    return sample_name, target
+
+
+def get_ntuple_paths(input_path, folder_name, bdt_type):
+    if folder_name == 'ttHToNonbb':
+        wild_card_path = os.path.join(
+            input_path, folder_name + '_M125_powheg',
+            folder_name + '*.root'
+        )
+        paths = glob.glob(wild_card_path)
+    elif ('TTW' in folder_name) or ('TTZ' in folder_name):
+        wild_card_path = os.path.join(
+            input_path, folder_name + '_LO*', folder_name + '*.root')
+        paths = glob.glob(wild_card_path)
+    else:
+        if 'ttH' in folder_name:
+            wild_card_path = os.path.join(
+                input_path,
+                folder_name + '*Nonbb*',
+                'central',
+                folder_name + '*.root'
+            )
+            paths = glob.glob(wild_card_path)
+        wild_card_path = os.path.join(
+            input_path, folder_name + "*", folder_name + '*.root')
+        paths = glob.glob(wild_card_path)
+        if len(paths) == 0:
+            wild_card_path = os.path.join(
+                input_path, folder_name + '*', '*.root')
+            paths = glob.glob(wild_card_path)
+    return paths

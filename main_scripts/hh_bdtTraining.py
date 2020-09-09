@@ -114,7 +114,7 @@ def save_xmlFile(global_settings, model, addition):
     xmlFile = os.path.join(global_settings['output_dir'], addition + '_model.xml')
     bst = model.get_booster()
     features = bst.feature_names
-    bdtModel = ct.BDTxgboost(pklData, features, ['Background', 'Signal'])
+    bdtModel = ct.BDTxgboost(model, features, ['Background', 'Signal'])
     bdtModel.to_tmva(xmlFile)
     print('.xml BDT model saved to ' + str(xmlFile))
 
