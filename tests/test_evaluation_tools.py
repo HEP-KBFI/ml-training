@@ -46,24 +46,3 @@ def test_calculate_dict_mean_coeff_of_variation():
         7
     )
 
-
-def test_calculate_auc():
-    data_dict = {
-        'training_labels': [0, 1, 1, 3],
-        'testing_labels': [0, 1, 1, 3]
-    }
-    pred_train = [
-        [0.9, 0.05, 0.03, 0.02],
-        [0.1, 0.8, 0.05, 0.05],
-        [0.1, 0.8, 0.05, 0.05],
-        [0.1, 0.1, 0.1, 0.7]
-    ]
-    pred_test = [
-        [0.9, 0.05, 0.03, 0.02],
-        [0.1, 0.8, 0.05, 0.05],
-        [0.1, 0.8, 0.05, 0.05],
-        [0.1, 0.1, 0.1, 0.7]
-    ]
-    train_auc, test_auc, info = et.calculate_auc(
-        data_dict, pred_train, pred_test)
-    assert train_auc == 1 and test_auc == 1

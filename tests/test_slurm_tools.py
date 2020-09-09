@@ -48,7 +48,7 @@ def test_prepare_job_file():
     job_file = os.path.join(resources_dir, 'tmp', 'parameter_1.sh')
     with open(job_file, 'r') as f:
         number_lines = len(f.readlines())
-    assert number_lines == 10
+    assert number_lines == 13
 
 def test_check_parameter_file_sizes():
     wild_card_path = os.path.join(resources_dir, 'parameter_*.sh')

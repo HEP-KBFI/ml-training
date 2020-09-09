@@ -16,7 +16,5 @@ def test_read_parameters():
     path_to_test_file = os.path.join(
         resources_dir, 'best_parameters.json')
     result = ut.read_json_cfg(path_to_test_file)
-    expected = [
-        {'a': 1, 'b': 2, 'c': 3},
-    ]
+    expected = {'a': 1, 'b': 2, 'c': 3},
     assert result == expected
