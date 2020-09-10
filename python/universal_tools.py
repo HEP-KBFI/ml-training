@@ -46,7 +46,7 @@ def save_dict_to_json(dictionary, output_path):
     Nothing
     '''
     with open(output_path, 'w') as file:
-        json.dump(dictionary, file)
+        json.dump(dictionary, filem, indent=4)
 
 
 def save_run_settings(output_dir):
@@ -110,25 +110,22 @@ def read_parameters(param_file):
     return value_dicts
 
 
-def to_one_dict(list_of_dicts):
-    '''Puts dictionaries from list into one big dictionary. (can't have same
-    keys)
+def read_json_cfg(path):
+    ''' Reads the json info from a given path
 
     Parameters:
     ----------
-    list_of_dicts : list of dicts
-        List filled with dictionaries to be put together into one big dict
+    path : str
+        Path to the .json file
 
     Returns:
-    -------
-    main_dict : dict
-        Dictionary containing all the small dictionary keys.
+    --------
+    info : dict
+        The json dict that was loaded
     '''
-    main_dict = {}
-    for elem in list_of_dicts:
-        key = list(elem.keys())[0]
-        main_dict[key] = elem[key]
-    return main_dict
+    with open(path, 'rt') as jsonFile:
+        info = json.load(jsonFile)
+    return info
 
 
 def read_settings(settings_dir, group):
@@ -147,26 +144,8 @@ def read_settings(settings_dir, group):
     settings_path = os.path.join(
         settings_dir,
         group + '_settings.json')
-    settings_dict = read_multiline_json_to_dict(settings_path)
+    settings_dict = read_json_cfg(settings_path)
     return settings_dict
-
-
-def read_multiline_json_to_dict(file_path):
-    '''Reads multiline .json file to one dictionary
-
-    Parameters:
-    ----------
-    file_path : str
-        Path to the .json file
-
-    Returns:
-    -------
-    json_dict : dict
-        Dictionary created from the multiline .json file
-    '''
-    parameter_list = read_parameters(file_path)
-    json_dict = to_one_dict(parameter_list)
-    return json_dict
 
 
 def _decode_list(data):

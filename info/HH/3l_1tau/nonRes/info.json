@@ -1,12 +1,106 @@
-{"masses": [250, 260, 270, 280, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 1000]}
-{"masses_test": [300, 500, 800]}
-{"masses_low": [250,260,270,280,300,350,400]}
-{"masses_test_low": [300]}
-{"masses_high": [450,500,550,600,650,700,750,800,850,900,1000]}
-{"masses_test_high": [500, 800]}
-{"channelInTree": "hh_3l_1tau_OS_lepLoose_tauTight"}
-{"default_tauID_application": "deepVSJMedium_lepLoose"}
-{"weight_dir": "/hdfs/local/tolange/MVA_fit_funcs/2017/3l_1tau/Resonant"}
-{"included_eras": ["16"]}
-{"nonResScenarios": ["SM","BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"]}
-{"nonResScenarios_test": ["SM","BM4","BM7","BM12"]}
+{
+    "masses": [250, 260, 270, 280, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 1000],
+    "masses_test": [300, 500, 800],
+    "masses_low": [250,260,270,280,300,350,400],
+    "masses_test_low": [300],
+    "masses_high": [450,500,550,600,650,700,750,800,850,900,1000],
+    "masses_test_high": [500, 800],
+    "channelInTree": "hh_3l_1tau_OS_lepLoose_tauTight",
+    "default_tauID_application": "deepVSJMedium_lepLoose",
+    "weight_dir": "/hdfs/local/tolange/MVA_fit_funcs/2017/3l_1tau/Resonant",
+    "included_eras": ["16"],
+    "nonResScenarios": ["SM","BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"],
+    "nonResScenarios_test": ["SM","BM4","BM7","BM12"],
+    "tauID_application": {
+        "deepVSJMedium_lepLoose": {
+            "ZZdatacard": 6.95,
+            "WZdatacard": 2.41,
+            "TTdatacard": 3.80,
+            "DYdatacard": 0.0
+        },
+        "deepVSJMedium": {
+            "ZZdatacard": 3.27,
+            "WZdatacard": 1.68,
+            "TTdatacard": 0.0,
+            "DYdatacard": 0.0
+        }
+    },
+    "tauID_training": {
+        "deepVSJVVVLoose_old": {
+            "inputPath16": "/hdfs/local/tolange/hhAnalysis/2017/2020_May_26_newTrainingNtuple_VVVLoose/histograms/hh_3l_1tau/forBDTtraining_OS/",
+            "inputPath17": "/hdfs/local/tolange/hhAnalysis/2017/2020_May_26_newTrainingNtuple_VVVLoose/histograms/hh_3l_1tau/forBDTtraining_OS/",
+            "inputPath18": "/hdfs/local/tolange/hhAnalysis/2017/2020_May_26_newTrainingNtuple_VVVLoose/histograms/hh_3l_1tau/forBDTtraining_OS/"
+        },
+        "deepVSJVVVLoose": {
+            "inputPath16": "/hdfs/local/tolange/hhAnalysis/2017/2020_May_27_TrainingNtuple_VVVLoose/histograms/hh_3l_1tau/forBDTtraining_OS/",
+            "inputPath17": "/hdfs/local/tolange/hhAnalysis/2017/2020_May_27_TrainingNtuple_VVVLoose/histograms/hh_3l_1tau/forBDTtraining_OS/",
+            "inputPath18": "/hdfs/local/tolange/hhAnalysis/2017/2020_May_27_TrainingNtuple_VVVLoose/histograms/hh_3l_1tau/forBDTtraining_OS/"
+        },
+        "deepVSJVVVLoose_lepLoose": {
+            "inputPath16": "/hdfs/local/tolange/hhAnalysis/2016/2020_Jul_02_HHReweighttest/histograms/hh_3l_1tau/forBDTtraining_OS/",
+            "inputPath17": "/hdfs/local/tolange/hhAnalysis/2017/2020_May_27_TrainingNtuple_VVVLoose_lepLoose/histograms/hh_3l_1tau/forBDTtraining_OS/",
+            "inputPath18": "/hdfs/local/tolange/hhAnalysis/2017/2020_May_27_TrainingNtuple_VVVLoose_lepLoose/histograms/hh_3l_1tau/forBDTtraining_OS/"
+        }
+    },
+    "keys" : {
+        "ZZTo": [16,17,18],
+        "ggZZTo": [16,17,18],
+        "WZTo": [16,17,18],
+        "TTTo2L2Nu": [16,17,18],
+        "TTToSemiLeptonic": [16,17,18],
+        "signal_ggf_spin0_250_hh_2v2t": [16,17,18],
+        "signal_ggf_spin0_260_hh_2v2t": [16,17,18],
+        "signal_ggf_spin0_270_hh_2v2t": [16,17,18],
+        "signal_ggf_spin0_280_hh_2v2t": [16,17,18],
+        "signal_ggf_spin0_300_hh_2v2t": [16,17,18],
+        "signal_ggf_spin0_350_hh_2v2t": [16,17,18],
+        "signal_ggf_spin0_400_hh_2v2t": [16,17,18],
+        "signal_ggf_spin0_450_hh_2v2t": [16,17,18],
+        "signal_ggf_spin0_500_hh_2v2t": [16,17,18],
+        "signal_ggf_spin0_550_hh_2v2t": [16,17,18],
+        "signal_ggf_spin0_600_hh_2v2t": [16,17,18],
+        "signal_ggf_spin0_650_hh_2v2t": [16,17,18],
+        "signal_ggf_spin0_700_hh_2v2t": [16,17,18],
+        "signal_ggf_spin0_750_hh_2v2t": [16,17,18],
+        "signal_ggf_spin0_800_hh_2v2t": [16,17,18],
+        "signal_ggf_spin0_850_hh_2v2t": [16,17,18],
+        "signal_ggf_spin0_900_hh_2v2t": [16,17,18],
+        "signal_ggf_spin01000_hh_2v2t": [16,17,18],
+        "signal_ggf_spin0_250_hh_4v": [16,17,18],
+        "signal_ggf_spin0_260_hh_4v": [16,17,18],
+        "signal_ggf_spin0_270_hh_4v": [16,17,18],
+        "signal_ggf_spin0_280_hh_4v": [16,17,18],
+        "signal_ggf_spin0_300_hh_4v": [16,17,18],
+        "signal_ggf_spin0_350_hh_4v": [16,17,18],
+        "signal_ggf_spin0_400_hh_4v": [16,17,18],
+        "signal_ggf_spin0_450_hh_4v": [16,17,18],
+        "signal_ggf_spin0_500_hh_4v": [16,17,18],
+        "signal_ggf_spin0_550_hh_4v": [16,17,18],
+        "signal_ggf_spin0_600_hh_4v": [16,17,18],
+        "signal_ggf_spin0_650_hh_4v": [16,17,18],
+        "signal_ggf_spin0_700_hh_4v": [16,17,18],
+        "signal_ggf_spin0_750_hh_4v": [16,17,18],
+        "signal_ggf_spin0_800_hh_4v": [16,17,18],
+        "signal_ggf_spin0_850_hh_4v": [16,17,18],
+        "signal_ggf_spin0_900_hh_4v": [16,17,18],
+        "signal_ggf_spin01000_hh_4v": [16,17,18],
+        "signal_ggf_spin0_250_hh_4t": [16,17,18],
+        "signal_ggf_spin0_260_hh_4t": [16,17,18],
+        "signal_ggf_spin0_270_hh_4t": [16,17,18],
+        "signal_ggf_spin0_280_hh_4t": [16,17,18],
+        "signal_ggf_spin0_300_hh_4t": [16,17,18],
+        "signal_ggf_spin0_350_hh_4t": [16,17,18],
+        "signal_ggf_spin0_400_hh_4t": [16,17,18],
+        "signal_ggf_spin0_450_hh_4t": [16,17,18],
+        "signal_ggf_spin0_500_hh_4t": [16,17,18],
+        "signal_ggf_spin0_550_hh_4t": [16,17,18],
+        "signal_ggf_spin0_600_hh_4t": [16,17,18],
+        "signal_ggf_spin0_650_hh_4t": [16,17,18],
+        "signal_ggf_spin0_700_hh_4t": [16,17,18],
+        "signal_ggf_spin0_750_hh_4t": [16,17,18],
+        "signal_ggf_spin0_800_hh_4t": [16,17,18],
+        "signal_ggf_spin0_850_hh_4t": [16,17,18],
+        "signal_ggf_spin0_900_hh_4t": [16,17,18],
+        "signal_ggf_spin01000_hh_4t": [16,17,18]
+    }
+}

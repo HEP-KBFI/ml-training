@@ -27,7 +27,7 @@ def main(hyperparameter_file, output_dir):
     nthread = global_settings['nthread']
     path = Path(hyperparameter_file)
     save_dir = str(path.parent)
-    hyperparameters = ut.read_parameters(hyperparameter_file)[0]
+    hyperparameters = ut.read_json_cfg(hyperparameter_file)
     addition = ut.create_infoPath_addition(global_settings)
     channel_dir = os.path.join(output_dir, 'run_info')
     info_dir = os.path.join(channel_dir, addition)

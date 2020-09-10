@@ -1511,28 +1511,18 @@ def get_hh_parameters(
         The necessary info for loading data
     '''
     info_path = os.path.join(info_dir, 'info.json')
-    keys_path = os.path.join(info_dir, 'keys.json')
-    tau_id_application_path = os.path.join(
-        info_dir, 'tauID_application.json')
-    tau_id_training_path = os.path.join(info_dir, 'tauID_training.json')
     trainvars_path = os.path.join(info_dir, 'trainvars.json')
-    info_dict = ut.read_multiline_json_to_dict(info_path)
-    tau_id_trainings = ut.read_parameters(tau_id_training_path)
-    tau_id_applications = ut.read_parameters(tau_id_application_path)
-    parameters = dlt.find_correct_dict(
-        'tauID_application',
-        info_dict['default_tauID_application'],
-        tau_id_applications
-    )
-    parameters.update(dlt.find_input_paths(
-        info_dict, tau_id_trainings, tau_id_training))
-    parameters['keys'] = dlt.load_era_keys(keys_path)
+    info_dict = ut.read_json_cfg(info_path)
+    default_tauID = info_dict['default_tauID_application']
+    parameters = info_dict['tauID_application'][default_tauID]
+    parameters.update(dlt.find_input_paths(info_dict, tau_id_training))
+    parameters.update(dlt.load_era_keys(info_dict))
     trainvar_info = dlt.read_trainvar_info(trainvars_path)
     parameters['trainvars'] = []
     with open(trainvars_path, 'rt') as infile:
         for line in infile:
             info = json.loads(line)
-            parameters['trainvars'].append(info['key'])
+            parameters['trainvars'].append(str(info['key']))
     all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
     all_trainvar_info = dlt.read_trainvar_info(all_trainvars_path)
     parameters['trainvar_info'] = all_trainvar_info
@@ -1549,7 +1539,7 @@ def reweigh_dataframe(
         trainvars,
         skip_int_vars=True
 ):
-    '''Reweighs the dataframeT
+    '''Reweighs the dataframe
 
     Parameters:
     ----------

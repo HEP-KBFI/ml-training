@@ -29,16 +29,12 @@ def main():
         settings_dir,
         'nn_parameters.json'
     )
-    value_dicts = ut.read_parameters(param_file)
+    value_dicts = ut.read_json_cfg(param_file)
     pso_settings = ut.read_settings(settings_dir, 'pso')
-    hyperparameter_sets = nnt.prepare_run_params(
-        value_dicts, pso_settings['sample_size']
-    )
+    pso_settings.update(global_settings)
     print("\n============ Starting hyperparameter optimization ==========\n")
-    best_hyperparameters = pt.run_pso(
-        value_dicts, st.get_fitness_score, hyperparameter_sets,
-        output_dir
-    )
+    swarm = pm.ParticleSwarm(pso_settings, st.get_fitness_score, hyperparameter_info)
+    optimal_hyperparameters = swarm.particleSwarmOptimization()[0]
     print("\n============ Saving results ================\n")
     best_parameters_path = os.path.join(
         output_dir, 'best_hyperparameters.json')

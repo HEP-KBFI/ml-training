@@ -499,7 +499,7 @@ def plotting_main(
     canvas.SaveAs(filename)
 
 
-def create_all_fitFunc_fil(weight_dir):
+def create_all_fitFunc_file(weight_dir):
     wild_card_path = os.path.join(weight_dir, '*signal_fit_func*')
     all_single_files = glob.glob(wild_card_path)
     all_paths_str = ' '.join(all_single_files)
@@ -548,7 +548,7 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
                     resulting_hadd_file
                 )
             )
-            create_all_fitFunc_fil(weight_dir)
+            create_all_fitFunc_file(weight_dir)
         if create_profile:
             create_TProfiles(
                 info_dir, weight_dir, data,

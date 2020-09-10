@@ -17,7 +17,7 @@ from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_visualization_tools as hhvt
 from machineLearning.machineLearning import hh_aux_tools as hhat
 from machineLearning.machineLearning import xgb_tools as xt
-from machineLearning.machineLearning import coverter_tools as ct
+from machineLearning.machineLearning import converter_tools as ct
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 import numpy as np
@@ -50,7 +50,7 @@ def main(output_dir, settings_dir, hyperparameter_file):
     )
     if hyperparameter_file == 'None':
         hyperparameter_file = os.path.join(info_dir, 'hyperparameters.json')
-    hyperparameters = ut.read_parameters(hyperparameter_file)[0]
+    hyperparameters = ut.read_json_cfg(hyperparameter_file)
     evaluation_main(global_settings, preferences, hyperparameters)
 
 
@@ -114,7 +114,7 @@ def save_xmlFile(global_settings, model, addition):
     xmlFile = os.path.join(global_settings['output_dir'], addition + '_model.xml')
     bst = model.get_booster()
     features = bst.feature_names
-    bdtModel = ct.BDTxgboost(pklData, features, ['Background', 'Signal'])
+    bdtModel = ct.BDTxgboost(model, features, ['Background', 'Signal'])
     bdtModel.to_tmva(xmlFile)
     print('.xml BDT model saved to ' + str(xmlFile))
 

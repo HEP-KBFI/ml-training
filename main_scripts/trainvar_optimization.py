@@ -158,7 +158,7 @@ def main(corr_threshold, min_nr_trainvars, step_size):
         cmssw_base,
         'src/machineLearning/machineLearning/info/default_hyperparameters.json'
     )
-    hyperparameters = ut.read_parameters(hyperparameter_file)[0]
+    hyperparameters = ut.read_json_cfg(hyperparameter_file)
     print("Optimizing training variables")
     trainvars = list(preferences['trainvars'])
     trainvars, preferences = check_trainvars_integrity(
