@@ -105,19 +105,19 @@ class Particle():
     def initialize_hyperparameters(self):
         self.hyperparameters = {}
         for keys in self.hyperparameter_info.keys():
-            if bool(hyperparameter_info[key]['int']):
+            if bool(self.hyperparameter_info[key]['int']):
                 value = np.random.randint(
-                    low=hyperparameter_info[key]['min'],
-                    high=hyperparameter_info[key]['max']
+                    low=self.hyperparameter_info[key]['min'],
+                    high=self.hyperparameter_info[key]['max']
                 )
             else:
                 value = np.random.uniform(
-                    low=hyperparameter_info[key]['min'],
-                    high=hyperparameter_info[key]['max']
+                    low=self.hyperparameter_info[key]['min'],
+                    high=self.hyperparameter_info[key]['max']
                 )
-            if bool(hyperparameter_info[key]['exp']):
+            if bool(self.hyperparameter_info[key]['exp']):
                 value = np.exp(value)
-            self.hyperparameters[str(hyperparameter_info[key]['parameter'])] = value
+            self.hyperparameters[str(self.hyperparameter_info[key]['parameter'])] = value
 
     def next_iteration(self):
         self.update_location()
