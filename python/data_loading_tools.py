@@ -87,7 +87,7 @@ def load_data_from_one_era(
     n = len(data)
     nS = len(data.ix[data.target.values == 1])
     nB = len(data.ix[data.target.values == 0])
-    print('For ' + preferences['channelInTreen'] + ':')
+    print('For ' + preferences['channelInTree'] + ':')
     print('\t Signal: ' + str(nS))
     print('\t Background: ' + str(nB))
     if remove_neg_weights:
