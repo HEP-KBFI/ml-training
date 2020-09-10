@@ -32,7 +32,7 @@ def main():
     pso_settings = ut.read_settings(settings_dir, 'pso')
     pso_settings.update(global_settings)
     print("\n============ Starting hyperparameter optimization ==========\n")
-    swarm = pm.ParticleSwarm(pso_settings, st.get_fitness_score, hyperparameter_info)
+    swarm = pt.ParticleSwarm(pso_settings, st.get_fitness_score, hyperparameter_info)
     optimal_hyperparameters = swarm.particleSwarmOptimization()[0]
     print("\n============ Saving results ================\n")
     best_parameters_path = os.path.join(
