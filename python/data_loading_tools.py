@@ -255,7 +255,7 @@ def define_new_variables(
     chunk_df['key'] = folder_name
     chunk_df['target'] = int(target)
     chunk_df['totalWeight'] = chunk_df['evtWeight']
-    if 'HH' in bdt_type:
+    if 'HH' in global_settings['bdtType']:
         data = hhdt.define_new_variables(
             chunk_df, sample_name, folder_name, target, preferences,
             global_settings, data
