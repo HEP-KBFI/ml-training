@@ -117,7 +117,7 @@ class Particle():
                 )
             if bool(self.hyperparameter_info[key]['exp']):
                 value = np.exp(value)
-            self.hyperparameters[str(self.hyperparameter_info[key]['parameter'])] = value
+            self.hyperparameters[key] = value
 
     def next_iteration(self):
         self.update_location()
