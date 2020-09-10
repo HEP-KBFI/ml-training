@@ -28,7 +28,7 @@ def main():
         settings_dir,
         'xgb_parameters.json'
     )
-    value_dicts = ut.read_json_cfg(param_file)
+    hyperparameter_info = ut.read_json_cfg(param_file)
     pso_settings = ut.read_settings(settings_dir, 'pso')
     pso_settings.update(global_settings)
     print("\n============ Starting hyperparameter optimization ==========\n")
