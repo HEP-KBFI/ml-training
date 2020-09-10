@@ -101,10 +101,12 @@ def define_new_variables(
             for mass in masses:
                 if str(mass) in folder_name:
                     chunk_df["gen_mHH"] = float(mass)
+            data = data.append(chunk_df, ignore_index=True, sort=False)
         elif target == 0:
             if mass_randomization == "default":
                 chunk_df["gen_mHH"] = float(np.random.choice(
                     masses, size=len(chunk_df)))
+                data = data.append(chunk_df, ignore_index=True, sort=False)
             elif mass_randomization == "oversampling":
                 for mass in masses:
                     chunk_df["gen_mHH"] = float(mass)

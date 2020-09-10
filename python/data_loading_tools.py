@@ -307,12 +307,8 @@ def define_new_variables(
             chunk_df, sample_name, folder_name, target, bdt_type, masses,
             mass_randomization, nonResScenarios, data
         )
-        return data
     else:
-        case1 = mass_randomization != "oversampling"
-        case2 = mass_randomization == "oversampling" and target == 1
-        if case1 or case2:
-            data = data.append(chunk_df, ignore_index=True, sort=False)
+        print('Data choosing not implemented for this bdtType')
     return data
 
 
