@@ -480,7 +480,7 @@ def print_info(global_settings, preferences):
     print('channelInTree: ' + str(preferences['channelInTree']))
     print('-----------------------------------')
     print('variables:')
-    print_columns(variables)
+    print_columns(preferences['trainvars'])
     print('bdt_type: ' + str(global_settings['bdtType']))
     print('channel: ' + str(global_settings['channel']))
     print('keys: ')
