@@ -37,7 +37,7 @@ def main():
     print("\n============ Saving results ================\n")
     best_parameters_path = os.path.join(
         output_dir, 'best_hyperparameters.json')
-    ut.save_dict_to_json(best_hyperparameters, best_parameters_path)
+    ut.save_dict_to_json(optimal_hyperparameters, best_parameters_path)
     print("Results saved to " + str(output_dir))
 
 
