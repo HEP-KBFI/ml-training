@@ -104,7 +104,7 @@ class Particle():
 
     def initialize_hyperparameters(self):
         self.hyperparameters = {}
-        for keys in self.hyperparameter_info.keys():
+        for key in self.hyperparameter_info.keys():
             if bool(self.hyperparameter_info[key]['int']):
                 value = np.random.randint(
                     low=self.hyperparameter_info[key]['min'],
