@@ -90,38 +90,38 @@ def define_new_variables(
         sample_name,
         folder_name,
         target,
-        bdt_type,
-        masses,
-        mass_randomization,
-        nonResScenarios,
+        preferences,
+        global_settings,
         data
 ):
-    if 'nonres' not in bdt_type:
+    if 'nonres' not in global_settings['bdtType']:
         if target == 1:
-            for mass in masses:
+            for mass in preferences['masses']:
                 if str(mass) in folder_name:
                     chunk_df["gen_mHH"] = float(mass)
             data = data.append(chunk_df, ignore_index=True, sort=False)
         elif target == 0:
-            if mass_randomization == "default":
+            if global_settings['bkg_mass_rand'] == "default":
                 chunk_df["gen_mHH"] = float(np.random.choice(
-                    masses, size=len(chunk_df)))
+                    preferences['masses'], size=len(chunk_df)))
                 data = data.append(chunk_df, ignore_index=True, sort=False)
-            elif mass_randomization == "oversampling":
-                for mass in masses:
+            elif global_settings['bkg_mass_rand'] == "oversampling":
+                for mass in preferences['masses']:
                     chunk_df["gen_mHH"] = float(mass)
                     data = data.append(chunk_df, ignore_index=True, sort=False)
             else:
                 raise ValueError(
-                    'Cannot use ', mass_randomization, "as mass_randomization")
+                    'Cannot use ' + global_settings['bkg_mass_rand'] + \
+                    " as mass_randomization"
+                )
         else:
-            raise ValueError('Cannot use ', target, 'as target')
+            raise ValueError('Cannot use ' + str(target) + ' as target')
     else:
-        for i in range(len(nonResScenarios)):
+        for i in range(len(preferences['nonResScenarios'])):
             chunk_df_node = chunk_df.copy()
-            scenario = nonResScenarios[i]
+            scenario = preferences['nonResScenarios'][i]
             chunk_df_node['nodeX'] = i
-            for idx, node in enumerate(nonResScenarios):
+            for idx, node in enumerate(preferences['nonResScenarios']):
                 chunk_df_node[node] = 1 if idx == i else 0
             chunk_df_node['nodeXname'] = scenario
             if target == 1:

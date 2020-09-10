@@ -38,18 +38,12 @@ def load_data(
     total_data = pandas.DataFrame({})
     for era in eras:
         input_path_key = 'inputPath' + str(era)
-        input_path = preferences[input_path_key]
-        era_keys = preferences['keys' + str(era)]
+        preferences['era_inputPath'] = preferences[input_path_key]
+        preferences['era_keys'] = preferences['keys' + str(era)]
         data = load_data_from_one_era(
-            input_path,
-            preferences['channelInTree'],
-            preferences['trainvars'],
-            global_settings['bdtType'],
-            global_settings['channel'],
-            era_keys,
-            preferences['masses'],
-            preferences['nonResScenarios'],
-            global_settings['bkg_mass_rand']
+            global_settings,
+            preferences,
+            remove_neg_weights
         )
         data['era'] = era
         total_data = total_data.append(data)
@@ -57,64 +51,39 @@ def load_data(
 
 
 def load_data_from_one_era(
-        input_path,
-        channel_in_tree,
-        variables,
-        bdt_type,
-        channel,
-        keys,
-        masses=[],
-        nonResScenarios=[],
-        mass_randomization='default',
-        remove_neg_weights=True,
+        global_settings,
+        preferences,
+        remove_neg_weights,
 ):
     '''Loads the all the necessary data
 
     Parameters:
     ----------
-    input_path : str
-        folder where all the .root files are taken from
-    channel_in_tree : str
-        path where data is located in the .root file
-    variables : list
-        List of training variables to be used.
-    bdt_type : str
-        Boosted decision tree type
-    channel : str
-        What channel data is to be loaded
-    keys : list
-        Which keys to be included in the data (for a specific era)
-        (part included in the folder names)
-    masses : list
-        List of the masses to be used in data loading
-    mass_randomization : str
-        Which kind of mass randomization to use: "default" or "oversampling"
+    preferences : dict
+        dictionary conaining the preferences
+    global_settings : dict
+        global settings for the training
+    remove_neg_weights : bool
+        Whether to remove negative weight events from the data
 
     Returns:
     --------
     data : pandas DataFrame
         All the loaded data so far.
     '''
-    print_info(
-        input_path, channel_in_tree, variables,
-        bdt_type, channel, keys, masses, mass_randomization
-    )
-    my_cols_list = variables + ['process', 'key', 'target', 'totalWeight']
-    if 'HH_nonres' in bdt_type:
+    print_info(global_settings, preferences)
+    my_cols_list = preferences['trainvars'] + ['process', 'key', 'target', 'totalWeight']
+    if 'HH_nonres' in global_settings['bdtType']:
         my_cols_list += ['nodeX']
     data = pandas.DataFrame(columns=my_cols_list)
-    for folder_name in keys:
+    for folder_name in preferences['era_keys']:
         data = data_main_loop(
             folder_name,
-            channel_in_tree,
-            masses,
-            nonResScenarios,
-            input_path,
-            bdt_type,
-            data,
-            mass_randomization,
+            global_settings,
+            preferences,
+            data
         )
-        signal_background_calc(data, bdt_type, folder_name)
+        signal_background_calc(data, global_settings['bdtType'], folder_name)
     n = len(data)
     nS = len(data.ix[data.target.values == 1])
     nB = len(data.ix[data.target.values == 0])
@@ -129,13 +98,9 @@ def load_data_from_one_era(
 
 def data_main_loop(
         folder_name,
-        channel_in_tree,
-        masses,
-        nonResScenarios,
-        input_path,
-        bdt_type,
-        data,
-        mass_randomization,
+        global_settings,
+        preferences,
+        data
 ):
     ''' Defines new variables based on the old ones that can be used in the
     training
@@ -144,37 +109,37 @@ def data_main_loop(
     ----------
     folder_name : str
         Folder from the keys where .root file is searched.
-    channel_in_tree : str
-        path where data is located in the .root file
-    masses : list
-        List of the masses to be used in data loading
-    input_path : str
-        folder where all the .root files are taken from
-    bdt_type : str
-        Boosted decision tree type
+    preferences : dict
+        dictionary conaining the preferences
+    global_settings : dict
+        global settings for the training
     data : str
         The loaded data so far
-    mass_randomization : str
-        Which kind of mass randomization to use: "default" or "oversampling"
 
     Returns:
     -------
     data : pandas DataFrame
         All the loaded data so far.
     '''
-    sample_name, target = find_sample_info(folder_name, bdt_type, masses)
+    sample_name, target = find_sample_info(
+        folder_name, global_settings['bdtType'], preferences['masses']
+    )
     print(':::::::::::::::::')
-    print('input_path:\t' + str(input_path))
+    print('input_path:\t' + str(preferences['era_inputPath']))
     print('folder_name:\t' + str(folder_name))
-    print('channelInTree:\t' + str(channel_in_tree))
+    print('channelInTree:\t' + str(preferences['channelInTree']))
     input_tree = str(os.path.join(
-        channel_in_tree, 'sel/evtntuple', sample_name, 'evtTree'))
-    paths = get_all_paths(input_path, folder_name, bdt_type)
+        preferences['channelInTree'], 'sel/evtntuple', sample_name, 'evtTree'))
+    paths = get_all_paths(
+        preferences['era_inputPath'], folder_name, global_settings['bdtType']
+    )
     for path in paths:
-        if 'nonres' in bdt_type and 'nonresonant' in path:
+        if 'nonres' in global_settings['bdtType'] and 'nonresonant' in path:
             target = 1
             sample_name = 'HH_nonres_decay'
-            input_tree = create_input_tree_path(path, channel_in_tree)
+            input_tree = create_input_tree_path(
+                path, preferences['channelInTree']
+            )
         print('Loading from: ' + path)
         tree, tfile = read_root_tree(path, input_tree)
         data = load_data_from_tfile(
@@ -183,10 +148,8 @@ def data_main_loop(
             sample_name,
             folder_name,
             target,
-            bdt_type,
-            masses,
-            mass_randomization,
-            nonResScenarios,
+            preferences,
+            global_settings,
             data,
         )
     return data
@@ -198,10 +161,8 @@ def load_data_from_tfile(
         sample_name,
         folder_name,
         target,
-        bdt_type,
-        masses,
-        mass_randomization,
-        nonResScenarios,
+        preferences,
+        global_settings,
         data,
 ):
     ''' Loads data from the ROOT TTree.
@@ -218,12 +179,10 @@ def load_data_from_tfile(
         Folder from the keys where .root file is searched.
     target : int
         [0 or 1] Either signal (1) or background (0)
-    bdt_type : str
-        Boosted decision tree type
-    masses : list
-        List of the masses to be used in data loading
-    mass_randomization : str
-        Which kind of mass randomization to use: "default" or "oversampling"
+    preferences : dict
+        dictionary conaining the preferences
+    global_settings : dict
+        global settings for the training
     data : pandas DataFrame
         All the loaded data will be appended there.
 
@@ -247,10 +206,8 @@ def load_data_from_tfile(
                 sample_name,
                 folder_name,
                 target,
-                bdt_type,
-                masses,
-                mass_randomization,
-                nonResScenarios,
+                preferences,
+                global_settings,
                 data,
             )
     else:
@@ -264,10 +221,8 @@ def define_new_variables(
         sample_name,
         folder_name,
         target,
-        bdt_type,
-        masses,
-        mass_randomization,
-        nonResScenarios,
+        preferences,
+        global_settings,
         data
 ):
     ''' Defines new variables based on the old ones that can be used in the
@@ -284,12 +239,10 @@ def define_new_variables(
         Folder from the keys where .root file is searched.
     target : int
         [0 or 1] Either signal (1) or background (0)
-    bdt_type : str
-        Boosted decision tree type
-    masses : list
-        List of the masses to be used in data loading
-    mass_randomization : str
-        Which kind of mass randomization to use: "default" or "oversampling"
+    preferences : dict
+        dictionary conaining the preferences
+    global_settings : dict
+        global settings for the training
     data : pandas DataFrame
         All the loaded data will be appended there.
 
@@ -304,8 +257,8 @@ def define_new_variables(
     chunk_df['totalWeight'] = chunk_df['evtWeight']
     if 'HH' in bdt_type:
         data = hhdt.define_new_variables(
-            chunk_df, sample_name, folder_name, target, bdt_type, masses,
-            mass_randomization, nonResScenarios, data
+            chunk_df, sample_name, folder_name, target, preferences,
+            global_settings, data
         )
     else:
         print('Data choosing not implemented for this bdtType')
@@ -519,30 +472,21 @@ def read_list(path):
     return parameters
 
 
-def print_info(
-        input_path,
-        channel_in_tree,
-        variables,
-        bdt_type,
-        channel,
-        keys,
-        masses,
-        mass_randomization
-):
+def print_info(global_settings, preferences):
     '''Prints the data loading preferences info'''
     print('In data_manager')
     print(':::: Loading data ::::')
-    print('inputPath: ' + str(input_path))
-    print('channelInTree: ' + str(channel_in_tree))
+    print('inputPath: ' + str(preferences['era_inputPath']))
+    print('channelInTree: ' + str(preferences['channelInTree']))
     print('-----------------------------------')
     print('variables:')
     print_columns(variables)
-    print('bdt_type: ' + str(bdt_type))
-    print('channel: ' + str(channel))
+    print('bdt_type: ' + str(global_settings['bdtType']))
+    print('channel: ' + str(global_settings['channel']))
     print('keys: ')
-    print_columns(keys)
-    print('masses: ' + str(masses))
-    print('mass_randomization: ' + str(mass_randomization))
+    print_columns(preferences['era_keys'])
+    print('masses: ' + str(preferences['masses']))
+    print('mass_randomization: ' + str(global_settings['bkg_mass_rand']))
 
 
 def print_columns(to_print):
