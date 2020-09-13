@@ -598,7 +598,16 @@ def data_cutting(data, global_settings):
         else:
             cut_keys = list(cut_dict.keys())
             for key in cut_keys:
-                print("TO BE IMPLEMENTED")
+                try:
+                    min_value = cut_dict[key]['min']
+                    data = data.loc[(data[key] >= min_value)]
+                except KeyError:
+                    print('Minimum condition for %s not implemented' %(key))
+                try:
+                    max_value = cut_dict[key]['max']
+                    data = data.loc[(data[key] <= max_value)]
+                except KeyError:
+                    print('Maximum condition for %s not implemented' %(key))
     else:
         print('Cut file %s does not exist' %(cut_file))
     return data
