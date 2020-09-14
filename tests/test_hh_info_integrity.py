@@ -34,8 +34,8 @@ def test_check_weights_dir_existance():
         info_dict = ut.read_json_cfg(path)
         weight_dir = info_dict['weight_dir']
         if not os.path.exists(weight_dir):
-            missing_directories.append(weight_dir)
-    assert len(missing_directories) == 0, "Missing weight_dirs: " + str(missing_directories)
+            missing_directories.append(path)
+    assert len(missing_directories) == 0, "Missing weight_dirs in: " + str(missing_directories)
 
 
 def test_check_input_path_existance():
