@@ -59,8 +59,10 @@ def normalize_hh_dataframe(
         sample_normalizations = preferences['tauID_application']
         for sample in sample_normalizations.keys():
             sample_name = sample.replace('datacard', '')
+            print(sample_name)
+            print(len(data.loc[data['process'] == sample_name]))
             sample_weights = data.loc[data['process'] == sample_name, [weight]]
-            sample_factor = preferences[sample]/sample_weights.sum()
+            sample_factor = sample_normalizations[sample]/sample_weights.sum()
             data.loc[data['process'] == sample, [weight]] *= sample_factor
         if 'nonres' in bdt_type:
             for node in range(len(preferences['nonResScenarios'])):
