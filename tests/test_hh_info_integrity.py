@@ -45,6 +45,7 @@ def test_check_input_path_existance():
     nonRes_wildcard = os.path.join(
         package_path, 'info', 'HH', '*', 'nonRes', 'info.json')
     missing_inputPaths = []
+    faulty_info = []
     for resInfo in glob.glob(res_wildcard):
         info_dict = ut.read_json_cfg(resInfo)
         tauID_wps = info_dict['tauID_training']
@@ -53,6 +54,7 @@ def test_check_input_path_existance():
             for inPath in input_paths.keys():
                 if not os.path.exists(input_paths[inPath]):
                     missing_inputPaths.append(input_paths[inPath])
+                    faulty_info.append(resInfo)
     for nonResInfo in glob.glob(nonRes_wildcard):
         info_dict = ut.read_json_cfg(nonResInfo)
         tauID_wps = info_dict['tauID_training']
@@ -61,4 +63,6 @@ def test_check_input_path_existance():
             for inPath in input_paths.keys():
                 if not os.path.exists(input_paths[inPath]):
                     missing_inputPaths.append(input_paths[inPath])
-    assert len(missing_inputPaths) == 0, "Missing ntuple directories: " + str(set(missing_inputPaths))
+                    faulty_info.append(resInfo)
+    assert len(missing_inputPaths) == 0, "Missing ntuple directories: \n" \
+        + str(set(missing_inputPaths) + "in the files: \n" str(set(faulty_info))
