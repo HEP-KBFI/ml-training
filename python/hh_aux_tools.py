@@ -56,41 +56,12 @@ def normalize_hh_dataframe(
         data.loc[(data['target'] == 0), [weight]] *= 1./float(
             len(preferences['masses']))
     if 'SUM_HH' in bdt_type:
-        ttbar_weights = data.loc[data['key'].isin(ttbar_samples), [weight]]
-        ttbar_factor = preferences['TTdatacard']/ttbar_weights.sum()
-        data.loc[data['key'].isin(ttbar_samples), [weight]] *= ttbar_factor
-        dy_weights = data.loc[data['key'] == 'DY', [weight]]
-        dy_factor = preferences['DYdatacard']/dy_weights.sum()
-        data.loc[data['key'] == 'DY', [weight]] *= dy_factor
-        if "evtLevelSUM_HH_bb1l_res" in bdt_type:
-            w_weights = data.loc[data['key'] == 'W', [weight]]
-            w_factor = preferences['Wdatacard']/w_weights.sum()
-            data.loc[data['key'] == 'W', [weight]] *= w_factor
-        if "evtLevelSUM_HH_2l_2tau_res" in bdt_type:
-            zz_weights = data.loc[data['key'] == 'ZZ', [weight]]
-            zz_factor = preferences['ZZdatacard']/zz_weights.sum()
-            data.loc[data['key'] == 'ZZ', [weight]] *= zz_factor
-        if "evtLevelSUM_HH_3l_1tau_res" in bdt_type:
-            zz_samples = ['ZZTo', 'ggZZTo']
-            zz_weights = data.loc[data['key'].isin(zz_samples), [weight]]
-            zz_factor = preferences['ZZdatacard']/zz_weights.sum()
-            data.loc[data['key'].isin(zz_samples), [weight]] *= zz_factor
-            wz_weights = data.loc[data['key'] == 'WZTo', [weight]]
-            wz_factor = preferences['WZdatacard']/wz_weights.sum()
-            data.loc[data['key'] == 'WZTo', [weight]] *= wz_factor
-        if "evtLevelSUM_HH_4tau_res" in bdt_type:
-            zz_weights = data.loc[data['key'] == 'ZZ', [weight]]
-            zz_factor = preferences['ZZdatacard']/zz_weights.sum()
-            data.loc[data['key'] == 'ZZ', [weight]] *= zz_factor
-            wz_weights = data.loc[data['key'] == 'WZ', [weight]]
-            wz_factor = preferences['WZdatacard']/wz_weights.sum()
-            data.loc[data['key'] == 'WZ', [weight]] *= wz_factor
-            ttt_weights = data.loc[data['key'] == 'TTT', [weight]]
-            ttt_factor = preferences['TTdatacard']/ttt_weights.sum()
-            data.loc[data['key'] == 'TTT', [weight]] *= ttt_factor
-            dy_weights = data.loc[data['key'] == 'DY', [weight]]
-            dy_factor = preferences['DYdatacard']/dy_weights.sum()
-            data.loc[data['key'] == 'DY', [weight]] *= dy_factor
+        sample_normalizations = preferences['tauID_application']
+        for sample in sample_normalizations.keys():
+            sample_name = sample.replace('datacard', '')
+            sample_weights = data.loc[data['process'] == sample_name, [weight]]
+            sample_factor = preferences[sample]/sample_weights.sum()
+            data.loc[data['process'] == sample, [weight]] *= sample_factor
         if 'nonres' in bdt_type:
             for node in range(len(preferences['nonResScenarios'])):
                 condition_node = data['nodeXname'].astype(str) == str(
@@ -150,8 +121,6 @@ def load_hh_data(preferences, global_settings):
             preferences['masses'],
             preferences['trainvars']
         )
-    elif 'nodeX' not in preferences['trainvars']:
-        preferences['trainvars'].append('nodeX')
     normalize_hh_dataframe(data, preferences, global_settings)
     return data
 
@@ -1514,9 +1483,12 @@ def get_hh_parameters(
     trainvars_path = os.path.join(info_dir, 'trainvars.json')
     info_dict = ut.read_json_cfg(info_path)
     default_tauID = info_dict['default_tauID_application']
-    parameters = info_dict['tauID_application'][default_tauID]
+    parameters = {}
+    tau_id_application = info_dict.pop('tauID_application')
+    parameters['tauID_application'] = tau_id_application[default_tauID]
     parameters.update(dlt.find_input_paths(info_dict, tau_id_training))
-    parameters.update(dlt.load_era_keys(info_dict))
+    keys = info_dict.pop('keys')
+    parameters.update(dlt.load_era_keys(keys))
     trainvar_info = dlt.read_trainvar_info(trainvars_path)
     parameters['trainvars'] = []
     with open(trainvars_path, 'rt') as infile:

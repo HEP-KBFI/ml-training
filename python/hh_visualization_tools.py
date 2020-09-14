@@ -236,6 +236,8 @@ def plot_nodeWise_roc(global_settings, roc_infos, mode):
     plot_out = os.path.join(output_dir, 'nodeWiseROC_performance.png')
     plt.grid()
     plt.legend()
+    plt.ylim([0.0, 1.0])
+    plt.xlim([0.0, 1.0])
     plt.tight_layout()
     plt.savefig(plot_out, bbox_inches='tight')
     plt.close('all')

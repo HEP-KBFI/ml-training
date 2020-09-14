@@ -381,11 +381,11 @@ def signal_background_calc(data, bdt_type, folder_name):
             print('Error: No data (!!!)')
 
 
-def load_era_keys(info):
-    samples = info['keys'].keys()
+def load_era_keys(keys):
+    samples = keys.keys()
     era_wise_keys = {'keys16': [], 'keys17': [], 'keys18': []}
     for sample in samples:
-        included_eras = info['keys'][sample]
+        included_eras = keys[sample]
         if 16 in included_eras:
             era_wise_keys['keys16'].append(sample)
         if 17 in included_eras:
