@@ -11,5 +11,6 @@
     "use_kfold": 1,
     "nthread": 8,
     "kappa": 3.5,
-    "spinCase": "spin0"
+    "spinCase": "spin0",
+    "dataCuts": 0
 }

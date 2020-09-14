@@ -1,6 +1,7 @@
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_data_tools as hhdt
 from machineLearning.machineLearning import tth_aux_tools as tthat
+import machineLearning.machineLearning as ml
 import os
 import json
 from pathlib import Path
@@ -47,6 +48,8 @@ def load_data(
         )
         data['era'] = era
         total_data = total_data.append(data)
+    if global_settings['dataCuts'] != 0:
+        data = data_cutting(data, global_settings)
     return total_data
 
 
@@ -378,11 +381,11 @@ def signal_background_calc(data, bdt_type, folder_name):
             print('Error: No data (!!!)')
 
 
-def load_era_keys(info):
-    samples = info['keys'].keys()
+def load_era_keys(keys):
+    samples = keys.keys()
     era_wise_keys = {'keys16': [], 'keys17': [], 'keys18': []}
     for sample in samples:
-        included_eras = info['keys'][sample]
+        included_eras = keys[sample]
         if 16 in included_eras:
             era_wise_keys['keys16'].append(sample)
         if 17 in included_eras:
@@ -573,3 +576,38 @@ def read_trainvar_info(path):
     for single_dict in info_dicts:
         trainvar_info[single_dict['key']] = single_dict['true_int']
     return trainvar_info
+
+
+def data_cutting(data, global_settings):
+    package_dir = os.path.join(
+        os.path.expandvars('$CMSSW_BASE'),
+        'src/machineLearning/machineLearning/'
+    )
+    if 'nonres' in global_settings['bdtType']:
+        addition = 'nonRes'
+    else:
+        addition = 'res/%s' %(global_settings['spinCase'])
+    cut_file = os.path.join(
+        package_dir, 'info', global_settings['process'],
+        global_settings['channel'], addition, 'cuts.json'
+    )
+    if os.path.exists(cut_file):
+        cut_dict = ut.read_json_cfg(cut_file)
+        if cut_dict == {}:
+            print('No cuts given in the cut file %s' %(cut_file))
+        else:
+            cut_keys = list(cut_dict.keys())
+            for key in cut_keys:
+                try:
+                    min_value = cut_dict[key]['min']
+                    data = data.loc[(data[key] >= min_value)]
+                except KeyError:
+                    print('Minimum condition for %s not implemented' %(key))
+                try:
+                    max_value = cut_dict[key]['max']
+                    data = data.loc[(data[key] <= max_value)]
+                except KeyError:
+                    print('Maximum condition for %s not implemented' %(key))
+    else:
+        print('Cut file %s does not exist' %(cut_file))
+    return data
