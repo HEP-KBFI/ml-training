@@ -65,4 +65,4 @@ def test_check_input_path_existance():
                     missing_inputPaths.append(input_paths[inPath])
                     faulty_info.append(resInfo)
     assert len(missing_inputPaths) == 0, "Missing ntuple directories: \n" \
-        + str(set(missing_inputPaths) + "in the files: \n" + str(set(faulty_info))
+        + str(set(missing_inputPaths)) + " in the files: \n" + str(set(faulty_info))
