@@ -296,7 +296,8 @@ class BDT(object):
             num_targets = 0
             target_string = ""
         outfile = open(outfile_name, "w")
-        outfile.write("""
+        outfile.write(
+"""
 <?xml version="1.0"?>
 <MethodSetup Method="BDT::{mva_name}">
 <GeneralInfo>
@@ -328,8 +329,7 @@ class BDT(object):
 </Targets>
 <Transformations NTransformations="0"/>
 <MVAPdfs/>
-<Weights NTrees="{ntrees}" AnalysisType="1">
-        """.format(**{
+<Weights NTrees="{ntrees}" AnalysisType="1">""".format(**{
                 "analysis_type": analysis_type,
                 "mva_name": mva_name,
                 "ntrees": self.ntrees,
