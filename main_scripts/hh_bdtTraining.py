@@ -111,7 +111,17 @@ def model_creation(
 
 
 def save_xmlFile(global_settings, model, addition):
-    xmlFile = os.path.join(global_settings['output_dir'], addition + '_model.xml')
+    if 'nonres' in global_settings['bdtType']:
+        mode = 'nonres'
+    else:
+        mode = global_settings['spinCase']
+    model_name = '_'.join([
+        global_settings['channel'],
+        addition,
+        'model',
+        mode
+    ])
+    xmlFile = os.path.join(global_settings['output_dir'], model_name + '.xml')
     bst = model.get_booster()
     features = bst.feature_names
     bdtModel = ct.BDTxgboost(model, features, ['Background', 'Signal'])

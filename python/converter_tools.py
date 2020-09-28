@@ -79,10 +79,10 @@ class Tree:
                 kind = "r"
         # handle leaf (terminal) node
         if len(self.children) == 0:
-            return '<Node pos="{0}" depth="{1}" NCoef="0" \
-                    IVar="{2}" Cut="{3:17E}" cType="1" \
-                    res="{4:17E}" rms="0.0e-00" \
-                    purity="{5:.8E}" nType="-99">'.format(
+            return '<Node pos="{0}" depth="{1}" NCoef="0" '\
+                    + 'IVar="{2}" Cut="{3:17E}" cType="1" '\
+                    + 'res="{4:17E}" rms="0.0e-00" '\
+                    + 'purity="{5:.8E}" nType="-99">'.format(
                 kind,
                 self.depth + 1,
                 -1,
@@ -92,10 +92,10 @@ class Tree:
             )
         # handle non-leaf node
         else:
-            return '<Node pos="{0}" depth="{1}" NCoef="0" \
-                    IVar="{2}" Cut="{3:17E}" cType="1" \
-                    res="{4:17E}" rms="0.0" \
-                    purity="{5:.8E}" nType="0">'.format(
+            return '<Node pos="{0}" depth="{1}" NCoef="0" '\
+                    + 'IVar="{2}" Cut="{3:17E}" cType="1" '\
+                    + 'res="{4:17E}" rms="0.0" '\
+                    + 'purity="{5:.8E}" nType="0">'.format(
                 kind,
                 self.depth + 1,
                 self.payload[1],
@@ -252,9 +252,9 @@ class BDT(object):
         that is, not expressions'''
         varstring = ""
         for i in range(len(self.feature_names)):
-            varstring += '<Variable VarIndex="{0}" Expression="{1}" \
-                Label="{1}" Title="{1}" Unit="" Internal="{1}" Type="F" \
-                Min="{2:.64E}" Max="{3:.64E}"/>\n'.format(
+            varstring += '<Variable VarIndex="{0}" Expression="{1}" '\
+                + 'Label="{1}" Title="{1}" Unit="" Internal="{1}" Type="F" '\
+                + 'Min="{2:.64E}" Max="{3:.64E}"/>\n'.format(
                     i, self.feature_names[i], 0, 0
             )
         if self.kind == "regression":
@@ -271,14 +271,14 @@ class BDT(object):
             num_targets = len(self.target_names)
             if num_targets > 1:
                 raise Exception(
-                    "TMVA does not support regression with vector values, \
-                    need to specify a scalar target"
+                    "TMVA does not support regression with vector values, "\
+                    + "need to specify a scalar target"
                 )
             for itgt, tgtname in enumerate(self.target_names):
-                target_string += '<Target Name="{0}" TargetIndex="{1}" \
-                    Expression="{0}" Label="{0}" Title="{0}" Unit="" \
-                    Internal="{0}" Type="F" Min="{2:.64E}" \
-                    Max="{3:.64E}"/>\n'.format(
+                target_string += '<Target Name="{0}" TargetIndex="{1}" '\
+                    + 'Expression="{0}" Label="{0}" Title="{0}" Unit="" '\
+                    + 'Internal="{0}" Type="F" Min="{2:.64E}" '\
+                    + 'Max="{3:.64E}"/>\n'.format(
                     tgtname, itgt, 0.0, 0.0
                 )
         elif self.kind == "binary" or self.kind == "multiclass":
@@ -289,49 +289,46 @@ class BDT(object):
                 analysis_type = "Classification"
             elif self.kind == "multiclass":
                 analysis_type = "Multiclass"
-
             for icls, clsname in enumerate(self.target_names):
                 class_string += '<Class Name="{0}" Index="{1}"/>\n'.format(
                     clsname, icls
                 )
             num_targets = 0
             target_string = ""
-
         outfile = open(outfile_name, "w")
-        outfile.write(
-            """
-        <?xml version="1.0"?>
-        <MethodSetup Method="BDT::{mva_name}">
-        <GeneralInfo>
-        <Info name="TMVA Release" value=""/>
-        <Info name="ROOT Release" value=""/>
-        <Info name="Creator" value="mlglue"/>
-        <Info name="Date" value=""/>
-        <Info name="Host" value=""/>
-        <Info name="Dir" value=""/>
-        <Info name="Training events" value="-1"/>
-        <Info name="TrainingTime" value="-1"/>
-        <Info name="AnalysisType" value="{analysis_type}"/>
-        </GeneralInfo>
-        <Options>
-        <Option name="NTrees" modified="Yes">{ntrees}</Option>
-        <Option name="MaxDepth" modified="Yes">{maxdepth}</Option>
-        <Option name="BoostType" modified="Yes">Grad</Option>
-        <Option name="Shrinkage" modified="Yes">{learnrate}</Option>
-        <Option name="UseNvars" modified="Yes">{usenvars}</Option>
-        </Options>
-        <Variables NVar="{nvars}">
-        {varstring}
-        </Variables>
-        <Classes NClass="{nclasses}">
-        {class_string}
-        </Classes>
-        <Targets NTrgt="{ntargets}">
-        {target_string}
-        </Targets>
-        <Transformations NTransformations="0"/>
-        <MVAPdfs/>
-        <Weights NTrees="{ntrees}" AnalysisType="1">
+        outfile.write("""
+<?xml version="1.0"?>
+<MethodSetup Method="BDT::{mva_name}">
+<GeneralInfo>
+<Info name="TMVA Release" value=""/>
+<Info name="ROOT Release" value=""/>
+<Info name="Creator" value="mlglue"/>
+<Info name="Date" value=""/>
+<Info name="Host" value=""/>
+<Info name="Dir" value=""/>
+<Info name="Training events" value="-1"/>
+<Info name="TrainingTime" value="-1"/>
+<Info name="AnalysisType" value="{analysis_type}"/>
+</GeneralInfo>
+<Options>
+<Option name="NTrees" modified="Yes">{ntrees}</Option>
+<Option name="MaxDepth" modified="Yes">{maxdepth}</Option>
+<Option name="BoostType" modified="Yes">Grad</Option>
+<Option name="Shrinkage" modified="Yes">{learnrate}</Option>
+<Option name="UseNvars" modified="Yes">{usenvars}</Option>
+</Options>
+<Variables NVar="{nvars}">
+{varstring}
+</Variables>
+<Classes NClass="{nclasses}">
+{class_string}
+</Classes>
+<Targets NTrgt="{ntargets}">
+{target_string}
+</Targets>
+<Transformations NTransformations="0"/>
+<MVAPdfs/>
+<Weights NTrees="{ntrees}" AnalysisType="1">
         """.format(**{
                 "analysis_type": analysis_type,
                 "mva_name": mva_name,
@@ -341,13 +338,10 @@ class BDT(object):
                 "nvars": len(self.feature_names),
                 "varstring": varstring,
                 "learnrate": self.learning_rate,
-
                 "nclasses": num_classes,
                 "class_string": class_string,
-
                 "ntargets": num_targets,
                 "target_string": target_string
-
             }
             )
         )
@@ -357,12 +351,11 @@ class BDT(object):
         itree = 0
         for tree in self.trees:
             outfile.write(
-                '<BinaryTree type="DecisionTree" boostWeight="0.0" \
-                itree="{0}">\n'.format(
+                '<BinaryTree type="DecisionTree" boostWeight="0.0" '\
+                + 'itree="{0}">\n'.format(
                     itree, self.learning_rate
                 )
             )
-
             # convert internal representation to TMVA tree
             # re-weight each node by 1/N (N - num trees per class)
             tree_to_tmva(outfile, tree, 0, 1.0)
@@ -372,8 +365,8 @@ class BDT(object):
 
         # done with output
         outfile.write("""
-          </Weights>
-        </MethodSetup>
+</Weights>
+</MethodSetup>
         """)
         outfile.close()
 
@@ -424,8 +417,8 @@ class BDTxgboost(BDT):
                 model_booster = model.booster()
             except:
                 sys.exit(
-                    "Could not read the model: check if the sklearn versions \
-                    for production are compatible with this converter"
+                    "Could not read the model: check if the sklearn versions "\
+                    + "for production are compatible with this converter"
                 )
         for tree_dump in model_booster.get_dump():
             tree = xgbtree_to_nodetree(tree_dump)

@@ -499,11 +499,20 @@ def plotting_main(
     canvas.SaveAs(filename)
 
 
-def create_all_fitFunc_file(weight_dir):
+def create_all_fitFunc_file(weight_dir, global_settings):
     wild_card_path = os.path.join(weight_dir, '*signal_fit_func*')
     all_single_files = glob.glob(wild_card_path)
     all_paths_str = ' '.join(all_single_files)
-    resulting_file = os.path.join(weight_dir, 'all_fitFuncs.root')
+    if 'nonres' in global_settings['bdtType']:
+        mode = 'nonres'
+    else:
+        mode = global_settings['spinCase']
+    res_fileName = '_'.join([
+        global_settings['channel'],
+        'TProfile_signal_fit_func',
+        mode
+        ])
+    resulting_file = os.path.join(weight_dir, res_fileName + '.root')
     subprocess.call('hadd ' + resulting_file + ' ' + all_paths_str, shell=True)
 
 
@@ -548,7 +557,7 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
                     resulting_hadd_file
                 )
             )
-            create_all_fitFunc_file(weight_dir)
+            create_all_fitFunc_file(weight_dir, global_settings)
         if create_profile:
             create_TProfiles(
                 info_dir, weight_dir, data,
