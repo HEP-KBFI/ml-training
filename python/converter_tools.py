@@ -297,7 +297,7 @@ class BDT(object):
             target_string = ""
         outfile = open(outfile_name, "w")
         outfile.write(
-"""
+"""\
 <?xml version="1.0"?>
 <MethodSetup Method="BDT::{mva_name}">
 <GeneralInfo>
@@ -359,15 +359,13 @@ class BDT(object):
             # convert internal representation to TMVA tree
             # re-weight each node by 1/N (N - num trees per class)
             tree_to_tmva(outfile, tree, 0, 1.0)
-
             outfile.write('</BinaryTree>\n')
             itree += 1
-
         # done with output
-        outfile.write("""
+        outfile.write(
+"""\
 </Weights>
-</MethodSetup>
-        """)
+</MethodSetup>""")
         outfile.close()
 
     def setup_tmva(self, bdtfile):
@@ -381,12 +379,10 @@ class BDT(object):
             self.reader.AddVariable(
                 self.feature_names[ivar], self.vardict[ivar])
         self.tmva = self.reader.BookMVA("bdt", bdtfile)
-
     def eval_tmva(self, features):
         for ivar, varname in enumerate(self.feature_names):
             #self.vardict[ivar][0] = features[0, ivar]
             self.vardict[ivar][0] = features[ivar]
-
         if self.kind == "multiclass":
             ret = self.reader.EvaluateMulticlass("bdt")
             ret = np.array([r for r in ret])
