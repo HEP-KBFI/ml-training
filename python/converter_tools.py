@@ -238,11 +238,9 @@ class BDT(object):
         that is, not expressions'''
         varstring = ""
         for i in range(len(self.feature_names)):
-            varstring += '<Variable VarIndex="{0}" Expression="{1}" '\
-                + 'Label="{1}" Title="{1}" Unit="" Internal="{1}" Type="F" '\
-                + 'Min="{2:.64E}" Max="{3:.64E}"/>\n'.format(
-                    i, self.feature_names[i], 0, 0
-            )
+            varstring += '<Variable VarIndex="{0}" Expression="{1}" '.format(i, self.feature_names[i])\
+                + 'Label="{0}" Title="{0}" Unit="" Internal="{0}" Type="F" '.format(self.feature_names[i])\
+                + 'Min="{0:.64E}" Max="{1:.64E}"/>\n'.format(0, 0)
         if self.kind == "regression":
             class_string = ""
             num_classes = 1
@@ -261,12 +259,10 @@ class BDT(object):
                     + "need to specify a scalar target"
                 )
             for itgt, tgtname in enumerate(self.target_names):
-                target_string += '<Target Name="{0}" TargetIndex="{1}" '\
-                    + 'Expression="{0}" Label="{0}" Title="{0}" Unit="" '\
-                    + 'Internal="{0}" Type="F" Min="{2:.64E}" '\
-                    + 'Max="{3:.64E}"/>\n'.format(
-                    tgtname, itgt, 0.0, 0.0
-                )
+                target_string += '<Target Name="{0}" TargetIndex="{1}" '.format(tgtname, itgt)\
+                    + 'Expression="{0}" Label="{0}" Title="{0}" Unit="" '.format(tgtname)\
+                    + 'Internal="{0}" Type="F" Min="{2:.64E}" 'format(tgtname, 0.0)\
+                    + 'Max="{3:.64E}"/>\n'.format(0.0)
         elif self.kind == "binary" or self.kind == "multiclass":
             class_string = ""
             num_classes = len(self.target_names)
