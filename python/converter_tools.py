@@ -80,14 +80,14 @@ class Tree:
         # handle leaf (terminal) node
         if len(self.children) == 0:
             return '<Node pos="{0}" depth="{1}" NCoef="0" '.format(kind, self.depth + 1)\
-                    + 'IVar="{0}" Cut="{1:17E}" cType="1" '.format(-1, 0.0)\
-                    + 'res="{0:17E}" rms="0.0e-00" '.format(self.payload[1] * scale)\
+                    + 'IVar="{0}" Cut="{1:.17E}" cType="1" '.format(-1, 0.0)\
+                    + 'res="{0:.17E}" rms="0.0e-00" '.format(self.payload[1] * scale)\
                     + 'purity="{0:.8E}" nType="-99">'.format(0.0)
         # handle non-leaf node
         else:
             return '<Node pos="{0}" depth="{1}" NCoef="0" '.format(kind, self.depth + 1)\
-                    + 'IVar="{0}" Cut="{1:17E}" cType="1" '.format(self.payload[1], self.payload[2])\
-                    + 'res="{0:17E}" rms="0.0" '.format(0.0)\
+                    + 'IVar="{0}" Cut="{1:.17E}" cType="1" '.format(self.payload[1], self.payload[2])\
+                    + 'res="{0:.17E}" rms="0.0" '.format(0.0)\
                     + 'purity="{0:.8E}" nType="0">'.format(0.0)
 
 def sklearn_to_nodetree(
