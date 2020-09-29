@@ -104,6 +104,8 @@ def model_creation(
         hyperparameters, data_dict, global_settings['nthread'],
         objective='auc', weight='totalWeight'
     )
+    bst = model.get_booster()
+    bst.feature_names = [f.encode('ascii') for f in bst.feature_names]
     save_xmlFile(global_settings, model, addition)
     save_pklFile(global_settings, model, addition)
     hhvt.plot_feature_importances(model, global_settings, addition)
