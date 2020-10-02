@@ -206,7 +206,17 @@ def nodeWise_modelPredictions(
 
 def save_pklFile(global_settings, model, addition):
     output_dir = global_settings['output_dir']
-    pklFile_path = os.path.join(output_dir, addition + '_model.pkl')
+    if 'nonres' in global_settings['bdtType']:
+        mode = 'nonres'
+    else:
+        mode = global_settings['spinCase']
+    model_name = '_'.join([
+        global_settings['channel'],
+        addition,
+        'model',
+        mode
+    ])
+    pklFile_path = os.path.join(output_dir, model_name + '.pkl')
     with open(pklFile_path, 'wb') as pklFile:
         pickle.dump(model, pklFile)
     print('.pkl file saved to: ' + str(pklFile_path))
@@ -269,9 +279,9 @@ def save_RLE_predictions(
         output_dir
 ):
     test_data = create_rle_str(test_data)
-    test_rles = np.array(test_data['rle'])
+    test_rles = np.array(test_data['rle'], dtype=str)
     train_data = create_rle_str(train_data)
-    train_rles = np.array(train_data['rle'])
+    train_rles = np.array(train_data['rle'], dtype=str)
     test_outfile = os.path.join(
         output_dir,
         '_'.join([addition, 'model', 'test']) + '.json')

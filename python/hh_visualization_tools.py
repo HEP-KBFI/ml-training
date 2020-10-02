@@ -67,6 +67,7 @@ def plot_feature_importances(model, global_settings, addition):
         addition + '_feature_importances.png'
     )
     fig.savefig(plot_out, bbox_inches='tight')
+    plt.close('all')
 
 
 def plotROC(odd_infos, even_infos, global_settings):
