@@ -296,7 +296,7 @@ def save_rle_dict(outfile, predictions, rles):
     with open(outfile, 'wt') as outFile:
         outDict = {}
         for pred, rle in zip(predictions, rles):
-            outDict[str(rle)] = pred
+            outDict[str(rle)] = float(pred)
         json.dump(outDict, outFile, indent=4)
 
 
