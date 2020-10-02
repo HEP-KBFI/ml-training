@@ -252,7 +252,7 @@ def performance_prediction(
             test_data,
             train_data,
             addition,
-            test_predicted_probabilities
+            test_predicted_probabilities,
             train_predicted_probabilities,
             global_settings['output_dir']
         )
@@ -263,7 +263,7 @@ def save_RLE_predictions(
         test_data,
         train_data,
         addition,
-        test_predicted
+        test_predicted,
         train_predicted,
         output_dir
 ):
