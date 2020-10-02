@@ -273,10 +273,10 @@ def save_RLE_predictions(
     train_rles = np.array(train_data['rle'])
     test_outfile = os.path.join(
         output_dir,
-        '_'.join([addition, model, 'test']) + '.json')
+        '_'.join([addition, 'model', 'test']) + '.json')
     train_outfile = os.path.join(
         output_dir,
-        '_'.join([addition, model, 'train']) + '.json')
+        '_'.join([addition, 'model', 'train']) + '.json')
     save_rle_dict(test_outfile, test_predicted, test_rles)
     save_rle_dict(train_outfile, train_predicted, train_rles)
 
