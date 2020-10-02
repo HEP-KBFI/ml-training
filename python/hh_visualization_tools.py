@@ -197,7 +197,6 @@ def plot_nodeWise_performance(
         )
         ###########################################
         plt.legend()
-        plt.ylim([0.0, 1.0])
         plt.xlim([0.0, 1.0])
         plt.tight_layout()
         plt.savefig(plot_out, bbox_inches='tight')

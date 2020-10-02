@@ -3,12 +3,13 @@ Call with 'python'
 
 Usage: 
     bdtTraining.py
-    bdtTraining.py [--output_dir=DIR --settings_dir=DIR --hyperparameter_file=PTH]
+    bdtTraining.py [--output_dir=DIR --settings_dir=DIR --hyperparameter_file=PTH --debug=BOOL]
 
 Options:
     -o --output_dir=DIR             Directory of the output [default: None]
     -s --settings_dir=DIR           Directory of the settings [default: None]
     -h --hyperparameter_file=PTH    Path to the hyperparameters file [default: None]
+    -d --debug=BOOL                 Whether to debug the event classification [default: 0]
 '''
 import os
 import docopt
@@ -27,7 +28,7 @@ except:
     import pickle
 
 
-def main(output_dir, settings_dir, hyperparameter_file):
+def main(output_dir, settings_dir, hyperparameter_file, debug):
     if output_dir == 'None':
         settings_dir = os.path.join(
             os.path.expandvars('$CMSSW_BASE'),
@@ -51,7 +52,7 @@ def main(output_dir, settings_dir, hyperparameter_file):
     if hyperparameter_file == 'None':
         hyperparameter_file = os.path.join(info_dir, 'hyperparameters.json')
     hyperparameters = ut.read_json_cfg(hyperparameter_file)
-    evaluation_main(global_settings, preferences, hyperparameters)
+    evaluation_main(global_settings, preferences, hyperparameters, debug)
 
 
 def split_data(global_settings, preferences):
@@ -70,7 +71,7 @@ def split_data(global_settings, preferences):
     return even_data, odd_data
 
 
-def evaluation_main(global_settings, preferences, hyperparameters):
+def evaluation_main(global_settings, preferences, hyperparameters, debug):
     even_data, odd_data = split_data(global_settings, preferences)
     even_model = model_creation(
         even_data, hyperparameters, preferences, global_settings, 'even_half'
@@ -255,6 +256,7 @@ if __name__ == '__main__':
         output_dir = arguments['--output_dir']
         settings_dir = arguments['--settings_dir']
         hyperparameter_file = arguments['--hyperparameter_file']
-        main(output_dir, settings_dir, hyperparameter_file)
+        debug = arguments['--debug']
+        main(output_dir, settings_dir, hyperparameter_file, debug)
     except docopt.DocoptExit as e:
         print(e)
