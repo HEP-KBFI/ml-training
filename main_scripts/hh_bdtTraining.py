@@ -279,9 +279,9 @@ def save_RLE_predictions(
         output_dir
 ):
     test_data = create_rle_str(test_data)
-    test_rles = np.array(test_data['rle'], dtype=str)
+    test_rles = list(test_data['rle'])
     train_data = create_rle_str(train_data)
-    train_rles = np.array(train_data['rle'], dtype=str)
+    train_rles = list(train_data['rle'])
     test_outfile = os.path.join(
         output_dir,
         '_'.join([addition, 'model', 'test']) + '.json')
