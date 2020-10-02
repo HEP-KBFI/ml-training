@@ -220,7 +220,6 @@ def performance_prediction(
     test_fpr, test_tpr, test_thresholds = roc_curve(
         test_data['target'].astype(int),
         test_predicted_probabilities,
-        pos_lable=1,
         sample_weight=test_data['totalWeight'].astype(float)
     )
     train_predicted_probabilities = model.predict_proba(
@@ -228,7 +227,6 @@ def performance_prediction(
     train_fpr, train_tpr, train_thresholds = roc_curve(
         train_data['target'].astype(int),
         train_predicted_probabilities,
-        pos_label=1,
         sample_weight=train_data['totalWeight'].astype(float)
     )
     train_auc = auc(train_fpr, train_tpr, reorder=True)
