@@ -291,6 +291,7 @@ def save_rle_dict(outfile, predictions, rles):
 
 
 def create_rle_str(data):
+    data = data.copy()
     data['rle'] = data.apply(lambda row: ':'.join([
         str(int(row.run)),
         str(int(row.luminosityBlock)),
