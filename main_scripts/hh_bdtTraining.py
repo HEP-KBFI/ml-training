@@ -81,11 +81,11 @@ def evaluation_main(global_settings, preferences, hyperparameters, debug):
     )
     odd_infos = list(performance_prediction(
             odd_model, even_data, odd_data, global_settings,
-            'odd', preferences
+            'odd', preferences, debug
     ))
     even_infos = list(performance_prediction(
             even_model, odd_data, even_data, global_settings,
-            'even', preferences
+            'even', preferences, debug
     ))
     hhvt.plotROC(odd_infos, even_infos, global_settings)
     hhvt.plot_sampleWise_bdtOutput(
@@ -213,7 +213,7 @@ def save_pklFile(global_settings, model, addition):
 
 def performance_prediction(
         model, test_data, train_data, global_settings,
-        addition, preferences
+        addition, preferences, debug
 ):
     test_predicted_probabilities = model.predict_proba(
         test_data[preferences['trainvars']])[:,1]
@@ -247,7 +247,58 @@ def performance_prediction(
         'addition': addition,
         'prediction': train_predicted_probabilities
     }
+    if debug:
+        save_RLE_predictions(
+            test_data,
+            train_data,
+            addition,
+            test_predicted_probabilities
+            train_predicted_probabilities,
+            global_settings['output_dir']
+        )
     return train_info, test_info
+
+
+def save_RLE_predictions(
+        test_data,
+        train_data,
+        addition,
+        test_predicted
+        train_predicted,
+        output_dir
+):
+    test_data = create_rle_str(test_data)
+    test_rles = np.array(test_data['rle'])
+    train_data = create_rle_str(train_data)
+    train_rles = np.array(train_data['rle'])
+    test_outfile = os.path.joni(
+        output_dir,
+        '_'.join([addition, model, 'test']) + '.json')
+    train_outfile = os.path.joni(
+        output_dir,
+        '_'.join([addition, model, 'train']) + '.json')
+    save_rle_dict(test_outfile, test_predicted, test_rles)
+    save_rle_dict(train_outfile, train_predicted, train_rles)
+
+
+def save_rle_dict(outfile, predictions, rles):
+    with open(outfile, 'wt') as outFile:
+        outDict = {}
+        for pred, rle in zip(predictions, rles):
+            outDict[rle] = pred
+        json.dump(outDict, outFile)
+
+
+
+def create_rle_str(data):
+    data['rle'] = data.apply(lambda row: ':'.join([
+        str(int(row.run)),
+        str(int(row.luminosityBlock)),
+        str(int(row.event))]),
+        axis=1
+    )
+    return data
+
 
 
 if __name__ == '__main__':
@@ -256,7 +307,7 @@ if __name__ == '__main__':
         output_dir = arguments['--output_dir']
         settings_dir = arguments['--settings_dir']
         hyperparameter_file = arguments['--hyperparameter_file']
-        debug = arguments['--debug']
+        debug = bool(int(arguments['--debug']))
         main(output_dir, settings_dir, hyperparameter_file, debug)
     except docopt.DocoptExit as e:
         print(e)
