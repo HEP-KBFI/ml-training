@@ -13,41 +13,18 @@
     "nonResScenarios_test": ["SM","BM4","BM7","BM12"],
     "tauID_application": {
         "deepVSjMedium": {
-            "signal_ggf_spin0_400_hh_4tdatacard": 0.35,
-            "signal_ggf_spin0_400_hh_2v2tdatacard": 0.02,
-            "signal_ggf_spin0_400_hh_4vdatacard": 0.0,
-            "signal_ggf_spin0_700_hh_4tdatacard": 0.87,
-            "signal_ggf_spin0_700_hh_2v2tdatacard": 0.04,
-            "signal_ggf_spin0_700_hh_4vdatacard": 0.0,
-            "TTdatacard": 0.08,
-            "ZZdatacard": 0.23,
-            "WZdatacard": 0.06,
-            "WWdatacard": 0.0,
-            "DYdatacard": 1.45
+            "TTdatacard": 0.38,
+            "ZZdatacard": 1.84,
+            "WZdatacard": 0.98,
+            "VHdatacard": 0.68
         },
         "deepVSjLoose": {
-            "TTdatacard": 0.345269,
-            "ZZdatacard": 0.623669,
-            "WZdatacard": 0.494042,
-            "DYdatacard": 0.719869,
-            "TTWdatacard": 0.00393195,
-            "TTWWdatacard": 0.0,
-            "TTZdatacard": 0.042617,
-            "THdatacard": 0.00550015,
-            "VHdatacard": 0.183363
-        },
-        "deepVSjVLoose": {
-            "signal_ggf_spin0_400_hh_4tdatacard": 0.77,
-            "signal_ggf_spin0_400_hh_2v2tdatacard": 0.06,
-            "signal_ggf_spin0_400_hh_4vdatacard": 0.0,
-            "signal_ggf_spin0_700_hh_4tdatacard": 1.72,
-            "signal_ggf_spin0_700_hh_2v2tdatacard": 0.17,
-            "signal_ggf_spin0_700_hh_4vdatacard": 0.0,
-            "TTdatacard": 0.96,
-            "ZZdatacard": 0.52,
-            "WZdatacard": 0.14,
-            "WWdatacard": 0.0,
-            "DYdatacard": 6.28
+            "TTdatacard": 1.90,
+            "ZZdatacard": 2.94,
+            "WZdatacard": 1.74,
+            "DYdatacard": 3.12,
+            "VHdatacard": 1.65
+        }
         }
     },
     "tauID_training": {
@@ -58,7 +35,6 @@
         }
     },
     "keys": {
-        "DY": [16,17,18],
         "TTTo": [16,17,18],
         "TTTJ": [16,17,18],
         "TTTT": [16,17,18],
