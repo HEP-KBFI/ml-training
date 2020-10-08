@@ -3,13 +3,24 @@ from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_aux_tools as hhat
 from machineLearning.machineLearning import nn_tools as nt
-from sklearn.metrics import roc_curve
+from machineLearning.machineLearning import multiclass_tools as mt
 from sklearn.metrics import auc
 import numpy as np
 import json
 
+nn_hyperparameters = {
+    'nr_hidden_layers': 3,
+    'learning_rate': 0.005,
+    'schedule_decay': 0.01,
+    'visible_layer_dropout_rate': 0.9,
+    'hidden_layer_dropout_rate': 0.65,
+    'alpha': 5,
+    'batch_size': 250,
+    'epochs': 70
+}
 
-def main(output_dir, ):
+
+def main(output_dir):
     if output_dir == 'None':
         settings_dir = os.path.join(
             os.path.expandvars('$CMSSW_BASE'),
@@ -33,8 +44,8 @@ def main(output_dir, ):
     data_dict = create_data_dict(preferences, global_settings)
     model = create_model(
         nn_hyperparameters, preferences, global_settings, data_dict)
-    evaluate_model(model, data_dict, global_settings)
-
+    train_info, test_info = evaluate_model(model, data_dict, global_settings)
+    hhvt.plotROC(train_info, test_info, global_settings)
 
 def create_data_dict(preferences, global_settings):
     data = dlt.load_data(
@@ -42,6 +53,7 @@ def create_data_dict(preferences, global_settings):
         global_settings,
         remove_neg_weights=True
     )
+    data = mt.multiclass_encoding(data)
     train, test = train_test_split(
         prepared_data, test_size=0.2, random_state=1)
     data_dict = {
@@ -54,7 +66,7 @@ def create_data_dict(preferences, global_settings):
 
 def create_model(nn_hyperparameters, preferences, global_settings, data_dict):
     nr_trainvars = len(preferences['trainvars'])
-    num_class = 3
+    num_class = len(set(data['train']['multitarget']))
     number_samples = len(data_dict['train'])
     model_structure = nt.create_nn_model(
         nn_hyperparameters,
@@ -77,8 +89,42 @@ def create_model(nn_hyperparameters, preferences, global_settings, data_dict):
 
 
 def evaluate_model(model, data_dict, global_settings):
-    pred_train = model.predict_proba(data_dict['train'].values)
-    pred_test = model.predict_proba(data_dict['test'].values)
+    trainvars = data_dict['trainvars']
+    train_predicted_probabilities = model.predict_proba(
+        data_dict['train'][trainvars].values)
+    test_predicted_probabilities = model.predict_proba(
+        data_dict['test'][trainvars].values)
+    test_fpr, test_tpr, test_thresholds = mt.roc_curve(
+        test_data['target'].astype(int),
+        test_predicted_probabilities,
+        test_data['totalWeight'].astype(float)
+    )
+    train_fpr, train_tpr, train_thresholds = mt.roc_curve(
+        train_data['target'].astype(int),
+        train_predicted_probabilities,
+        train_data['totalWeight'].astype(float)
+    )
+    train_auc = auc(train_fpr, train_tpr, reorder=True)
+    test_auc = auc(test_fpr, test_tpr, reorder=True)
+    test_info = {
+        'fpr': test_fpr,
+        'tpr': test_tpr,
+        'auc': test_auc,
+        'type': 'test',
+        'addition': addition,
+        'prediction': test_predicted_probabilities
+    }
+    train_info = {
+        'fpr': train_fpr,
+        'tpr': train_tpr,
+        'auc': train_auc,
+        'type': 'train',
+        'addition': addition,
+        'prediction': train_predicted_probabilities
+    }
+    return train_info, test_info
+
+
 
 
 if __name__ == '__main__':
