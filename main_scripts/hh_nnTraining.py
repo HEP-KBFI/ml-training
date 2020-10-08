@@ -69,7 +69,7 @@ def create_data_dict(preferences, global_settings):
 def create_model(nn_hyperparameters, preferences, global_settings, data_dict):
     trainvars = preferences['trainvars']
     nr_trainvars = len(trainvars)
-    num_class = len(set(data['train']['multitarget']))
+    num_class = len(set(data_dict['train']['multitarget']))
     number_samples = len(data_dict['train'])
     model_structure = nt.create_nn_model(
         nn_hyperparameters,
