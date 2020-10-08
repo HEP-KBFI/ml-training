@@ -57,7 +57,7 @@ def create_data_dict(preferences, global_settings):
     )
     data = mt.multiclass_encoding(data)
     train, test = train_test_split(
-        prepared_data, test_size=0.2, random_state=1)
+        data, test_size=0.2, random_state=1)
     data_dict = {
         'trainvars': trainvars,
         'train': train,
