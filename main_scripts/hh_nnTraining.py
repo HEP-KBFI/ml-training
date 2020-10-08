@@ -114,7 +114,6 @@ def evaluate_model(model, data_dict, global_settings):
         'tpr': test_tpr,
         'auc': test_auc,
         'type': 'test',
-        'addition': addition,
         'prediction': test_predicted_probabilities
     }
     train_info = {
@@ -122,7 +121,6 @@ def evaluate_model(model, data_dict, global_settings):
         'tpr': train_tpr,
         'auc': train_auc,
         'type': 'train',
-        'addition': addition,
         'prediction': train_predicted_probabilities
     }
     return train_info, test_info
