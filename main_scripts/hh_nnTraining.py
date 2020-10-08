@@ -78,11 +78,11 @@ def create_model(nn_hyperparameters, preferences, global_settings, data_dict):
     fitted_model = model_structure.fit(
         data_dict['train'][trainvars].values,
         data_dict['train']['target'],
-        sample_weight=data_dict['train']["totalWeight"],
+        data_dict['train']["totalWeight"],
         # validation_data=(
         #     data_dict['test'][trainvars],
         #     data_dict['test']['target'],
-        #     sample_weight=data_dict['test']["totalWeight"],
+        #     data_dict['test']["totalWeight"],
         # )
     )
     return fitted_model
