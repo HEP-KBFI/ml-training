@@ -47,6 +47,7 @@ def main(output_dir):
     train_info, test_info = evaluate_model(model, data_dict, global_settings)
     hhvt.plotROC(train_info, test_info, global_settings)
 
+
 def create_data_dict(preferences, global_settings):
     data = dlt.load_data(
         preferences,
