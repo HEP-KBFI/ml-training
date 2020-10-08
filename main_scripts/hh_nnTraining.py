@@ -47,7 +47,7 @@ def main(output_dir):
     model = create_model(
         nn_hyperparameters, preferences, global_settings, data_dict)
     train_info, test_info = evaluate_model(model, data_dict, global_settings)
-    hhvt.plotROC(train_info, test_info, global_settings)
+    hhvt.plotROC([train_info], [test_info], global_settings)
 
 
 def create_data_dict(preferences, global_settings):
@@ -70,7 +70,7 @@ def create_data_dict(preferences, global_settings):
 def create_model(nn_hyperparameters, preferences, global_settings, data_dict):
     trainvars = preferences['trainvars']
     nr_trainvars = len(trainvars)
-    num_class = len(set(data_dict['train']['target']))
+    num_class = max((data_dict['train']['multitarget'])) + 1
     number_samples = len(data_dict['train'])
     model_structure = nt.create_nn_model(
         nn_hyperparameters,
@@ -81,11 +81,11 @@ def create_model(nn_hyperparameters, preferences, global_settings, data_dict):
     )
     fitted_model = model_structure.fit(
         data_dict['train'][trainvars].values,
-        data_dict['train']['target'],
+        data_dict['train']['multitarget'],
         sample_weight=data_dict['train']['totalWeight'].values,
         validation_data=(
             data_dict['test'][trainvars],
-            data_dict['test']['target'],
+            data_dict['test']['multitarget'],
             data_dict['test']['totalWeight'].values
         )
     )
@@ -99,12 +99,12 @@ def evaluate_model(model, data_dict, global_settings):
     test_predicted_probabilities = model.predict_proba(
         data_dict['test'][trainvars].values)
     test_fpr, test_tpr= mt.roc_curve(
-        data_dict['test']['target'].astype(int),
+        data_dict['test']['multitarget'].astype(int),
         test_predicted_probabilities,
         data_dict['test']['totalWeight'].astype(float)
     )
     train_fpr, train_tpr = mt.roc_curve(
-        data_dict['train']['target'].astype(int),
+        data_dict['train']['multitarget'].astype(int),
         train_predicted_probabilities,
         data_dict['test']['totalWeight'].astype(float)
     )

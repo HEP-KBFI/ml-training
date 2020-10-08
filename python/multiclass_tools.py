@@ -26,7 +26,7 @@ def roc_curve(labels, pred_vectors, weights):
     for threshold in thresholds:
         signal = []
         for vector, weight in zip(pred_vectors, weights):
-            sig_vector = np.array(vector) > threshold
+            sig_vector = np.array(vector) >= threshold
             sig_vector = sig_vector.tolist()
             result = []
             for i, element in enumerate(sig_vector):
@@ -38,7 +38,7 @@ def roc_curve(labels, pred_vectors, weights):
         bg_score = 0
         for pair in pairs:
             for i in pair[1]:
-                if pair[0] == i:
+                if int(pair[0]) == i:
                     sig_score += weight
                 else:
                     bg_score += weight
