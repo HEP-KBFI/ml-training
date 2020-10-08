@@ -138,8 +138,6 @@ def data_main_loop(
     )
     for path in paths:
         print('Loading from: ' + path)
-        if 'sl' in path:
-            input_tree += '_sl'
         tree, tfile = read_root_tree(path, input_tree)
         data = load_data_from_tfile(
             tree,
