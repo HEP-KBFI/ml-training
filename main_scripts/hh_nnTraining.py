@@ -59,7 +59,7 @@ def create_data_dict(preferences, global_settings):
     train, test = train_test_split(
         data, test_size=0.2, random_state=1)
     data_dict = {
-        'trainvars': trainvars,
+        'trainvars': preferences['trainvars'],
         'train': train,
         'test': test,
     }
@@ -67,7 +67,8 @@ def create_data_dict(preferences, global_settings):
 
 
 def create_model(nn_hyperparameters, preferences, global_settings, data_dict):
-    nr_trainvars = len(preferences['trainvars'])
+    trainvars = preferences['trainvars']
+    nr_trainvars = len(trainvars)
     num_class = len(set(data['train']['multitarget']))
     number_samples = len(data_dict['train'])
     model_structure = nt.create_nn_model(
