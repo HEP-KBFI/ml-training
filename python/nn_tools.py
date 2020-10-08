@@ -182,13 +182,13 @@ def evaluate(k_model, data_dict, global_settings):
     '''
     trainvars = data_dict['trainvars']
     fit_result = k_model.fit(
-        data_dict['train'][trainvars],
+        data_dict['train'][trainvars].values,
         data_dict['train']['target'],
-        sample_weight=data_dict['train']["totalWeight"],
+        data_dict['train']['totalWeight'].values,
         validation_data=(
             data_dict['test'][trainvars],
             data_dict['test']['target'],
-            data_dict['test']["totalWeight"],
+            data_dict['test']['totalWeight'].values
         )
     )
     pred_train = k_model.predict_proba(data_dict['train'])
