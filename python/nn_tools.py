@@ -7,16 +7,16 @@ from keras.layers import BatchNormalization
 from keras.activations import elu
 from keras.layers import ELU
 from keras.optimizers import Nadam
-from eli5.sklearn import PermutationImportance
-import eli5
 import numpy as np
 from keras import backend as K
 import tensorflow as tf
 import keras
 from keras.wrappers.scikit_learn import KerasClassifier
 import json
-from eli5.formatters.as_dataframe import format_as_dataframe
 from machineLearning.machineLearning import universal_tools as ut
+import eli5
+from eli5.formatters.as_dataframe import format_as_dataframe
+from eli5.sklearn import PermutationImportance
 
 
 def model_evaluation_main(nn_hyperparameters, data_dict, global_settings):
@@ -49,10 +49,10 @@ def model_evaluation_main(nn_hyperparameters, data_dict, global_settings):
 
 
 def create_nn_model(
-        nn_hyperparameters={},
-        nr_trainvars=9,
-        num_class=3,
-        number_samples=5000,
+        nn_hyperparameters,
+        nr_trainvars,
+        num_class,
+        number_samples,
         metrics=['accuracy'],
 ):
     ''' Creates the neural network model. The normalization used is
@@ -103,7 +103,7 @@ def create_nn_model(
         model.add(BatchNormalization())
         model.add(ELU())
         model.add(Dropout(nn_hyperparameters['hidden_layer_dropout_rate']))
-    model.add(Dense(num_class, activation=elu))
+    model.add(Dense(num_class, activation='softmax'))
     model.compile(
         loss='sparse_categorical_crossentropy',
         optimizer=Nadam(
@@ -148,8 +148,8 @@ def parameter_evaluation(
             )
         )
     )
-    nr_trainvars = len(data_dict['traindataset'][0])
-    number_samples = len(data_dict['traindataset'])
+    nr_trainvars = len(data_dict['train'].values[0])
+    number_samples = len(data_dict['train'])
     k_model = KerasClassifier(
         build_fn=create_nn_model,
         epochs=nn_hyperparameters['epochs'],
@@ -180,12 +180,15 @@ def evaluate(k_model, data_dict, global_settings):
     score : float
         The score calculated according to the fitness_fn
     '''
+    trainvars = data_dict['trainvars']
     fit_result = k_model.fit(
-        data_dict['traindataset'],
-        data_dict['training_labels'],
+        data_dict['train'][trainvars].values,
+        data_dict['train']['target'],
+        data_dict['train']['totalWeight'].values,
         validation_data=(
-            data_dict['testdataset'],
-            data_dict['testing_labels']
+            data_dict['test'][trainvars],
+            data_dict['test']['target'],
+            data_dict['test']['totalWeight'].values
         )
     )
     pred_train = k_model.predict_proba(data_dict['train'])
@@ -218,7 +221,10 @@ def get_feature_importances(model, data_dict):
         The feature importances equivalent for nn using the eli5 package.
     '''
     perm = PermutationImportance(model).fit(
-        data_dict['train'], data_dict['training_labels'])
+        data_dict['train'][trainvars].values,
+        data_dict['train']['multitarget'],
+        sample_weight=data_dict['train']['totalWeight']
+    )
     weights = eli5.explain_weights(perm, feature_names=data_dict['trainvars'])
     weights_df = format_as_dataframe(weights).sort_values(
         by='weight', ascending=False).rename(columns={'weight': 'score'})
@@ -305,59 +311,3 @@ def create_hidden_net_structure(
     number_nodes = int(np.floor(number_nodes/number_hidden_layers))
     hidden_net = [number_nodes] * number_hidden_layers
     return hidden_net
-
-
-#####
-
-
-def initialize_values(value_dicts):
-    '''Initializes the parameters according to the value dict specifications
-
-    Parameters:
-    ----------
-    value_dicts : list of dicts
-        Specifications how each value should be initialized
-
-    Returns:
-    -------
-    sample : list of dicts
-        Parameter-set for a particle
-    '''
-    sample = {}
-    for xgb_params in value_dicts:
-        if bool(xgb_params['true_int']):
-            value = np.random.randint(
-                low=xgb_params['range_start'],
-                high=xgb_params['range_end']
-            )
-        else:
-            value = np.random.uniform(
-                low=xgb_params['range_start'],
-                high=xgb_params['range_end']
-            )
-        if bool(xgb_params['exp']):
-            value = np.exp(value)
-        sample[str(xgb_params['p_name'])] = value
-    return sample
-
-
-def prepare_run_params(value_dicts, sample_size):
-    ''' Creates parameter-sets for all particles (sample_size)
-
-    Parameters:
-    ----------
-    value_dicts : list of dicts
-        Specifications how each value should be initialized
-    sample_size : int
-        Number of particles to be created
-
-    Returns:
-    -------
-    run_params : list of dicts
-        List of parameter-sets for all particles
-    '''
-    run_params = []
-    for i in range(sample_size):
-        run_param = initialize_values(value_dicts)
-        run_params.append(run_param)
-    return run_params
