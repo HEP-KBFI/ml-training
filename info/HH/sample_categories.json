@@ -191,7 +191,9 @@
         "DYJetsToLL_M50_HT1200to2500",
         "DYJetsToLL_M50_HT2500toInf",
         "DYBBJetsToLL_M-50",
-        "DYBBJetsToLL_M-50_ext1"
+        "DYBBJetsToLL_M-50_ext1",
+        "DYToLL",
+        "DYJetsToLL_M-50"
     ],
     "qqH": [
         "VBFHToTauTau",
@@ -288,7 +290,7 @@
         "WJetsToLNu_HT600To800",
         "WJetsToLNu_HT800To1200",
         "WJetsToLNu_HT1200To2500",
-        "WJetsToLNu_HT2500ToInf"
+        "WJetsToLNu_HT2500ToInf",
     ],
     "W": [
         "WJetsToLNu_madgraphMLM",

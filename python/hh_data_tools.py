@@ -59,7 +59,7 @@ def get_ntuple_paths(input_path, folder_name, bdt_type):
                 addpaths = glob.glob(wild_card_path)
             paths.extend(addpaths)
         paths = list(dict.fromkeys(paths))
-    else:
+    if len(paths) == 0:
         if 'signal' in folder_name:
             wild_card_path = os.path.join(
                 input_path, folder_name, 'central', '*.root')

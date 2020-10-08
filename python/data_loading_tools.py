@@ -130,7 +130,6 @@ def data_main_loop(
     input_tree = str(os.path.join(
         preferences['channelInTree'], 'sel/evtntuple', sample_name, 'evtTree'))
     print(':::::::::::::::::')
-    print('Input folder:\t' + str(preferences['era_inputPath']))
     print('Sample name:\t' + str(folder_name))
     print('Tree path:\t' + input_tree + '\n')
     paths = get_all_paths(
