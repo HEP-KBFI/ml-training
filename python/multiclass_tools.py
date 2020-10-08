@@ -52,5 +52,5 @@ def multiclass_encoding(data, label_column='process'):
     mapping = {}
     for i, m_class in enumerate(classes):
         mapping[m_class] = i
-    data['multiclass'] = data[label_column].map(mapping)
+    data['multitarget'] = data[label_column].map(mapping)
     return data

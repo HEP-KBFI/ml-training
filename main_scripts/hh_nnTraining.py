@@ -16,7 +16,7 @@ nn_hyperparameters = {
     'visible_layer_dropout_rate': 0.9,
     'hidden_layer_dropout_rate': 0.65,
     'alpha': 5,
-    'batch_size': 250,
+    'batch_size': 256,
     'epochs': 70
 }
 
@@ -69,7 +69,7 @@ def create_data_dict(preferences, global_settings):
 def create_model(nn_hyperparameters, preferences, global_settings, data_dict):
     trainvars = preferences['trainvars']
     nr_trainvars = len(trainvars)
-    num_class = len(set(data_dict['train']['multitarget']))
+    num_class = len(set(data_dict['train']['target']))
     number_samples = len(data_dict['train'])
     model_structure = nt.create_nn_model(
         nn_hyperparameters,
@@ -82,13 +82,13 @@ def create_model(nn_hyperparameters, preferences, global_settings, data_dict):
         data_dict['train'][trainvars].values,
         data_dict['train']['target'],
         data_dict['train']["totalWeight"],
-        # validation_data=(
-        #     data_dict['test'][trainvars],
-        #     data_dict['test']['target'],
-        #     data_dict['test']["totalWeight"],
-        # )
+        validation_data=(
+            data_dict['test'][trainvars],
+            data_dict['test']['target'],
+            data_dict['test']["totalWeight"],
+        )
     )
-    return fitted_model
+    return model_structure
 
 
 def evaluate_model(model, data_dict, global_settings):
@@ -98,14 +98,14 @@ def evaluate_model(model, data_dict, global_settings):
     test_predicted_probabilities = model.predict_proba(
         data_dict['test'][trainvars].values)
     test_fpr, test_tpr, test_thresholds = mt.roc_curve(
-        test_data['target'].astype(int),
+        data_dict['test']['target'].astype(int),
         test_predicted_probabilities,
-        test_data['totalWeight'].astype(float)
+        data_dict['test']['totalWeight'].astype(float)
     )
     train_fpr, train_tpr, train_thresholds = mt.roc_curve(
-        train_data['target'].astype(int),
+        data_dict['train']['target'].astype(int),
         train_predicted_probabilities,
-        train_data['totalWeight'].astype(float)
+        data_dict['test']['totalWeight'].astype(float)
     )
     train_auc = auc(train_fpr, train_tpr, reorder=True)
     test_auc = auc(test_fpr, test_tpr, reorder=True)

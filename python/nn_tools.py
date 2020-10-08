@@ -103,9 +103,9 @@ def create_nn_model(
         model.add(BatchNormalization())
         model.add(ELU())
         model.add(Dropout(nn_hyperparameters['hidden_layer_dropout_rate']))
-    model.add(Dense(num_class, activation=elu))
+    model.add(Dense(num_class, activation='softmax'))
     model.compile(
-        loss='sparse_categorical_crossentropy',
+        loss='binary_crossentropy',
         optimizer=Nadam(
             lr=nn_hyperparameters['learning_rate'],
             schedule_decay=nn_hyperparameters['schedule_decay']
