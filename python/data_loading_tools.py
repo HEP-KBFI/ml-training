@@ -127,22 +127,16 @@ def data_main_loop(
     sample_name, target = find_sample_info(
         folder_name, global_settings['bdtType'], preferences['masses']
     )
+    input_tree = str(os.path.join(
+        preferences['channelInTree'], 'sel/evtntuple', sample_name, 'evtTree'))
     print(':::::::::::::::::')
     print('input_path:\t' + str(preferences['era_inputPath']))
     print('folder_name:\t' + str(folder_name))
-    print('channelInTree:\t' + str(preferences['channelInTree']))
-    input_tree = str(os.path.join(
-        preferences['channelInTree'], 'sel/evtntuple', sample_name, 'evtTree'))
+    print('fullTree:\t' + input_tree)
     paths = get_all_paths(
         preferences['era_inputPath'], folder_name, global_settings['bdtType']
     )
     for path in paths:
-        if 'nonres' in global_settings['bdtType'] and 'nonresonant' in path:
-            target = 1
-            sample_name = 'HH_nonres_decay'
-            input_tree = create_input_tree_path(
-                path, preferences['channelInTree']
-            )
         print('Loading from: ' + path)
         tree, tfile = read_root_tree(path, input_tree)
         data = load_data_from_tfile(
@@ -504,38 +498,6 @@ def print_columns(to_print):
     for one, two in zip(l1, l2):
         print('{0:<45s} {1}'.format(one, two))
     print('-----------------------------------')
-
-
-def create_input_tree_path(filename, channel_in_tree):
-    '''Constructs the input tree path based on the filename and the
-    channelInTree
-
-    Parameters:
-    -----------
-    filename : str
-        name (or path) of the file
-    channel_in_tree : str
-        Naame of the parent folder in the .root file
-
-    Returns:
-    -------
-    input_tree : str
-        Path in the .root file where data is located
-    '''
-    if '4v' in filename:
-        addition = 'wwww'
-    if '2v2t' in filename:
-        addition = 'wwtt'
-    if '4t' in filename:
-        addition = 'tttt'
-    if '2b2v_sl' in filename:
-        addition = 'bbvv_sl'
-    elif '2b2v' in filename:
-        addition = 'bbvv'
-    name = '_'.join(['signal_ggf_nonresonant_hh', addition])
-    input_tree = os.path.join(
-        channel_in_tree, 'sel/evtntuple', name, 'evtTree')
-    return str(input_tree)
 
 
 def remove_negative_weight_events(data, weights='totalWeight'):
