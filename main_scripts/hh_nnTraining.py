@@ -81,7 +81,7 @@ def create_model(nn_hyperparameters, preferences, global_settings, data_dict):
     fitted_model = model_structure.fit(
         data_dict['train'][trainvars].values,
         data_dict['train']['target'],
-        data_dict['train']['totalWeight'].values,
+        sample_weight=data_dict['train']['totalWeight'].values,
         validation_data=(
             data_dict['test'][trainvars],
             data_dict['test']['target'],
@@ -97,12 +97,12 @@ def evaluate_model(model, data_dict, global_settings):
         data_dict['train'][trainvars].values)
     test_predicted_probabilities = model.predict_proba(
         data_dict['test'][trainvars].values)
-    test_fpr, test_tpr, test_thresholds = mt.roc_curve(
+    test_fpr, test_tpr= mt.roc_curve(
         data_dict['test']['target'].astype(int),
         test_predicted_probabilities,
         data_dict['test']['totalWeight'].astype(float)
     )
-    train_fpr, train_tpr, train_thresholds = mt.roc_curve(
+    train_fpr, train_tpr = mt.roc_curve(
         data_dict['train']['target'].astype(int),
         train_predicted_probabilities,
         data_dict['test']['totalWeight'].astype(float)
