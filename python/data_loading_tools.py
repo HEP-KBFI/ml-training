@@ -130,14 +130,16 @@ def data_main_loop(
     input_tree = str(os.path.join(
         preferences['channelInTree'], 'sel/evtntuple', sample_name, 'evtTree'))
     print(':::::::::::::::::')
-    print('input_path:\t' + str(preferences['era_inputPath']))
-    print('folder_name:\t' + str(folder_name))
-    print('fullTree:\t' + input_tree)
+    print('Input folder:\t' + str(preferences['era_inputPath']))
+    print('Sample name:\t' + str(folder_name))
+    print('Tree path:\t' + input_tree + '\n')
     paths = get_all_paths(
         preferences['era_inputPath'], folder_name, global_settings['bdtType']
     )
     for path in paths:
         print('Loading from: ' + path)
+        if 'sl' in path:
+            input_tree += '_sl'
         tree, tfile = read_root_tree(path, input_tree)
         data = load_data_from_tfile(
             tree,
