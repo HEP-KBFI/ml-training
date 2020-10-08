@@ -290,7 +290,7 @@
         "WJetsToLNu_HT600To800",
         "WJetsToLNu_HT800To1200",
         "WJetsToLNu_HT1200To2500",
-        "WJetsToLNu_HT2500ToInf",
+        "WJetsToLNu_HT2500ToInf"
     ],
     "W": [
         "WJetsToLNu_madgraphMLM",
