@@ -7,16 +7,16 @@ from keras.layers import BatchNormalization
 from keras.activations import elu
 from keras.layers import ELU
 from keras.optimizers import Nadam
-from eli5.sklearn import PermutationImportance
-import eli5
 import numpy as np
 from keras import backend as K
 import tensorflow as tf
 import keras
 from keras.wrappers.scikit_learn import KerasClassifier
 import json
-from eli5.formatters.as_dataframe import format_as_dataframe
 from machineLearning.machineLearning import universal_tools as ut
+import eli5
+from eli5.formatters.as_dataframe import format_as_dataframe
+from eli5.sklearn import PermutationImportance
 
 
 def model_evaluation_main(nn_hyperparameters, data_dict, global_settings):
@@ -221,7 +221,10 @@ def get_feature_importances(model, data_dict):
         The feature importances equivalent for nn using the eli5 package.
     '''
     perm = PermutationImportance(model).fit(
-        data_dict['train'], data_dict['training_labels'])
+        data_dict['train'][trainvars].values,
+        data_dict['train']['multitarget'],
+        sample_weight=data_dict['train']['totalWeight']
+    )
     weights = eli5.explain_weights(perm, feature_names=data_dict['trainvars'])
     weights_df = format_as_dataframe(weights).sort_values(
         by='weight', ascending=False).rename(columns={'weight': 'score'})
