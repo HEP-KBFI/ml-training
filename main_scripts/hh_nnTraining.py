@@ -56,6 +56,11 @@ def create_data_dict(preferences, global_settings):
         global_settings,
         remove_neg_weights=True
     )
+    normalize_hh_dataframe(
+        data,
+        preferences,
+        global_settings
+    )
     data = mt.multiclass_encoding(data)
     train, test = train_test_split(
         data, test_size=0.2, random_state=1)
