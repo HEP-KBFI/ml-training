@@ -548,10 +548,16 @@ def data_cutting(data, global_settings):
         addition = 'nonRes'
     else:
         addition = 'res/%s' %(global_settings['spinCase'])
-    cut_file = os.path.join(
-        package_dir, 'info', global_settings['process'],
-        global_settings['channel'], addition, 'cuts.json'
-    )
+    if global_settings['dataCuts'] == 1:
+        cut_file = os.path.join(
+            package_dir, 'info', global_settings['process'],
+            global_settings['channel'], addition, 'cuts.json'
+        )
+    else:
+        cut_file = os.path.join(
+            package_dir, 'info', global_settings['process'],
+            global_settings['channel'], addition, global_settings['dataCuts']
+        )
     if os.path.exists(cut_file):
         cut_dict = ut.read_json_cfg(cut_file)
         if cut_dict == {}:
