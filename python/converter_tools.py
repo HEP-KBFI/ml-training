@@ -55,7 +55,7 @@ class Tree:
         for ch in self.children:
             node_dict[ch].print_out(node_dict)
 
-    def to_tmva(self, nodetree, scale):
+    def to_tmva(self, nodetree, scale, index_mapping):
         """Writes out a TMVA-compatible XML string for a given node in the
         decision tree
 
@@ -86,7 +86,7 @@ class Tree:
         # handle non-leaf node
         else:
             return '<Node pos="{0}" depth="{1}" NCoef="0" '.format(kind, self.depth + 1)\
-                    + 'IVar="{0}" Cut="{1:.17E}" cType="1" '.format(self.payload[1], self.payload[2])\
+                    + 'IVar="{0}" Cut="{1:.17E}" cType="1" '.format(index_mapping[self.payload[1]], self.payload[2])\
                     + 'res="{0:.17E}" rms="0.0" '.format(0.0)\
                     + 'purity="{0:.8E}" nType="0">'.format(0.0)
 
@@ -237,6 +237,7 @@ class BDT(object):
         '''Create list of variables. We assume that all variables are 'simple',
         that is, not expressions'''
         varstring = ""
+        index_mapping = {feature_name: i for i, feature_name in enumerate(self.feature_names)}
         for i in range(len(self.feature_names)):
             varstring += '<Variable VarIndex="{0}" Expression="{1}" '.format(i, self.feature_names[i])\
                 + 'Label="{0}" Title="{0}" Unit="" Internal="{0}" Type="F" '.format(self.feature_names[i])\
@@ -340,7 +341,7 @@ class BDT(object):
             )
             # convert internal representation to TMVA tree
             # re-weight each node by 1/N (N - num trees per class)
-            tree_to_tmva(outfile, tree, 0, 1.0)
+            tree_to_tmva(outfile, tree, 0, 1.0, index_mapping)
             outfile.write('</BinaryTree>\n')
             itree += 1
         # done with output
@@ -386,7 +387,7 @@ class BDTxgboost(BDT):
             kind = "multiclass"
         else:
             kind = "regression"
-        print model.objective, kind
+        print(str(model.objective) + ' ' + str(kind))
         trees = []
         try:
             model_booster = model.get_booster()
@@ -497,7 +498,7 @@ class BDTsklearn(BDT):
             return ret
 
 
-def tree_to_tmva(outfile, nodetree, current_node, scale):
+def tree_to_tmva(outfile, nodetree, current_node, scale, index_mapping):
     """Recursively writes out a decision tree as an XML
 
     Parameters:
@@ -513,8 +514,8 @@ def tree_to_tmva(outfile, nodetree, current_node, scale):
     """
     outfile.write(
         (nodetree[current_node].depth + 1)*"    "
-        + nodetree[current_node].to_tmva(nodetree, scale) + "\n"
+        + nodetree[current_node].to_tmva(nodetree, scale, index_mapping) + "\n"
     )
     for child in nodetree[current_node].children:
-        tree_to_tmva(outfile, nodetree, child, scale)
+        tree_to_tmva(outfile, nodetree, child, scale, index_mapping)
     outfile.write((nodetree[current_node].depth + 1)*"    " + "</Node>\n")
