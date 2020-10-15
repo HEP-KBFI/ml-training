@@ -76,8 +76,6 @@ def load_data_from_one_era(
     '''
     print_info(global_settings, preferences)
     my_cols_list = preferences['trainvars'] + ['process', 'key', 'target', 'totalWeight']
-    if 'HH_nonres' in global_settings['bdtType']:
-        my_cols_list += ['nodeX']
     data = pandas.DataFrame(columns=my_cols_list)
     for folder_name in preferences['era_keys']:
         data = data_main_loop(

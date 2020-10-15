@@ -15,6 +15,7 @@ def set_signal_sample_info(bdt_type, folder_name, masses):
     for key in name_map:
         if key in folder_name:
             sample_name = folder_name.replace(key, name_map[key])
+            sample_name.replace('_node', '')
     return sample_name, target
 
 
