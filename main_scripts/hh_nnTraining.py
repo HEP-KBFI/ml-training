@@ -5,10 +5,16 @@ from machineLearning.machineLearning import hh_aux_tools as hhat
 from machineLearning.machineLearning import nn_tools as nt
 from machineLearning.machineLearning import multiclass_tools as mt
 from machineLearning.machineLearning import hh_visualization_tools as hhvt
-from sklearn.metrics import auc
+from sklearn.metrics import roc_curve, auc
 from sklearn.model_selection import train_test_split
+from matplotlib import pyplot as plt
 import numpy as np
 import json
+import pandas as pd
+from sklearn.metrics import confusion_matrix
+import itertools
+import tensorflow as tf
+from sklearn.utils.multiclass import type_of_target
 
 nn_hyperparameters = {
     'nr_hidden_layers': 3,
@@ -18,9 +24,24 @@ nn_hyperparameters = {
     'hidden_layer_dropout_rate': 0.65,
     'alpha': 5,
     'batch_size': 256,
-    'epochs': 70
+    'epochs': 5
 }
 
+def plot_confusion_matrix(cm, class_names):
+    figure = plt.figure(figsize=(4, 4))
+    plt.imshow(cm, interpolation='nearest', cmap="summer")
+    plt.title("Confusion matrix")
+    plt.colorbar()
+    tick_marks = np.arange(len(class_names))
+    plt.xticks(tick_marks, class_names, fontsize=5, rotation =70)
+    plt.yticks(tick_marks, class_names, fontsize =5)
+    cm = np.moveaxis(np.around(cm.astype('float') / cm.sum(axis=1)[:, np.newaxis], decimals=2),0,1)
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(i, j, cm[i, j], horizontalalignment="center", size=5)
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.savefig("confusion_matrix.pdf")
 
 def main(output_dir):
     if output_dir == 'None':
@@ -44,11 +65,20 @@ def main(output_dir):
         info_dir
     )
     data_dict = create_data_dict(preferences, global_settings)
-    model = create_model(
-        nn_hyperparameters, preferences, global_settings, data_dict)
-    train_info, test_info = evaluate_model(model, data_dict, global_settings)
-    hhvt.plotROC([train_info], [test_info], global_settings)
-
+    even_model = create_model(
+        nn_hyperparameters, preferences, global_settings, data_dict, "even", global_settings["lbn"])
+    odd_model = create_model(
+        nn_hyperparameters, preferences, global_settings, data_dict, "odd", global_settings["lbn"])
+    print odd_model.summary()
+    even_train_info, even_test_info = evaluate_model(even_model, data_dict, global_settings, "even")
+    odd_train_info, odd_test_info = evaluate_model(odd_model, data_dict, global_settings, "odd")
+    hhvt.plotROC([odd_train_info, odd_test_info], [even_train_info, even_test_info], global_settings)
+    classes = set(data_dict["even_data"]["process"])
+    for class_ in classes :
+        multitarget = list(set(data_dict["even_data"].loc[data_dict["even_data"]["process"]==class_, "multitarget"]) )[0]
+        print class_,'\t', multitarget
+        hhvt.plot_sampleWise_bdtOutput(
+            odd_model, data_dict["even_data"], preferences, global_settings, multitarget, class_, data_dict)
 
 def create_data_dict(preferences, global_settings):
     data = dlt.load_data(
@@ -56,63 +86,134 @@ def create_data_dict(preferences, global_settings):
         global_settings,
         remove_neg_weights=True
     )
-    normalize_hh_dataframe(
+    hhat.normalize_hh_dataframe(
         data,
         preferences,
         global_settings
     )
+    sumall = data.loc[data["process"]=="TT"]["totalWeight"].sum() + data.loc[data["process"]=="W"]["totalWeight"].sum() + data.loc[data["process"]=="DY"]["totalWeight"].sum()+ data.loc[data["target"]==1]["totalWeight"].sum()
+    print "TT:W:DY", data.loc[data["process"]=="TT"]["totalWeight"].sum()/sumall, ": " , data.loc[data["process"]=="W"]["totalWeight"].sum()/sumall, ":",data.loc[data["process"]=="DY"]["totalWeight"].sum()/sumall, data.loc[data["target"]==1]["totalWeight"].sum()/sumall
     data = mt.multiclass_encoding(data)
-    train, test = train_test_split(
-        data, test_size=0.2, random_state=1)
-    data_dict = {
-        'trainvars': preferences['trainvars'],
-        'train': train,
-        'test': test,
-    }
+    even_data = data.loc[(data['event'].values % 2 == 0)]
+    odd_data = data.loc[~(data['event'].values % 2 == 0)]
+    if global_settings["lbn"] :
+        ll_odd = dlt.get_low_level(odd_data)
+        ll_even = dlt.get_low_level(even_data)
+        hl_odd = dlt.get_high_level(odd_data, preferences["trainvars"])
+        hl_even = dlt.get_high_level(even_data, preferences["trainvars"])
+        data_dict = {
+            'trainvars': preferences['trainvars'],
+            'odd_data':  odd_data,
+            'even_data': even_data,
+            'll_odd' : ll_odd,
+            'll_even' : ll_even,
+            'hl_odd' : hl_odd,
+            'hl_even' : hl_even
+        }
+    else :
+        data_dict = {
+            'trainvars': preferences['trainvars'],
+            'odd_data':  odd_data,
+            'even_data': even_data
+        }
     return data_dict
 
 
-def create_model(nn_hyperparameters, preferences, global_settings, data_dict):
+def create_model(nn_hyperparameters, preferences, global_settings, data_dict, choose_data, lbn):
     trainvars = preferences['trainvars']
     nr_trainvars = len(trainvars)
-    num_class = max((data_dict['train']['multitarget'])) + 1
-    number_samples = len(data_dict['train'])
+    num_class = max((data_dict['odd_data']['multitarget'])) + 1
+    number_samples = len(data_dict['odd_data']) if choose_data == "odd" else len(data_dict['even_data'])
     model_structure = nt.create_nn_model(
         nn_hyperparameters,
         nr_trainvars,
         num_class,
         number_samples,
         metrics=['accuracy'],
+        lbn = lbn
     )
-    fitted_model = model_structure.fit(
-        data_dict['train'][trainvars].values,
-        data_dict['train']['multitarget'],
-        sample_weight=data_dict['train']['totalWeight'].values,
-        validation_data=(
-            data_dict['test'][trainvars],
-            data_dict['test']['multitarget'],
-            data_dict['test']['totalWeight'].values
+    if global_settings["lbn"] :
+        train_data = {"ll" : data_dict["ll_odd"], "hl" : data_dict['hl_odd'], "train_data" : data_dict["odd_data"]} if choose_data == "odd" else {"ll" : data_dict["ll_even"],"hl" : data_dict['hl_even'], "train_data" : data_dict["even_data"]}
+        val_data = {"ll" : data_dict["ll_even"], "hl" : data_dict['hl_even'], "val_data" : data_dict["even_data"]}  if choose_data == "odd" else {"ll" : data_dict["ll_odd"], "hl" : data_dict['hl_odd'], 
+                                                                                                                                                  "val_data" : data_dict["odd_data"] }
+
+        fitted_model = model_structure.fit(
+            [train_data["ll"],train_data["hl"]],
+            train_data["train_data"]['multitarget'].values,
+            epochs=2,
+            batch_size=1024,
+            sample_weight=train_data["train_data"]['totalWeight'].values,
+            validation_data=([val_data["ll"],val_data["hl"]],
+                             val_data["val_data"]["multitarget"],
+                             val_data["val_data"]["totalWeight"].values
+                         )
         )
+    else :
+     train_data = data_dict['odd_data'] if choose_data == "odd" else data_dict['even_data']
+     val_data =   data_dict['even_data']  if choose_data == "even" else data_dict['odd_data']
+     fitted_model = model_structure.fit(
+         train_data[trainvars].values,
+         train_data['multitarget'].astype(np.int),
+         epochs=25,
+         batch_size=1024,
+         sample_weight=train_data['totalWeight'].values,
+         validation_data=(
+             val_data[trainvars],
+             val_data['multitarget'].astype(np.int),
+             val_data['totalWeight'].values
+         )
     )
+    fig1, ax = plt.subplots()
+    pd.DataFrame(fitted_model.history).plot(figsize=(8,5))
+    plt.grid(True)
+    #plt.gca().set_ylim(0,1)
+    plt.show()
+    plt.yscale('log')
+    plt.savefig("loss_sampleweight_%s.png" %choose_data)
+
+    #feature_importance = nt.get_feature_importances(model_structure, data_dict, preferences["trainvars"], choose_data)
+    #print feature_importance
     return model_structure
 
 
-def evaluate_model(model, data_dict, global_settings):
+def evaluate_model(model, data_dict, global_settings, choose_data):
     trainvars = data_dict['trainvars']
-    train_predicted_probabilities = model.predict_proba(
-        data_dict['train'][trainvars].values)
-    test_predicted_probabilities = model.predict_proba(
-        data_dict['test'][trainvars].values)
+    train_data = data_dict["odd_data"] if choose_data == "odd" else data_dict["even_data"]
+    test_data = data_dict["even_data"] if choose_data == "odd" else data_dict["odd_data"]
+
+    if global_settings["lbn"] :
+        train_var = {"ll" : data_dict["ll_odd"], "hl" : data_dict["hl_odd"]} if choose_data == "odd" else  {"ll" : data_dict["ll_even"], "hl" : data_dict["hl_even"]}
+        test_var = {"ll" : data_dict["ll_even"], "hl" : data_dict["hl_even"]} if choose_data == "odd" else  {"ll" : data_dict["ll_odd"], "hl" : data_dict["hl_odd"]}
+        train_predicted_probabilities = model.predict([train_var["ll"], train_var["hl"]], batch_size=1024)
+        test_predicted_probabilities = model.predict([test_var["ll"], test_var["hl"]], batch_size=1024)
+    else :
+        train_predicted_probabilities = model.predict_proba(
+            train_data[trainvars].values)
+        test_predicted_probabilities = model.predict_proba(
+            test_data[trainvars].values)
+    cm = confusion_matrix(train_data["multitarget"].astype(int), np.argmax(train_predicted_probabilities, axis=1))
+    plot_confusion_matrix(cm, ["TT","W", "HH", "DY"])
+
     test_fpr, test_tpr= mt.roc_curve(
-        data_dict['test']['multitarget'].astype(int),
+        data_dict['even_data']['multitarget'].astype(int),
         test_predicted_probabilities,
-        data_dict['test']['totalWeight'].astype(float)
+        data_dict['even_data']['totalWeight'].astype(float)
     )
     train_fpr, train_tpr = mt.roc_curve(
-        data_dict['train']['multitarget'].astype(int),
+        data_dict['odd_data']['multitarget'].astype(int),
         train_predicted_probabilities,
-        data_dict['test']['totalWeight'].astype(float)
+        data_dict['odd_data']['totalWeight'].astype(float)
     )
+    '''test_fpr, test_tpr, test_thresholds = roc_curve(
+        test_data['multitarget'].astype(int),
+        test_predicted_probabilities[:,0], pos_label=0,
+        sample_weight=(test_data['totalWeight'].astype(float))
+    )
+    train_fpr, train_tpr, train_thresholds= roc_curve(
+        train_data['multitarget'].astype(int),
+        train_predicted_probabilities[:,0],pos_label=0,
+        sample_weight=(train_data['totalWeight'].astype(float))
+    ) '''
     train_auc = auc(train_fpr, train_tpr, reorder=True)
     test_auc = auc(test_fpr, test_tpr, reorder=True)
     test_info = {

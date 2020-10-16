@@ -17,8 +17,9 @@ from machineLearning.machineLearning import universal_tools as ut
 import eli5
 from eli5.formatters.as_dataframe import format_as_dataframe
 from eli5.sklearn import PermutationImportance
-
-
+from machineLearning.machineLearning.lbn import LBN, LBNLayer
+from sklearn.utils.multiclass import type_of_target
+from machineLearning.machineLearning import multiclass_tools as mt
 def model_evaluation_main(nn_hyperparameters, data_dict, global_settings):
     ''' Collected functions for CGB model evaluation
 
@@ -54,6 +55,7 @@ def create_nn_model(
         num_class,
         number_samples,
         metrics=['accuracy'],
+        lbn=False
 ):
     ''' Creates the neural network model. The normalization used is
     batch normalization. Kernel is initialized by the Kaiming initializer
@@ -80,16 +82,17 @@ def create_nn_model(
     model : keras.engine.sequential.Sequential
         Sequential keras neural network model created.
     '''
-    model = keras.models.Sequential()
+    '''model = keras.models.Sequential()
     model.add(
         Dense(
             2*nr_trainvars,
             input_dim=nr_trainvars,
-            kernel_initializer='he_uniform'
+            kernel_initializer='he_uniform',
+            activation = "relu"
         )
     )
     model.add(BatchNormalization())
-    model.add(ELU())
+    #model.add(ELU())
     model.add(Dropout(nn_hyperparameters['visible_layer_dropout_rate']))
     hidden_layers = create_hidden_net_structure(
         nn_hyperparameters['nr_hidden_layers'],
@@ -99,19 +102,58 @@ def create_nn_model(
         nn_hyperparameters['alpha']
     )
     for hidden_layer in hidden_layers:
-        model.add(Dense(hidden_layer, kernel_initializer='he_uniform'))
+        model.add(Dense(hidden_layer, kernel_initializer='he_uniform', activation="relu"))
         model.add(BatchNormalization())
-        model.add(ELU())
+        #model.add(ELU())
         model.add(Dropout(nn_hyperparameters['hidden_layer_dropout_rate']))
     model.add(Dense(num_class, activation='softmax'))
     model.compile(
         loss='sparse_categorical_crossentropy',
+        #loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
+        #optimizer=tf.keras.optimizers.Adam(lr=0.0001),
         optimizer=Nadam(
             lr=nn_hyperparameters['learning_rate'],
             schedule_decay=nn_hyperparameters['schedule_decay']
         ),
         metrics=metrics,
+    )'''
+    if lbn :
+        ll_inputs = tf.keras.Input(shape=(5, 4), name = "LL")
+        hl_inputs = tf.keras.Input(shape=(17,), name = "HL")
+        lbn_layer = LBNLayer(ll_inputs.shape, 10, boost_mode=LBN.PAIRS, features=["E", "pt", "eta", "phi", "m", "pair_cos"])
+        lbn_features = lbn_layer(ll_inputs)
+        normalized_lbn_features = tf.keras.layers.BatchNormalization()(lbn_features)
+        x = tf.keras.layers.concatenate([normalized_lbn_features, hl_inputs])
+        x = tf.keras.layers.Dense(256, activation="relu")(x)
+        x = tf.keras.layers.Dropout(0.50)(x)
+        x = tf.keras.layers.Dense(256, activation="relu")(x)
+        x = tf.keras.layers.Dropout(0.50)(x)
+        outputs = tf.keras.layers.Dense(num_class, activation='softmax')(x)
+
+        model = tf.keras.Model(inputs=[ll_inputs, hl_inputs], outputs= outputs, name='lbn_dnn')
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(lr=0.0001),
+            loss='sparse_categorical_crossentropy',
+            metrics=["accuracy"],
     )
+    else :
+        model = keras.models.Sequential()
+        model.add(keras.layers.InputLayer(input_shape=[nr_trainvars]))
+        model.add(BatchNormalization())
+        model.add(keras.layers.Dense(256,activation="relu"))
+        model.add(BatchNormalization())
+        model.add(Dropout(0.1))
+        model.add(keras.layers.Dense(256,activation="relu"))
+        model.add(BatchNormalization())
+        model.add(Dropout(0.1))
+        model.add(Dense(num_class, activation='softmax'))
+        model.compile(
+            loss='sparse_categorical_crossentropy',
+            optimizer=Nadam(
+                lr=.001
+            ),
+            metrics=['accuracy'],#metrics,
+        )
     return model
 
 
@@ -203,7 +245,7 @@ def evaluate(k_model, data_dict, global_settings):
     return score, pred_train, pred_test
 
 
-def get_feature_importances(model, data_dict):
+def get_feature_importances(model, data_dict, trainvars, data="even"):
     '''Returns the feature importance relevant for neural network case using
     the eli5 package. Note: calculating the feature importances takes a while
     due to it calculating all the permutations.
@@ -220,12 +262,12 @@ def get_feature_importances(model, data_dict):
     feature_importances : dict
         The feature importances equivalent for nn using the eli5 package.
     '''
-    perm = PermutationImportance(model).fit(
-        data_dict['train'][trainvars].values,
-        data_dict['train']['multitarget'],
-        sample_weight=data_dict['train']['totalWeight']
+    perm = PermutationImportance(model, scoring=mt.roc_curve).fit(
+        data_dict[data+"_data"][trainvars].values,
+        data_dict[data+"_data"]['multitarget'],
+        sample_weight=data_dict[data+"_data"]['totalWeight']
     )
-    weights = eli5.explain_weights(perm, feature_names=data_dict['trainvars'])
+    weights = eli5.explain_weights(perm, feature_names=data_dict[trainvars])
     weights_df = format_as_dataframe(weights).sort_values(
         by='weight', ascending=False).rename(columns={'weight': 'score'})
     list_of_dicts = weights_df.to_dict('records')

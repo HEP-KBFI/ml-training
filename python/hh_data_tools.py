@@ -2,6 +2,7 @@ from machineLearning.machineLearning import universal_tools as ut
 import numpy as np
 import os
 import glob
+import re
 
 
 def set_signal_sample_info(bdt_type, folder_name, masses):
@@ -15,6 +16,9 @@ def set_signal_sample_info(bdt_type, folder_name, masses):
     for key in name_map:
         if key in folder_name:
             sample_name = folder_name.replace(key, name_map[key])
+            if 'bbvv' in sample_name :
+                sample_name = re.sub("_node_\d+_","_", sample_name)
+                sample_name = sample_name.replace('_node_sm_','_')
     return sample_name, target
 
 
@@ -51,32 +55,33 @@ def get_ntuple_paths(input_path, folder_name, bdt_type):
     if (folder_name in sample_categories.keys()):
         for fname in sample_categories[folder_name]:
             wild_card_path = os.path.join(
-                input_path, fname + '*', 'central', '*.root')
+                input_path, fname + '*', 'central', 'hadd*Tight.root')
             addpaths = glob.glob(wild_card_path)
             if len(addpaths) == 0:
                 wild_card_path = os.path.join(
-                    input_path, fname + '*', '*.root')
+                    input_path, fname + '*', 'hadd*Tight.root')
                 addpaths = glob.glob(wild_card_path)
             paths.extend(addpaths)
         paths = list(dict.fromkeys(paths))
     if len(paths) == 0:
         if 'signal' in folder_name:
             wild_card_path = os.path.join(
-                input_path, folder_name, 'central', '*.root')
+                input_path, folder_name, 'central', 'hadd*Tight.root')
             paths = glob.glob(wild_card_path)
             if len(paths) == 0:
                 wild_card_path = os.path.join(
-                    input_path, folder_name, '*.root')
+                    input_path, folder_name, 'hadd*Tight.root')
                 paths = glob.glob(wild_card_path)
         else:
             wild_card_path = os.path.join(
-                input_path, folder_name + '*', 'central', '*.root')
+                input_path, folder_name + '*', 'central', 'hadd*Tight.root')
             paths = glob.glob(wild_card_path)
             if len(paths) == 0:
                 wild_card_path = os.path.join(
-                    input_path, folder_name + '*', '*.root')
+                    input_path, folder_name + '*', 'hadd*Tight.root')
                 paths = glob.glob(wild_card_path)
-    paths = [path for path in paths if 'hadd' not in path]
+    #paths = [path for path in paths if 'hadd' not in path]
+    paths = [path for path in paths]
     return paths
 
 
