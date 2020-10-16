@@ -13,50 +13,32 @@
     "nonResScenarios_test": ["SM","BM4","BM7","BM12"],
     "tauID_application": {
         "deepVSjMedium": {
-            "signal_ggf_spin0_400_hh_4tdatacard": 0.35,
-            "signal_ggf_spin0_400_hh_2v2tdatacard": 0.02,
-            "signal_ggf_spin0_400_hh_4vdatacard": 0.0,
-            "signal_ggf_spin0_700_hh_4tdatacard": 0.87,
-            "signal_ggf_spin0_700_hh_2v2tdatacard": 0.04,
-            "signal_ggf_spin0_700_hh_4vdatacard": 0.0,
+            "VHdatacard": 0.6,
             "TTdatacard": 0.08,
-            "ZZdatacard": 0.23,
-            "WZdatacard": 0.06,
-            "WWdatacard": 0.0,
-            "DYdatacard": 1.45
+            "ZZdatacard": 0.62,
+            "WZdatacard": 0.14,
+            "DYdatacard": 0.05
         },
         "deepVSjLoose": {
-            "signal_ggf_spin0_400_hh_4tdatacard": 0.53,
-            "signal_ggf_spin0_400_hh_2v2tdatacard": 0.04,
-            "signal_ggf_spin0_400_hh_4vdatacard": 0.0,
-            "signal_ggf_spin0_700_hh_4tdatacard": 1.21,
-            "signal_ggf_spin0_700_hh_2v2tdatacard": 0.08,
-            "signal_ggf_spin0_700_hh_4vdatacard": 0.0,
-            "TTdatacard": 0.38,
-            "ZZdatacard": 0.35,
-            "WZdatacard": 0.06,
-            "WWdatacard": 0.0,
-            "DYdatacard": 2.63
+            "VHdatacard": 1.01,
+            "TTdatacard": 0.4,
+            "ZZdatacard": 1.33,
+            "WZdatacard": 0.22,
+            "DYdatacard": 3.78
         },
         "deepVSjVLoose": {
-            "signal_ggf_spin0_400_hh_4tdatacard": 0.77,
-            "signal_ggf_spin0_400_hh_2v2tdatacard": 0.06,
-            "signal_ggf_spin0_400_hh_4vdatacard": 0.0,
-            "signal_ggf_spin0_700_hh_4tdatacard": 1.72,
-            "signal_ggf_spin0_700_hh_2v2tdatacard": 0.17,
-            "signal_ggf_spin0_700_hh_4vdatacard": 0.0,
-            "TTdatacard": 0.96,
-            "ZZdatacard": 0.52,
-            "WZdatacard": 0.14,
-            "WWdatacard": 0.0,
-            "DYdatacard": 6.28
+            "VHdatacard": 1.54,
+            "TTdatacard": 3.03,
+            "ZZdatacard": 1.99,
+            "WZdatacard": 0.51,
+            "DYdatacard": 18.65
         }
     },
     "tauID_training": {
         "deepVSjVVVLoose": {
-            "inputPath16": "/hdfs/local/laurits/hhAnalysis/2016/VVVLoose_BDTtraining/histograms/hh_0l_4tau/forBDTtraining_OS",
-            "inputPath17": "/hdfs/local/laurits/hhAnalysis/2017/VVVLoose_BDTtraining/histograms/hh_0l_4tau/forBDTtraining_OS",
-            "inputPath18": "/hdfs/local/laurits/hhAnalysis/2018/VVVLoose_BDTtraining/histograms/hh_0l_4tau/forBDTtraining_OS"
+            "inputPath16": "/hdfs/local/laurits/hhAnalysis/2016/0l_4tau_BDT_VVVLoose/histograms/hh_0l_4tau/forBDTtraining_OS",
+            "inputPath17": "/hdfs/local/laurits/hhAnalysis/2017/0l_4tau_BDT_VVVLoose/histograms/hh_0l_4tau/forBDTtraining_OS",
+            "inputPath18": "/hdfs/local/laurits/hhAnalysis/2018/0l_4tau_BDT_VVVLoose/histograms/hh_0l_4tau/forBDTtraining_OS"
         }
     },
     "keys": {
