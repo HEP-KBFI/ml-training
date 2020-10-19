@@ -1,0 +1,8 @@
+{   
+    "boosted" : {
+	"sel" : "isHbb_boosted && numBJets==2 && numWJets==2"
+    },
+    "resolved_allreconstructed" : {
+	"sel" : "isHbb_boosted==0 && numBJets==2 && numWJets==2"
+    }
+}
