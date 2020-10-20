@@ -1,41 +1,32 @@
 import os
+import numpy as np
+import json
+import pandas as pd
+import itertools
+import tensorflow as tf
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import auc
+from matplotlib import pyplot as plt
+from sklearn.utils.multiclass import type_of_target
 from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_aux_tools as hhat
 from machineLearning.machineLearning import nn_tools as nt
 from machineLearning.machineLearning import multiclass_tools as mt
 from machineLearning.machineLearning import hh_visualization_tools as hhvt
-from sklearn.metrics import roc_curve, auc
-from sklearn.model_selection import train_test_split
-from matplotlib import pyplot as plt
-import numpy as np
-import json
-import pandas as pd
-from sklearn.metrics import confusion_matrix
-import itertools
-import tensorflow as tf
-from sklearn.utils.multiclass import type_of_target
 
-nn_hyperparameters = {
-    'nr_hidden_layers': 3,
-    'learning_rate': 0.005,
-    'schedule_decay': 0.01,
-    'visible_layer_dropout_rate': 0.9,
-    'hidden_layer_dropout_rate': 0.65,
-    'alpha': 5,
-    'batch_size': 256,
-    'epochs': 5
-}
 
 def plot_confusion_matrix(cm, class_names):
-    figure = plt.figure(figsize=(4, 4))
+    plt.figure(figsize=(4, 4))
     plt.imshow(cm, interpolation='nearest', cmap="summer")
     plt.title("Confusion matrix")
     plt.colorbar()
     tick_marks = np.arange(len(class_names))
-    plt.xticks(tick_marks, class_names, fontsize=5, rotation =70)
-    plt.yticks(tick_marks, class_names, fontsize =5)
-    cm = np.moveaxis(np.around(cm.astype('float') / cm.sum(axis=1)[:, np.newaxis], decimals=2),0,1)
+    plt.xticks(tick_marks, class_names, fontsize=5, rotation=70)
+    plt.yticks(tick_marks, class_names, fontsize=5)
+    cm = np.moveaxis(
+        np.around(cm.astype('float') / cm.sum(axis=1)[:, np.newaxis],
+            decimals=2), 0, 1)
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
         plt.text(i, j, cm[i, j], horizontalalignment="center", size=5)
     plt.tight_layout()
@@ -67,19 +58,31 @@ def main(output_dir):
     )
     data_dict = create_data_dict(preferences, global_settings)
     even_model = create_model(
-        nn_hyperparameters, preferences, global_settings, data_dict, "even")
+        preferences, global_settings, data_dict, "even")
     odd_model = create_model(
-        nn_hyperparameters, preferences, global_settings, data_dict, "odd")
+        preferences, global_settings, data_dict, "odd")
     print(odd_model.summary())
-    even_train_info, even_test_info = evaluate_model(even_model, data_dict, global_settings, "even")
-    odd_train_info, odd_test_info = evaluate_model(odd_model, data_dict, global_settings, "odd")
-    hhvt.plotROC([odd_train_info, odd_test_info], [even_train_info, even_test_info], global_settings)
+    even_train_info, even_test_info = evaluate_model(
+        even_model, data_dict, global_settings, "even")
+    odd_train_info, odd_test_info = evaluate_model(
+        odd_model, data_dict, global_settings, "odd")
+    hhvt.plotROC(
+        [odd_train_info, odd_test_info],
+        [even_train_info, even_test_info],
+        global_settings
+    )
     classes = set(data_dict["even_data"]["process"])
     for class_ in classes:
-        multitarget = list(set(data_dict["even_data"].loc[data_dict["even_data"]["process"]==class_, "multitarget"]) )[0]
+        multitarget = list(set(
+            data_dict["even_data"].loc[
+                data_dict["even_data"]["process"] == class_, "multitarget"
+            ]
+        ))[0]
         print(str(class_) + '\t' + str(multitarget))
         hhvt.plot_sampleWise_bdtOutput(
-            odd_model, data_dict["even_data"], preferences, global_settings, multitarget, class_, data_dict)
+            odd_model, data_dict["even_data"], preferences,
+            global_settings, multitarget, class_, data_dict
+        )
 
 def create_data_dict(preferences, global_settings):
     data = dlt.load_data(
@@ -92,16 +95,16 @@ def create_data_dict(preferences, global_settings):
         preferences,
         global_settings
     )
-    sumall = data.loc[data["process"]=="TT"]["totalWeight"].sum() \
-        + data.loc[data["process"]=="W"]["totalWeight"].sum() \
-        + data.loc[data["process"]=="DY"]["totalWeight"].sum() \
-        + data.loc[data["target"]==1]["totalWeight"].sum()
+    sumall = data.loc[data["process"] == "TT"]["totalWeight"].sum() \
+        + data.loc[data["process"] == "W"]["totalWeight"].sum() \
+        + data.loc[data["process"] == "DY"]["totalWeight"].sum() \
+        + data.loc[data["target"] == 1]["totalWeight"].sum()
     print(
         "TT:W:DY \t" \
-        + str(data.loc[data["process"]=="TT"]["totalWeight"].sum()/sumall) \
-        + ":" + str(data.loc[data["process"]=="W"]["totalWeight"].sum()/sumall) \
-        + ":" + str(data.loc[data["process"]=="DY"]["totalWeight"].sum()/sumall) \
-        + "@" + str(data.loc[data["target"]==1]["totalWeight"].sum()/sumall)
+        + str(data.loc[data["process"] == "TT"]["totalWeight"].sum()/sumall) \
+        + ":" + str(data.loc[data["process"] == "W"]["totalWeight"].sum()/sumall) \
+        + ":" + str(data.loc[data["process"] == "DY"]["totalWeight"].sum()/sumall) \
+        + "@" + str(data.loc[data["target"] == 1]["totalWeight"].sum()/sumall)
     )
     data = mt.multiclass_encoding(data)
     even_data = data.loc[(data['event'].values % 2 == 0)]
@@ -120,7 +123,7 @@ def create_data_dict(preferences, global_settings):
             'hl_odd' : hl_odd,
             'hl_even' : hl_even
         }
-    else :
+    else:
         data_dict = {
             'trainvars': preferences['trainvars'],
             'odd_data':  odd_data,
@@ -129,18 +132,20 @@ def create_data_dict(preferences, global_settings):
     return data_dict
 
 
-def create_model(nn_hyperparameters, preferences, global_settings, data_dict, choose_data):
+def create_model(
+        preferences,
+        global_settings,
+        data_dict,
+        choose_data
+):
     lbn = 1 if global_settings['ml_method'] == 'lbn' else 0
     trainvars = preferences['trainvars']
     nr_trainvars = len(trainvars)
     num_class = max((data_dict['odd_data']['multitarget'])) + 1
     number_samples = len(data_dict['odd_data']) if choose_data == "odd" else len(data_dict['even_data'])
     model_structure = nt.create_nn_model(
-        nn_hyperparameters,
         nr_trainvars,
         num_class,
-        number_samples,
-        metrics=['accuracy'],
         lbn=lbn
     )
     if global_settings['ml_method'] == 'lbn':
@@ -167,13 +172,13 @@ def create_model(nn_hyperparameters, preferences, global_settings, data_dict, ch
                 "val_data": data_dict["odd_data"]
             }
         fitted_model = model_structure.fit(
-            [train_data["ll"],train_data["hl"]],
+            [train_data["ll"], train_data["hl"]],
             train_data["train_data"]['multitarget'].values,
             epochs=2,
             batch_size=1024,
             sample_weight=train_data["train_data"]['totalWeight'].values,
             validation_data=(
-                [val_data["ll"],val_data["hl"]],
+                [val_data["ll"], val_data["hl"]],
                 val_data["val_data"]["multitarget"],
                 val_data["val_data"]["totalWeight"].values
             )
