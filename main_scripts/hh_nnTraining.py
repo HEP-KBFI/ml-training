@@ -6,6 +6,8 @@ import itertools
 import tensorflow as tf
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import auc
+import matplotlib
+matlotlib.use('agg')
 from matplotlib import pyplot as plt
 from sklearn.utils.multiclass import type_of_target
 from machineLearning.machineLearning import data_loading_tools as dlt
