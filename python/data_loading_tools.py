@@ -15,6 +15,7 @@ import uproot_methods
 
 TLorentzVectorArray = uproot_methods.classes.TLorentzVector.TLorentzVectorArray
 
+
 def tree_to_lorentz(data, name="Jet"):
     return TLorentzVectorArray.from_ptetaphim(
         np.array(data["%s_pt" % name]).astype(np.float64),
@@ -44,9 +45,12 @@ def get_low_level(data) :
     events = np.stack([b1jets,b2jets,w1jets,w2jets,leptons],axis=1)
     return events
 
+
 def get_high_level(tree, variables) :
     output = np.array([np.array(tree[variable].astype(np.float32)) for variable in variables])
     return np.moveaxis(output, 0, 1)
+
+
 def load_data(
         preferences,
         global_settings,
@@ -222,16 +226,9 @@ def load_data_from_tfile(
         All the loaded data so far.
     '''
     if tree is not None:
-        sel = None
-        if global_settings["channel"] == "bb1l"  and global_settings['mode'] != '':
-            sel =str( data_cutting(data, global_settings))
         try:
-            stop = None
-            if global_settings["mode"] == "resolved_allreconstructed" and "TT" in folder_name :
-                stop = 2000000
-            chunk_arr = tree2array(tree, selection = sel, stop = 10000)
-            chunk_df = pandas.DataFrame(
-                chunk_arr)
+            chunk_arr = tree2array(tree)
+            chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
         except Exception:
             print(
