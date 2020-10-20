@@ -322,3 +322,19 @@ def create_hidden_net_structure(
     number_nodes = int(np.floor(number_nodes/number_hidden_layers))
     hidden_net = [number_nodes] * number_hidden_layers
     return hidden_net
+
+
+def feature_importance_grad(model, x=None, **kwargs):
+    inp = [tf.Variable(v) for v in x]
+    with tf.GradientTape() as tape:
+        pred = model(inp, training=False)
+        ix = np.argsort(pred, axis=-1)[:, -1]
+        decision = tf.gather(pred, ix, batch_dims=1)
+
+    gradients = tape.gradient(decision, inp)  # gradients for decision nodes
+    normed_gradients = [_g * _x for (_g, _x) in zip(gradients, x)]  # normed to input values
+
+    mean_gradients = np.concatenate(
+        [np.abs(g.numpy()).mean(axis=0).flatten() for g in normed_gradients]
+    )
+    return mean_gradients / mean_gradients.max()

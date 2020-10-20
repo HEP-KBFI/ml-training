@@ -113,7 +113,7 @@ def load_data_from_one_era(
         All the loaded data so far.
     '''
     print_info(global_settings, preferences)
-    my_cols_list = preferences['trainvars_info'] + ['process', 'key', 'target', 'totalWeight'] if global_settings["channel"] =="bb1l" else preferences['trainvars'] + ['process', 'key', 'target', 'totalWeight']
+    my_cols_list = preferences['trainvars'] + ['process', 'key', 'target', 'totalWeight']
     if 'HH_nonres' in global_settings['bdtType']:
         my_cols_list += ['nodeX']
     data = pandas.DataFrame(columns=my_cols_list)
@@ -585,22 +585,22 @@ def data_cutting(data, global_settings):
         addition = 'nonRes'
     else:
         addition = 'res/%s' %(global_settings['spinCase'])
-    cut_file = os.path.join(
-        package_dir, 'info', global_settings['process'],
-        global_settings['channel'], addition, 'cuts.json'
-    )
+    if global_settings['dataCuts'] == 1:
+        cut_file = os.path.join(
+            package_dir, 'info', global_settings['process'],
+            global_settings['channel'], addition, 'cuts.json'
+        )
+    else:
+        cut_file = os.path.join(
+            package_dir, 'info', global_settings['process'],
+            global_settings['channel'], addition, global_settings['dataCuts']
+        )
     if os.path.exists(cut_file):
         cut_dict = ut.read_json_cfg(cut_file)
         if cut_dict == {}:
             print('No cuts given in the cut file %s' %(cut_file))
         else:
             cut_keys = list(cut_dict.keys())
-            if global_settings['channel'] in ['bb1l', 'bb2ll'] :
-                for key in cut_keys :
-                    if key == global_settings['mode'] :
-                        sel = cut_dict[key]["sel"]
-                        print "sel =========== ", sel
-                        return sel
             for key in cut_keys:
                 try:
                     min_value = cut_dict[key]['min']
