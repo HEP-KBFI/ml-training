@@ -2,21 +2,32 @@
 Hyperparameter optimization with Particle Swarm Optimization for HH/ttH analysis
 Call with 'python'
 
+Usage:
+    hyperparameterOptimization.py [--continue=BOOL --opt_dir=STR]
+
+Options:
+    -c --continue=BOOL      Whether to continue from a previous optimization [default: 0]
+    -o --opt_dir=STR        Directory of the previous iteration steps
+
 Usage: hyperparameterOptimization.py
 '''
+import os
+import numpy as np
+import docopt
 from machineLearning.machineLearning import slurm_tools as st
 from machineLearning.machineLearning import pso_tools as pt
 from machineLearning.machineLearning import universal_tools as ut
-import os
-import numpy as np
 np.random.seed(1)
 
 
-def main():
-    settings_dir = os.path.join(
-        os.path.expandvars('$CMSSW_BASE'),
-        'src/machineLearning/machineLearning/settings'
-    )
+def main(to_continue, opt_dir):
+    if not to_continue:
+        settings_dir = os.path.join(
+            os.path.expandvars('$CMSSW_BASE'),
+            'src/machineLearning/machineLearning/settings'
+        )
+    else:
+        settings_dir = os.path.join(opt_dir, 'run_settings')
     global_settings = ut.read_settings(settings_dir, 'global')
     output_dir = os.path.expandvars(global_settings['output_dir'])
     if not os.path.isdir(output_dir):
@@ -42,4 +53,10 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        arguments = docopt.docopt(__doc__)
+        to_continue = bool(int(arguments['--continue']))
+        opt_dir = arguments['--opt_dir']
+        main(to_continue, opt_dir)
+    except docopt.DocoptExit as e:
+        print(e)
