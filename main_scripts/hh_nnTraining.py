@@ -7,7 +7,7 @@ import tensorflow as tf
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import auc
 import matplotlib
-matlotlib.use('agg')
+matplotlib.use('agg')
 from matplotlib import pyplot as plt
 from sklearn.utils.multiclass import type_of_target
 from machineLearning.machineLearning import data_loading_tools as dlt
@@ -68,23 +68,23 @@ def main(output_dir):
         even_model, data_dict, global_settings, "even")
     odd_train_info, odd_test_info = evaluate_model(
         odd_model, data_dict, global_settings, "odd")
-    hhvt.plotROC(
-        [odd_train_info, odd_test_info],
-        [even_train_info, even_test_info],
-        global_settings
-    )
-    classes = set(data_dict["even_data"]["process"])
-    for class_ in classes:
-        multitarget = list(set(
-            data_dict["even_data"].loc[
-                data_dict["even_data"]["process"] == class_, "multitarget"
-            ]
-        ))[0]
-        print(str(class_) + '\t' + str(multitarget))
-        hhvt.plot_sampleWise_bdtOutput(
-            odd_model, data_dict["even_data"], preferences,
-            global_settings, multitarget, class_, data_dict
-        )
+    # hhvt.plotROC(
+    #     [odd_train_info, odd_test_info],
+    #     [even_train_info, even_test_info],
+    #     global_settings
+    # )
+    # classes = set(data_dict["even_data"]["process"])
+    # for class_ in classes:
+    #     multitarget = list(set(
+    #         data_dict["even_data"].loc[
+    #             data_dict["even_data"]["process"] == class_, "multitarget"
+    #         ]
+    #     ))[0]
+    #     print(str(class_) + '\t' + str(multitarget))
+    #     hhvt.plot_sampleWise_bdtOutput(
+    #         odd_model, data_dict["even_data"], preferences,
+    #         global_settings, multitarget, class_, data_dict
+    #     )
 
 def create_data_dict(preferences, global_settings):
     data = dlt.load_data(

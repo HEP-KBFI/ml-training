@@ -13,9 +13,6 @@ def plot_sampleWise_bdtOutput(
         data_even,
         preferences,
         global_settings,
-        target = 1,
-        class_ = "",
-        data_dict = {},
         weight='totalWeight',
 ):
     output_dir = global_settings['output_dir']
@@ -25,7 +22,7 @@ def plot_sampleWise_bdtOutput(
     else:
         sig_name = 'signal'
     data_even.loc[
-        data_even['process'].str.contains('signal'), ['process']] = sig_name#'signal'
+        data_even['process'].str.contains('signal'), ['process']] = 'signal'
     bkg_predictions = []
     bkg_labels = []
     bkg_weights = []
@@ -34,12 +31,9 @@ def plot_sampleWise_bdtOutput(
         if process == sig_name:
             continue
         process_data = data_even.loc[data_even['process'] == process]
-        idx = np.where(data_even['process'] == process)[0]
         process_prediction = np.array(model_odd.predict_proba(
             process_data[preferences['trainvars']]
-        )[:,target]) if not global_settings["lbn"] else np.array(model_odd.predict(
-            [data_dict["ll_even"][idx], data_dict["hl_even"][idx]], batch_size=1024
-        )[:,target])
+        )[:,1])
         weights = np.array(process_data[weight])
         bkg_weights.append(weights)
         bkg_predictions.append(process_prediction)
@@ -49,22 +43,18 @@ def plot_sampleWise_bdtOutput(
         weights=bkg_weights, alpha=1, stacked=True, normed=True
     )
     process_data = data_even.loc[data_even['process'] == sig_name]
-    idx = np.where(data_even['process'] == sig_name)[0]
     process_prediction = np.array(model_odd.predict_proba(
         process_data[preferences['trainvars']]
-    )[:,target]) if not global_settings["lbn"] else np.array(model_odd.predict(
-            [data_dict["ll_even"][idx], data_dict["hl_even"][idx]], batch_size=1024
-        )[:,target])
+    )[:,1])
     weights = np.array(process_data['totalWeight'])
     plt.hist(
         process_prediction, histtype='step', label=sig_name,
         lw=2, ec='k', alpha=1, normed=True, bins=bins, weights=weights
     )
     plt.legend()
-    output_path = os.path.join(output_dir, 'sampleWise_bdtOutput_node_%s_%s.png' %(class_, global_settings["mode"])) if global_settings["channel"] == "bb1l" else os.path.join(output_dir, 'sampleWise_bdtOutput_node.png')
+    output_path = os.path.join(output_dir, 'sampleWise_bdtOutput.png')
     plt.tight_layout()
     plt.savefig(output_path, bbox_inches='tight')
-    plt.yscale('log')
     plt.close('all')
 
 
