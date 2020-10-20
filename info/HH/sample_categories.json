@@ -1,4 +1,50 @@
 {
+    "VH": [
+	"ZH_HToBB_ZToLL",
+	"ZH_HToBB_ZToLL_ext1",
+	"ZHToTauTau",
+	"VHToNonbb_M125"
+    ],
+    "ggH": [
+	"GluGluHToZZTo4L",
+	"GluGluHToZZTo4L_ext1",
+	"GluGluHToZZTo4L_ext3",
+	"GluGluHToZZTo4L_ext4",
+	"GluGluHToBB_M125",
+	"GluGluHToBB_M125_ext1",
+	"GluGluHToGG_M125",
+	"GluGluHToGG_M125_ext2",
+	"GluGluHToMuMu_M125",
+	"GluGluHToMuMu_M125_ext1",
+	"GluGluHToTauTau",
+	"GluGluHToTauTau_ext1",
+	"GluGluHToWWTo2L2Nu_M125",
+	"GluGluHToWWToLNuQQ_M125_PSweights",
+	"GluGluHToWWToLNuQQ_M125_ext1",
+	"GluGluHToZZTo2L2Q_M125"
+    ],
+    "qqH": [
+	"VBF_HToZZTo4L",
+	"VBF_HToZZTo4L_ext1",
+	"VBF_HToZZTo4L_ext2",
+	"VBFHToBB_M125",
+	"VBFHToBB_M125_ext1",
+	"VBFHToGG_M125",
+	"VBFHToGG_M125_ext1",
+	"VBFHToGG_M125_ext2",
+	"VBFHToGG_M125_PSWeights_ext1",
+	"VBFHToMuMu_M125",
+	"VBFHToTauTau",
+	"VBFHToTauTau_ext1",
+	"VBFHToWWTo2L2Nu_M125",
+	"VBFHToWWToLNuQQ_M125",
+	"VBFHToWWToLNuQQ_M125_PSweights",
+	"VBFHToWWToLNuQQ_M125_ext1"
+    ],
+    "ttH": [
+	"ttHJetToNonbb_M125_amcatnlo",
+	"ttHJetToNonbb_M125_amcatnlo_ext1"
+    ],
     "ZZ": [
         "ZZTo4L",
         "ZZTo4L_ext1",
@@ -24,12 +70,13 @@
         "WZTo3LNu_powheg",
         "WZTo3LNu_mllmin01"
     ],
-    "TT": [
+    "TTTo": [
         "TTTo2L2Nu",
         "TTTo2L2Nu_PSweights",
         "TTToSemiLeptonic",
         "TTToSemiLeptonic_PSweights",
-        "TTToHadronic","TTToHadronic_PSweights"
+        "TTToHadronic",
+	"TTToHadronic_PSweights"
     ],
     "WW": [
         "WWTo2L2Nu",
@@ -191,34 +238,7 @@
         "DYJetsToLL_M50_HT1200to2500",
         "DYJetsToLL_M50_HT2500toInf",
         "DYBBJetsToLL_M-50",
-        "DYBBJetsToLL_M-50_ext1",
-        "DYToLL",
-        "DYJetsToLL_M-50"
-    ],
-    "qqH": [
-        "VBFHToTauTau",
-        "VBF_HToZZTo4L_ext1",
-        "VBF_HToZZTo4L_ext2",
-        "VBFHToWWToLNuQQ_M125_PSweights",
-        "VBFHToWWTo2L2Nu_M125",
-        "VBFHToMuMu_M125",
-        "VBFHToBB_M125",
-        "VBFHToGG_M125",
-        "VBFHToGG_M125_PSWeights_ext1"
-    ],
-    "ggH": [
-        "GluGluHToTauTau",
-        "GluGluHToTauTau_ext1",
-        "GluGluHToZZTo4L_ext1",
-        "GluGluHToZZTo4L_ext3",
-        "GluGluHToZZTo4L_ext4",
-        "GluGluHToZZTo2L2Q_M125",
-        "GluGluHToWWToLNuQQ_M125_PSweights",
-        "GluGluHToWWTo2L2Nu_M125",
-        "GluGluHToMuMu_M125",
-        "GluGluHToMuMu_M125_ext1",
-        "GluGluHToBB_M125",
-        "GluGluHToGG_M125"
+        "DYBBJetsToLL_M-50_ext1"
     ],
     "VH": [
         "VHToNonbb_M125",
@@ -292,7 +312,7 @@
         "WJetsToLNu_HT1200To2500",
         "WJetsToLNu_HT2500ToInf"
     ],
-    "W": [
+    "WJets": [
         "WJetsToLNu_madgraphMLM",
         "WJetsToLNu_madgraphMLM_ext1",
         "W1JetsToLNu",
