@@ -19,7 +19,7 @@ from machineLearning.machineLearning import hh_visualization_tools as hhvt
 
 
 def plot_confusion_matrix(cm, class_names):
-    plt.figure(figsize=(4, 4))
+    figure = plt.figure(figsize=(4, 4))
     plt.imshow(cm, interpolation='nearest', cmap="summer")
     plt.title("Confusion matrix")
     plt.colorbar()
