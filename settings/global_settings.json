@@ -1,6 +1,6 @@
 {
     "output_dir": "bdt_jpa_all",
-    "ml_method": "xgb",
+    "ml_method": "lbn",
     "process": "HH",
     "optimization_algo": "pso",
     "bdtType": "evtLevelSUM_HH_bb1l_nonres",
@@ -13,6 +13,5 @@
     "nthread": 8,
     "kappa": 3.5,
     "spinCase": "spin0",
-    "dataCuts": 0,
-    "lbn" : 0
+    "dataCuts": 0
 }
