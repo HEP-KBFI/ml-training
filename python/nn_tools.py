@@ -1,6 +1,7 @@
 '''Tools for creating a neural network model and evaluating it
 '''
 from sklearn.model_selection import train_test_split
+from sklearn.utils.multiclass import type_of_target
 from keras.layers import Dense
 from keras.layers import Dropout
 from keras.layers import BatchNormalization
@@ -8,18 +9,19 @@ from keras.activations import elu
 from keras.layers import ELU
 from keras.optimizers import Nadam
 import numpy as np
-from keras import backend as K
-import tensorflow as tf
 import keras
+from keras import backend as K
 from keras.wrappers.scikit_learn import KerasClassifier
+import tensorflow as tf
 import json
-from machineLearning.machineLearning import universal_tools as ut
 import eli5
 from eli5.formatters.as_dataframe import format_as_dataframe
 from eli5.sklearn import PermutationImportance
+from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning.lbn import LBN, LBNLayer
-from sklearn.utils.multiclass import type_of_target
 from machineLearning.machineLearning import multiclass_tools as mt
+
+
 def model_evaluation_main(nn_hyperparameters, data_dict, global_settings):
     ''' Collected functions for CGB model evaluation
 
@@ -82,42 +84,7 @@ def create_nn_model(
     model : keras.engine.sequential.Sequential
         Sequential keras neural network model created.
     '''
-    '''model = keras.models.Sequential()
-    model.add(
-        Dense(
-            2*nr_trainvars,
-            input_dim=nr_trainvars,
-            kernel_initializer='he_uniform',
-            activation = "relu"
-        )
-    )
-    model.add(BatchNormalization())
-    #model.add(ELU())
-    model.add(Dropout(nn_hyperparameters['visible_layer_dropout_rate']))
-    hidden_layers = create_hidden_net_structure(
-        nn_hyperparameters['nr_hidden_layers'],
-        num_class,
-        nr_trainvars,
-        number_samples,
-        nn_hyperparameters['alpha']
-    )
-    for hidden_layer in hidden_layers:
-        model.add(Dense(hidden_layer, kernel_initializer='he_uniform', activation="relu"))
-        model.add(BatchNormalization())
-        #model.add(ELU())
-        model.add(Dropout(nn_hyperparameters['hidden_layer_dropout_rate']))
-    model.add(Dense(num_class, activation='softmax'))
-    model.compile(
-        loss='sparse_categorical_crossentropy',
-        #loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
-        #optimizer=tf.keras.optimizers.Adam(lr=0.0001),
-        optimizer=Nadam(
-            lr=nn_hyperparameters['learning_rate'],
-            schedule_decay=nn_hyperparameters['schedule_decay']
-        ),
-        metrics=metrics,
-    )'''
-    if lbn :
+    if lbn:
         ll_inputs = tf.keras.Input(shape=(5, 4), name = "LL")
         hl_inputs = tf.keras.Input(shape=(17,), name = "HL")
         lbn_layer = LBNLayer(ll_inputs.shape, 10, boost_mode=LBN.PAIRS, features=["E", "pt", "eta", "phi", "m", "pair_cos"])

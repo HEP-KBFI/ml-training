@@ -75,7 +75,7 @@ def main(output_dir):
     odd_train_info, odd_test_info = evaluate_model(odd_model, data_dict, global_settings, "odd")
     hhvt.plotROC([odd_train_info, odd_test_info], [even_train_info, even_test_info], global_settings)
     classes = set(data_dict["even_data"]["process"])
-    for class_ in classes :
+    for class_ in classes:
         multitarget = list(set(data_dict["even_data"].loc[data_dict["even_data"]["process"]==class_, "multitarget"]) )[0]
         print(str(class_) + '\t' + str(multitarget))
         hhvt.plot_sampleWise_bdtOutput(
@@ -98,10 +98,10 @@ def create_data_dict(preferences, global_settings):
         + data.loc[data["target"]==1]["totalWeight"].sum()
     print(
         "TT:W:DY \t" \
-        + data.loc[data["process"]=="TT"]["totalWeight"].sum()/sumall \
-        + ":" + data.loc[data["process"]=="W"]["totalWeight"].sum()/sumall \
-        + ":" + data.loc[data["process"]=="DY"]["totalWeight"].sum()/sumall \
-        + "@" + data.loc[data["target"]==1]["totalWeight"].sum()/sumall
+        + str(data.loc[data["process"]=="TT"]["totalWeight"].sum()/sumall) \
+        + ":" + str(data.loc[data["process"]=="W"]["totalWeight"].sum()/sumall) \
+        + ":" + str(data.loc[data["process"]=="DY"]["totalWeight"].sum()/sumall) \
+        + "@" + str(data.loc[data["target"]==1]["totalWeight"].sum()/sumall)
     )
     data = mt.multiclass_encoding(data)
     even_data = data.loc[(data['event'].values % 2 == 0)]
@@ -180,7 +180,7 @@ def create_model(nn_hyperparameters, preferences, global_settings, data_dict, ch
         )
     else:
         train_data = data_dict['odd_data'] if choose_data == "odd" else data_dict['even_data']
-        val_data =   data_dict['even_data']  if choose_data == "even" else data_dict['odd_data']
+        val_data = data_dict['even_data']  if choose_data == "even" else data_dict['odd_data']
         fitted_model = model_structure.fit(
             train_data[trainvars].values,
             train_data['multitarget'].astype(np.int),
