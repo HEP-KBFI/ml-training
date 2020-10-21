@@ -68,6 +68,13 @@ def main(output_dir):
         even_model, data_dict, global_settings, "even")
     odd_train_info, odd_test_info = evaluate_model(
         odd_model, data_dict, global_settings, "odd")
+    if global_settings['ml_method'] != 'lbn':
+        data = data_dict['odd_data']
+        score_dict = nt.custom_permutation_importance(
+            even_model, data, data['evtWeight'],
+            preferences['trainvars'], data['multitarget']
+        )
+        nt.plot_feature_importances(score_dict, global_settings['output_dir'])
     # hhvt.plotROC(
     #     [odd_train_info, odd_test_info],
     #     [even_train_info, even_test_info],
@@ -206,6 +213,7 @@ def create_model(
     plt.show()
     plt.yscale('log')
     plt.savefig("loss_sampleweight_%s.png" %choose_data)
+    plt.close('all')
 
     #feature_importance = nt.get_feature_importances(model_structure, data_dict, preferences["trainvars"], choose_data)
     #print feature_importance
