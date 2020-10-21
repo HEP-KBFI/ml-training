@@ -69,10 +69,11 @@ def main(output_dir):
     odd_train_info, odd_test_info = evaluate_model(
         odd_model, data_dict, global_settings, "odd")
     if global_settings['ml_method'] != 'lbn':
-        data = data_dict['odd_data']
+        trainvars = preferences['trainvars']
+        data = data_dict['odd_data'][trainvars]
         score_dict = nt.custom_permutation_importance(
             even_model, data, data['evtWeight'],
-            preferences['trainvars'], data['multitarget']
+            trainvars, data['multitarget']
         )
         nt.plot_feature_importances(score_dict, global_settings['output_dir'])
     # hhvt.plotROC(
