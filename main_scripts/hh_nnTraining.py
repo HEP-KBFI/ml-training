@@ -70,9 +70,9 @@ def main(output_dir):
         odd_model, data_dict, global_settings, "odd")
     if global_settings['ml_method'] != 'lbn':
         trainvars = preferences['trainvars']
-        data = data_dict['odd_data'][trainvars]
+        data = data_dict['odd_data']
         score_dict = nt.custom_permutation_importance(
-            even_model, data, data['evtWeight'],
+            even_model, data[trainvars], data['evtWeight'],
             trainvars, data['multitarget']
         )
         nt.plot_feature_importances(score_dict, global_settings['output_dir'])
