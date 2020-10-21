@@ -48,7 +48,10 @@ def get_low_level(data) :
 
 def get_high_level(tree, variables) :
     output = np.array([np.array(tree[variable].astype(np.float32)) for variable in variables])
-    return np.moveaxis(output, 0, 1)
+    output = np.moveaxis(output, 0, 1)
+    output_mean, output_std = np.mean(output, axis=0), np.std(output, axis=0)
+    output = (output - output_mean) / output_std
+    return output
 
 
 def load_data(
