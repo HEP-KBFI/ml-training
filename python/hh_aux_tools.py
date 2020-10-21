@@ -63,21 +63,34 @@ def normalize_hh_dataframe(
             sample_factor = sample_normalizations[sample]/sample_weights.sum()
             data.loc[data['process'] == sample, [weight]] *= sample_factor
         if 'nonres' in bdt_type:
-            for node in range(len(preferences['nonResScenarios'])):
-                condition_node = data['nodeXname'].astype(str) == str(
-                    preferences['nonResScenarios'][node])
-                node_sig_weight = data.loc[
-                    condition_sig & condition_node, [weight]]
-                sig_node_factor = 100000./node_sig_weight.sum()
-                data.loc[
-                    condition_sig & condition_node,
-                    [weight]] *= sig_node_factor
-                node_bkg_weight = data.loc[
-                    condition_bkg & condition_node, [weight]]
-                bkg_node_factor = 100000./node_bkg_weight.sum()
-                data.loc[
-                    condition_bkg & condition_node,
-                    [weight]] *= bkg_node_factor
+            if global_settings["channel"] == "bb1l" :
+                for node in range(len(preferences['nonResScenarios'])):
+                    for process in set(data["process"]) :
+                        condition_sig = data["process"].astype(str) == process
+                        condition_node = data['nodeXname'].astype(str) == str(
+                            preferences['nonResScenarios'][node])
+                        node_sig_weight = data.loc[
+                            condition_sig & condition_node, [weight]]
+                        sig_node_factor = 100000./node_sig_weight.sum()
+                        data.loc[
+                            condition_sig & condition_node,
+                            [weight]] *= sig_node_factor
+            else :
+                for node in range(len(preferences['nonResScenarios'])):
+                    condition_node = data['nodeXname'].astype(str) == str(
+                        preferences['nonResScenarios'][node])
+                    node_sig_weight = data.loc[
+                        condition_sig & condition_node, [weight]]
+                    sig_node_factor = 100000./node_sig_weight.sum()
+                    data.loc[
+                        condition_sig & condition_node,
+                        [weight]] *= sig_node_factor
+                    node_bkg_weight = data.loc[
+                        condition_bkg & condition_node, [weight]]
+                    bkg_node_factor = 100000./node_bkg_weight.sum()
+                    data.loc[
+                        condition_bkg & condition_node,
+                        [weight]] *= bkg_node_factor
         else:
             for mass in range(len(preferences['masses'])):
                 condition_mass = data['gen_mHH'].astype(int) == int(
@@ -1518,7 +1531,11 @@ def get_hh_parameters(
             parameters['trainvars'].append(str(info['key']))
     all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
     all_trainvar_info = dlt.read_trainvar_info(all_trainvars_path)
-    parameters['trainvar_info'] = all_trainvar_info
+    parameters['trainvars_info'] = []
+    with open(all_trainvars_path, 'rt') as infile:
+        for line in infile:
+            info = json.loads(line)
+            parameters['trainvars_info'].append(str(info['key']))
     parameters.update(info_dict)
     return parameters
 

@@ -47,4 +47,14 @@ When running the analysis, be sure to use the correct channel information in the
 
 
 
+## Lorentz Boost Network
 
+To run this, several other conditions need to be fulfilled:
+
+CMSSW_11_2_0_pre1
+
+````console
+pip install uproot_methods --user
+pip install eli5 --user
+pip install --upgrade pluggy --user
+````
