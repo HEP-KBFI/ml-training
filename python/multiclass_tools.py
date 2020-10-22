@@ -19,7 +19,7 @@ def roc_curve(labels, pred_vectors, weights):
     true_positive_rate : list
         List of true positives for given thresholds
     '''
-    thresholds = np.arange(0, 1, 0.01)
+    thresholds = np.arange(0, 1, 0.02)
     number_bg = len(pred_vectors[0]) - 1
     true_positive_rate = []
     false_positive_rate = []
