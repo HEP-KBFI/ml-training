@@ -34,7 +34,9 @@ def plot_confusion_matrix(cm, class_names):
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
-    plt.savefig("confusion_matrix.pdf")
+    outfile = os.path.join(output_dir, 'confusion_matrix.png')
+    plt.savefig(outfile, bbox_inches='tight')
+    plt.close('all')
 
 
 def main(output_dir):
@@ -75,7 +77,8 @@ def main(output_dir):
             even_model, data[trainvars], data['evtWeight'],
             trainvars, data['multitarget']
         )
-        nt.plot_feature_importances(score_dict, global_settings['output_dir'])
+        hhvt.plot_feature_importances_from_dict(
+            score_dict, global_settings['output_dir'])
     # hhvt.plotROC(
     #     [odd_train_info, odd_test_info],
     #     [even_train_info, even_test_info],
@@ -258,7 +261,8 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
         train_data["multitarget"].astype(int),
         np.argmax(train_predicted_probabilities, axis=1)
     )
-    plot_confusion_matrix(cm, ["TT","W", "HH", "DY"])
+    plot_confusion_matrix(
+        cm, ["TT","W", "HH", "DY"], global_settings['output_dir'])
     test_fpr, test_tpr= mt.roc_curve(
         data_dict['even_data']['multitarget'].astype(int),
         test_predicted_probabilities,

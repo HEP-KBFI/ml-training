@@ -345,8 +345,6 @@ def custom_permutation_importance(
             print(score)
             t_score += score
         score_dict[trainvar] = abs(original_score - (t_score/permutations))
-    for key in score_dict.keys():
-        score_dict[key] /= original_score
     return score_dict
 
 
@@ -359,10 +357,29 @@ def calculate_acc_with_weights(prediction, labels, weights):
     return score
 
 
-def plot_feature_importances(score_dict, output_dir):
-    score_dict = OrderedDict(sorted(score_dict.items(), key=lambda x: -x[1]))
-    plt.bar(range(len(score_dict)), score_dict.values(), align='center')
-    plt.xticks(range(len(score_dict)), list(score_dict.keys()))
-    file_name = os.path.join(output_dir, 'feature_importances.png')
-    plt.xticks(rotation=90)
-    plt.savefig(file_name, bbox_inches='tight')
+# def calculate_acc_with_weights(prediction, labels, weights):
+#     pred_labels = [np.argmax(event) for event in prediction]
+#     score = 0
+#     for pred, true, weight in zip(pred_labels, labels, weights):
+#         if pred == true:
+#             score += weight
+#     return score
+
+
+def calculate_acc_with_weights(prediction, labels, weights):
+    num_classes = len(prediction[0])
+    pred_labels = [np.argmax(event) for event in prediction]
+    true_positives = 0
+    true_negatives = 0
+    total_positive = sum(weights)
+    total_negative = sum(weights)
+    for pred, true, weight in zip(pred_labels, labels, weights):
+        if pred == true:
+            true_positives += weight
+            true_negatives += num_classes * weight
+        else:
+            true_negatives += (num_classes - 1) * weight
+    true_negatives /= num_classes
+    accuracy = (true_positives + true_negatives) / (total_positive + total_negative)
+    return accuracy
+
