@@ -18,7 +18,7 @@ from machineLearning.machineLearning import multiclass_tools as mt
 from machineLearning.machineLearning import hh_visualization_tools as hhvt
 
 
-def plot_confusion_matrix(cm, class_names):
+def plot_confusion_matrix(cm, class_names, output_dir):
     figure = plt.figure(figsize=(4, 4))
     plt.imshow(cm, interpolation='nearest', cmap="summer")
     plt.title("Confusion matrix")
