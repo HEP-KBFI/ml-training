@@ -79,11 +79,11 @@ def main(output_dir):
         )
         hhvt.plot_feature_importances_from_dict(
             score_dict, global_settings['output_dir'])
-    # hhvt.plotROC(
-    #     [odd_train_info, odd_test_info],
-    #     [even_train_info, even_test_info],
-    #     global_settings
-    # )
+    hhvt.plotROC(
+        [odd_train_info, odd_test_info],
+        [even_train_info, even_test_info],
+        global_settings
+    )
     # classes = set(data_dict["even_data"]["process"])
     # for class_ in classes:
     #     multitarget = list(set(
@@ -102,6 +102,10 @@ def create_data_dict(preferences, global_settings):
         preferences,
         global_settings,
         remove_neg_weights=True
+    )
+    hhvt.plot_single_mode_correlation(
+        data, preferences['trainvars'],
+        global_settings['output_dir'], 'trainvar'
     )
     hhat.normalize_hh_dataframe(
         data,
