@@ -23,7 +23,6 @@ def roc_curve(labels, pred_vectors, weights):
     number_bg = len(pred_vectors[0]) - 1
     true_positive_rate = []
     false_positive_rate = []
-    weights /= sum(weights)
     for threshold in thresholds:
         signal = []
         for vector, weight in zip(pred_vectors, weights):

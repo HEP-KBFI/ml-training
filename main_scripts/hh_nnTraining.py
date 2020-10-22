@@ -103,14 +103,18 @@ def create_data_dict(preferences, global_settings):
         global_settings,
         remove_neg_weights=True
     )
-    hhvt.plot_single_mode_correlation(
-        data, preferences['trainvars'],
-        global_settings['output_dir'], 'trainvar'
-    )
     hhat.normalize_hh_dataframe(
         data,
         preferences,
         global_settings
+    )
+    hhvt.plot_single_mode_correlation(
+        data, preferences['trainvars'],
+        global_settings['output_dir'], 'trainvar'
+    )
+    hhvt.plot_trainvar_multi_distributions(
+        data, preferences['trainvars'],
+        global_settings['output_dir']
     )
     sumall = data.loc[data["process"] == "TT"]["totalWeight"].sum() \
         + data.loc[data["process"] == "W"]["totalWeight"].sum() \
@@ -232,7 +236,6 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
     trainvars = data_dict['trainvars']
     train_data = data_dict["odd_data"] if choose_data == "odd" else data_dict["even_data"]
     test_data = data_dict["even_data"] if choose_data == "odd" else data_dict["odd_data"]
-
     if global_settings['ml_method'] == 'lbn':
         if choose_data == 'odd':
             train_var = {
@@ -270,12 +273,12 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
     test_fpr, test_tpr= mt.roc_curve(
         data_dict['even_data']['multitarget'].astype(int),
         test_predicted_probabilities,
-        data_dict['even_data']['totalWeight'].astype(float)
+        data_dict['even_data']['evtWeight'].astype(float)
     )
     train_fpr, train_tpr = mt.roc_curve(
         data_dict['odd_data']['multitarget'].astype(int),
         train_predicted_probabilities,
-        data_dict['odd_data']['totalWeight'].astype(float)
+        data_dict['odd_data']['evtWeight'].astype(float)
     )
     train_auc = auc(train_fpr, train_tpr, reorder=True)
     test_auc = auc(test_fpr, test_tpr, reorder=True)
