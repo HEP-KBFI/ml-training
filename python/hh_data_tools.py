@@ -1,7 +1,7 @@
-from machineLearning.machineLearning import universal_tools as ut
-import numpy as np
 import os
 import glob
+import numpy as np
+from machineLearning.machineLearning import universal_tools as ut
 
 
 def set_signal_sample_info(bdt_type, folder_name, masses):
@@ -18,7 +18,7 @@ def set_signal_sample_info(bdt_type, folder_name, masses):
             if 'node' in sample_name:
                 sample_name = sample_name.replace('_node', '')
                 node_type = sample_name.split('_')[3]
-                sample_name = sample_name.replace(str(node_type) + '_' , '')
+                sample_name = sample_name.replace(str(node_type) + '_', '')
     return sample_name, target
 
 
@@ -26,8 +26,8 @@ def set_background_sample_info(folder_name, samplename_info):
     sample_name, target = set_background_sample_info_d(
         folder_name, samplename_info)
     if 'ttH' in folder_name:
-            target = 0
-            sample_name = 'TTH'
+        target = 0
+        sample_name = 'TTH'
     return sample_name, target
 
 
@@ -43,7 +43,7 @@ def set_sample_info(folder_name, samplename_info, masses, bdt_type):
     return sample_name, target
 
 
-def get_ntuple_paths(input_path, folder_name, bdt_type):
+def get_ntuple_paths(input_path, folder_name, bdt_type, file_type='*'):
     paths = []
     catfile = os.path.join(
         os.path.expandvars('$CMSSW_BASE'),
@@ -55,32 +55,33 @@ def get_ntuple_paths(input_path, folder_name, bdt_type):
     if (folder_name in sample_categories.keys()):
         for fname in sample_categories[folder_name]:
             wild_card_path = os.path.join(
-                input_path, fname + '*', 'central', '*.root')
+                input_path, fname + '*', 'central', file_type + '.root')
             addpaths = glob.glob(wild_card_path)
             if len(addpaths) == 0:
                 wild_card_path = os.path.join(
-                    input_path, fname + '*', '*.root')
+                    input_path, fname + '*', file_type + '.root')
                 addpaths = glob.glob(wild_card_path)
             paths.extend(addpaths)
         paths = list(dict.fromkeys(paths))
     if len(paths) == 0:
         if 'signal' in folder_name:
             wild_card_path = os.path.join(
-                input_path, folder_name, 'central', '*.root')
+                input_path, folder_name, 'central', file_type + '.root')
             paths = glob.glob(wild_card_path)
             if len(paths) == 0:
                 wild_card_path = os.path.join(
-                    input_path, folder_name, '*.root')
+                    input_path, folder_name, file_type + '.root')
                 paths = glob.glob(wild_card_path)
         else:
             wild_card_path = os.path.join(
-                input_path, folder_name + '*', 'central', '*.root')
+                input_path, folder_name + '*', 'central', file_type + '.root')
             paths = glob.glob(wild_card_path)
             if len(paths) == 0:
                 wild_card_path = os.path.join(
-                    input_path, folder_name + '*', '*.root')
+                    input_path, folder_name + '*', file_type + '.root')
                 paths = glob.glob(wild_card_path)
-    paths = [path for path in paths if 'hadd' not in path]
+    #paths = [path for path in paths if 'hadd' not in path]
+    paths = [path for path in paths]
     return paths
 
 

@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import xgboost as xgb
+from collections import OrderedDict
 
 
 def plot_sampleWise_bdtOutput(
@@ -241,3 +242,12 @@ def plot_nodeWise_roc(global_settings, roc_infos, mode):
     plt.tight_layout()
     plt.savefig(plot_out, bbox_inches='tight')
     plt.close('all')
+
+
+def plot_feature_importances_from_dict(score_dict, output_dir):
+    score_dict = OrderedDict(sorted(score_dict.items(), key=lambda x: -x[1]))
+    plt.bar(range(len(score_dict)), score_dict.values(), align='center')
+    plt.xticks(range(len(score_dict)), list(score_dict.keys()))
+    file_name = os.path.join(output_dir, 'feature_importances.png')
+    plt.xticks(rotation=90)
+    plt.savefig(file_name, bbox_inches='tight')

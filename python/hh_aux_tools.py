@@ -63,21 +63,34 @@ def normalize_hh_dataframe(
             sample_factor = sample_normalizations[sample]/sample_weights.sum()
             data.loc[data['process'] == sample, [weight]] *= sample_factor
         if 'nonres' in bdt_type:
-            for node in range(len(preferences['nonResScenarios'])):
-                condition_node = data['nodeXname'].astype(str) == str(
-                    preferences['nonResScenarios'][node])
-                node_sig_weight = data.loc[
-                    condition_sig & condition_node, [weight]]
-                sig_node_factor = 100000./node_sig_weight.sum()
-                data.loc[
-                    condition_sig & condition_node,
-                    [weight]] *= sig_node_factor
-                node_bkg_weight = data.loc[
-                    condition_bkg & condition_node, [weight]]
-                bkg_node_factor = 100000./node_bkg_weight.sum()
-                data.loc[
-                    condition_bkg & condition_node,
-                    [weight]] *= bkg_node_factor
+            if global_settings["channel"] == "bb1l" :
+                for node in range(len(preferences['nonResScenarios'])):
+                    for process in set(data["process"]) :
+                        condition_sig = data["process"].astype(str) == process
+                        condition_node = data['nodeXname'].astype(str) == str(
+                            preferences['nonResScenarios'][node])
+                        node_sig_weight = data.loc[
+                            condition_sig & condition_node, [weight]]
+                        sig_node_factor = 100000./node_sig_weight.sum()
+                        data.loc[
+                            condition_sig & condition_node,
+                            [weight]] *= sig_node_factor
+            else :
+                for node in range(len(preferences['nonResScenarios'])):
+                    condition_node = data['nodeXname'].astype(str) == str(
+                        preferences['nonResScenarios'][node])
+                    node_sig_weight = data.loc[
+                        condition_sig & condition_node, [weight]]
+                    sig_node_factor = 100000./node_sig_weight.sum()
+                    data.loc[
+                        condition_sig & condition_node,
+                        [weight]] *= sig_node_factor
+                    node_bkg_weight = data.loc[
+                        condition_bkg & condition_node, [weight]]
+                    bkg_node_factor = 100000./node_bkg_weight.sum()
+                    data.loc[
+                        condition_bkg & condition_node,
+                        [weight]] *= bkg_node_factor
         else:
             for mass in range(len(preferences['masses'])):
                 condition_mass = data['gen_mHH'].astype(int) == int(
@@ -143,7 +156,7 @@ def BkgLabelMaker(
     if 'evtLevelSUM_HH_2l_2tau_res' in bdtType:
         labelBKG = "TT+DY+VV"
     elif '3l_1tau' in bdtType:
-        labelBKG = "ZZ+WZ+TT"
+        labelBKG = "ZZ+WZ+TT+DY+ttZ+single higgs"
     elif 'evtLevelSUM' in bdtType:
         labelBKG = "SUM BKG"
         if channel in ["3l_0tau_HH"]:
@@ -647,16 +660,21 @@ def BuildTHstack(
                 weights
             )  # Red
     if(channel == "3l_1tau" or channel == "3l_1tau_nonRes"):
-        zz_samples = ['ZZTo', 'ggZZTo']
+        zz_samples = ['ZZ']
         data_copy_ZZ = data.loc[
             (data['key'].isin(zz_samples))]  # ZZ
         data_copy_WZ = data.loc[
-            (data['key'] == 'WZTo')]  # WZ
-        ttbar_samples = ['TTTo2L2Nu', 'TTToSemiLeptonic']
+            (data['key'] == 'WZ')]  # WZ
+        ttbar_samples = ['TTTo']
         data_copy_TT = data.loc[
             (data['key'].isin(ttbar_samples))]  # TTbar
         data_copy_DY = data.loc[
             (data['key'] == 'DY')]  # DY
+        singleHiggs_samples = ["VH","qqH","ggH","ttH"]
+        data_copy_singleHiggs = data.loc[
+            (data['key'].isin(singleHiggs_samples))]  # DY
+        data_copy_TTZ = data.loc[
+            (data['key'] == 'TTZ')]
         if not(data_copy_DY.empty):
             AddHistToStack(
                 data_copy_DY, var_name,
@@ -687,6 +705,22 @@ def BuildTHstack(
                 hstack, nbins,
                 X_min, X_max,
                 2, 'WZ',
+                weights
+            )  # Red
+        if not(data_copy_TTZ.empty):
+            AddHistToStack(
+                data_copy_ZZ, var_name,
+                hstack, nbins,
+                X_min, X_max,
+                4, 'TTZ',
+                weights
+            )  # Blue
+        if not(data_copy_singleHiggs.empty):
+            AddHistToStack(
+                data_copy_WZ, var_name,
+                hstack, nbins,
+                X_min, X_max,
+                2, 'single higgs',
                 weights
             )  # Red
     else:
@@ -1497,7 +1531,11 @@ def get_hh_parameters(
             parameters['trainvars'].append(str(info['key']))
     all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
     all_trainvar_info = dlt.read_trainvar_info(all_trainvars_path)
-    parameters['trainvar_info'] = all_trainvar_info
+    parameters['trainvars_info'] = []
+    with open(all_trainvars_path, 'rt') as infile:
+        for line in infile:
+            info = json.loads(line)
+            parameters['trainvars_info'].append(str(info['key']))
     parameters.update(info_dict)
     return parameters
 

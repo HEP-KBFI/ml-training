@@ -11,6 +11,47 @@ import pandas
 import glob
 import numpy as np
 from root_numpy import tree2array
+import uproot_methods
+
+TLorentzVectorArray = uproot_methods.classes.TLorentzVector.TLorentzVectorArray
+
+
+def tree_to_lorentz(data, name="Jet"):
+    return TLorentzVectorArray.from_ptetaphim(
+        np.array(data["%s_pt" % name]).astype(np.float64),
+        np.array(data["%s_eta" % name]).astype(np.float64),
+        np.array(data["%s_phi" % name]).astype(np.float64),
+        np.array(data["%s_mass" % name]).astype(np.float64)
+    )
+
+
+def tree_to_array(data, name="Jet"):
+    lorentz = tree_to_lorentz(data, name=name)
+    array = np.array([
+        lorentz.E[:],
+        lorentz.x[:],
+        lorentz.y[:],
+        lorentz.z[:],
+    ])
+    array = np.moveaxis(array,0,1)
+    return array
+
+def get_low_level(data) :
+    b1jets = tree_to_array(data, name="bjet1")
+    b2jets = tree_to_array(data, name="bjet2")
+    w1jets = tree_to_array(data, name="wjet1")
+    w2jets = tree_to_array(data, name="wjet2")
+    leptons = tree_to_array(data, name="lep")
+    events = np.stack([b1jets,b2jets,w1jets,w2jets,leptons],axis=1)
+    return events
+
+
+def get_high_level(tree, variables) :
+    output = np.array([np.array(tree[variable].astype(np.float32)) for variable in variables])
+    output = np.moveaxis(output, 0, 1)
+    output_mean, output_std = np.mean(output, axis=0), np.std(output, axis=0)
+    output = (output - output_mean) / output_std
+    return output
 
 
 def load_data(
@@ -76,6 +117,8 @@ def load_data_from_one_era(
     '''
     print_info(global_settings, preferences)
     my_cols_list = preferences['trainvars'] + ['process', 'key', 'target', 'totalWeight']
+    if 'HH_nonres' in global_settings['bdtType']:
+        my_cols_list += ['nodeX']
     data = pandas.DataFrame(columns=my_cols_list)
     for folder_name in preferences['era_keys']:
         data = data_main_loop(
@@ -188,8 +231,7 @@ def load_data_from_tfile(
     if tree is not None:
         try:
             chunk_arr = tree2array(tree)
-            chunk_df = pandas.DataFrame(
-                chunk_arr)
+            chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
         except Exception:
             print(
