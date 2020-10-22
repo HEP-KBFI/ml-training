@@ -349,15 +349,6 @@ def custom_permutation_importance(
 
 
 def calculate_acc_with_weights(prediction, labels, weights):
-    pred_labels = [np.argmax(event) for event in prediction]
-    score = 0
-    for pred, true, weight in zip(pred_labels, labels, weights):
-        if pred == true:
-            score += weight
-    return score
-
-
-def calculate_acc_with_weights(prediction, labels, weights):
     num_classes = len(prediction[0])
     pred_labels = [np.argmax(event) for event in prediction]
     true_positives = 0
