@@ -1,4 +1,16 @@
 {
+    "ttH":{  
+      "sampleName": "ttH",
+        "target": 0
+    },
+    "ggH": {
+        "sampleName": "ggH",
+        "target": 0
+    },
+    "qqH": {
+        "sampleName": "qqH",
+        "target": 0
+    },
     "TTTo": {
         "sampleName": "TT",
         "target": 0
@@ -11,7 +23,7 @@
         "sampleName": "DY",
         "target": 0
     },
-    "W": {
+    "WJets": {
         "sampleName": "W",
         "target": 0
     },

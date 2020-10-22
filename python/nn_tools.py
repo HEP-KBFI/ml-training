@@ -1,25 +1,25 @@
 '''Tools for creating a neural network model and evaluating it
 '''
 from sklearn.model_selection import train_test_split
+from sklearn.utils.multiclass import type_of_target
+import keras
+from keras import backend as K
+from keras.wrappers.scikit_learn import KerasClassifier
 from keras.layers import Dense
 from keras.layers import Dropout
 from keras.layers import BatchNormalization
-from keras.activations import elu
-from keras.layers import ELU
 from keras.optimizers import Nadam
 import numpy as np
-from keras import backend as K
 import tensorflow as tf
-import keras
-from keras.wrappers.scikit_learn import KerasClassifier
-import json
-from machineLearning.machineLearning import universal_tools as ut
 import eli5
 from eli5.formatters.as_dataframe import format_as_dataframe
 from eli5.sklearn import PermutationImportance
+from machineLearning.machineLearning import universal_tools as ut
+from machineLearning.machineLearning import evaluation_tools as et
 from machineLearning.machineLearning.lbn import LBN, LBNLayer
-from sklearn.utils.multiclass import type_of_target
 from machineLearning.machineLearning import multiclass_tools as mt
+
+
 def model_evaluation_main(nn_hyperparameters, data_dict, global_settings):
     ''' Collected functions for CGB model evaluation
 
@@ -50,11 +50,8 @@ def model_evaluation_main(nn_hyperparameters, data_dict, global_settings):
 
 
 def create_nn_model(
-        nn_hyperparameters,
         nr_trainvars,
         num_class,
-        number_samples,
-        metrics=['accuracy'],
         lbn=False
 ):
     ''' Creates the neural network model. The normalization used is
@@ -82,45 +79,14 @@ def create_nn_model(
     model : keras.engine.sequential.Sequential
         Sequential keras neural network model created.
     '''
-    '''model = keras.models.Sequential()
-    model.add(
-        Dense(
-            2*nr_trainvars,
-            input_dim=nr_trainvars,
-            kernel_initializer='he_uniform',
-            activation = "relu"
+    if lbn:
+        ll_inputs = tf.keras.Input(shape=(5, 4), name="LL")
+        hl_inputs = tf.keras.Input(shape=(17,), name="HL")
+        lbn_layer = LBNLayer(
+            ll_inputs.shape, 10,
+            boost_mode=LBN.PAIRS,
+            features=["E", "pt", "eta", "phi", "m", "pair_cos"]
         )
-    )
-    model.add(BatchNormalization())
-    #model.add(ELU())
-    model.add(Dropout(nn_hyperparameters['visible_layer_dropout_rate']))
-    hidden_layers = create_hidden_net_structure(
-        nn_hyperparameters['nr_hidden_layers'],
-        num_class,
-        nr_trainvars,
-        number_samples,
-        nn_hyperparameters['alpha']
-    )
-    for hidden_layer in hidden_layers:
-        model.add(Dense(hidden_layer, kernel_initializer='he_uniform', activation="relu"))
-        model.add(BatchNormalization())
-        #model.add(ELU())
-        model.add(Dropout(nn_hyperparameters['hidden_layer_dropout_rate']))
-    model.add(Dense(num_class, activation='softmax'))
-    model.compile(
-        loss='sparse_categorical_crossentropy',
-        #loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
-        #optimizer=tf.keras.optimizers.Adam(lr=0.0001),
-        optimizer=Nadam(
-            lr=nn_hyperparameters['learning_rate'],
-            schedule_decay=nn_hyperparameters['schedule_decay']
-        ),
-        metrics=metrics,
-    )'''
-    if lbn :
-        ll_inputs = tf.keras.Input(shape=(5, 4), name = "LL")
-        hl_inputs = tf.keras.Input(shape=(17,), name = "HL")
-        lbn_layer = LBNLayer(ll_inputs.shape, 10, boost_mode=LBN.PAIRS, features=["E", "pt", "eta", "phi", "m", "pair_cos"])
         lbn_features = lbn_layer(ll_inputs)
         normalized_lbn_features = tf.keras.layers.BatchNormalization()(lbn_features)
         x = tf.keras.layers.concatenate([normalized_lbn_features, hl_inputs])
@@ -129,21 +95,24 @@ def create_nn_model(
         x = tf.keras.layers.Dense(256, activation="relu")(x)
         x = tf.keras.layers.Dropout(0.50)(x)
         outputs = tf.keras.layers.Dense(num_class, activation='softmax')(x)
-
-        model = tf.keras.Model(inputs=[ll_inputs, hl_inputs], outputs= outputs, name='lbn_dnn')
+        model = tf.keras.Model(
+            inputs=[ll_inputs, hl_inputs],
+            outputs=outputs,
+            name='lbn_dnn'
+        )
         model.compile(
             optimizer=tf.keras.optimizers.Adam(lr=0.0001),
             loss='sparse_categorical_crossentropy',
-            metrics=["accuracy"],
-    )
-    else :
+            metrics=["accuracy"]
+        )
+    else:
         model = keras.models.Sequential()
         model.add(keras.layers.InputLayer(input_shape=[nr_trainvars]))
         model.add(BatchNormalization())
-        model.add(keras.layers.Dense(256,activation="relu"))
+        model.add(keras.layers.Dense(256, activation="relu"))
         model.add(BatchNormalization())
         model.add(Dropout(0.1))
-        model.add(keras.layers.Dense(256,activation="relu"))
+        model.add(keras.layers.Dense(256, activation="relu"))
         model.add(BatchNormalization())
         model.add(Dropout(0.1))
         model.add(Dense(num_class, activation='softmax'))
@@ -279,10 +248,10 @@ def get_feature_importances(model, data_dict, trainvars, data="even"):
 
 
 def calculate_number_nodes_in_hidden_layer(
-    number_classes,
-    number_trainvars,
-    number_samples,
-    alpha
+        number_classes,
+        number_trainvars,
+        number_samples,
+        alpha
 ):
     '''Calculates the number of nodes in a hidden layer
 
@@ -318,11 +287,11 @@ def calculate_number_nodes_in_hidden_layer(
 
 
 def create_hidden_net_structure(
-    number_hidden_layers,
-    number_classes,
-    number_trainvars,
-    number_samples,
-    alpha=2
+        number_hidden_layers,
+        number_classes,
+        number_trainvars,
+        number_samples,
+        alpha=2
 ):
     '''Creates the hidden net structure for the NN
 
@@ -353,3 +322,47 @@ def create_hidden_net_structure(
     number_nodes = int(np.floor(number_nodes/number_hidden_layers))
     hidden_net = [number_nodes] * number_hidden_layers
     return hidden_net
+
+
+def custom_permutation_importance(
+        model, data, weights,
+        trainvars, labels, permutations=5
+):
+    print('Starting permutation importance')
+    score_dict = {}
+    prediction = model.predict(data)
+    original_score = calculate_acc_with_weights(prediction, labels, weights)
+    print('Reference score: ' + str(original_score))
+    for trainvar in trainvars:
+        print(trainvar)
+        data_copy = data.copy()
+        t_score = 0
+        for i in range(permutations):
+            print("Permutation nr: " + str(i))
+            data_copy[trainvar] = np.random.permutation(data_copy[trainvar])
+            prediction = model.predict(data_copy)
+            score = calculate_acc_with_weights(prediction, labels, weights)
+            print(score)
+            t_score += score
+        score_dict[trainvar] = abs(original_score - (t_score/permutations))
+    for key in score_dict.keys():
+        score_dict[key] /= original_score
+    return score_dict
+
+
+def calculate_acc_with_weights(prediction, labels, weights):
+    pred_labels = [np.argmax(event) for event in prediction]
+    score = 0
+    for pred, true, weight in zip(pred_labels, labels, weights):
+        if pred == true:
+            score += weight
+    return score
+
+
+def plot_feature_importances(score_dict, output_dir):
+    score_dict = OrderedDict(sorted(score_dict.items(), key=lambda x: -x[1]))
+    plt.bar(range(len(score_dict)), score_dict.values(), align='center')
+    plt.xticks(range(len(score_dict)), list(score_dict.keys()))
+    file_name = os.path.join(output_dir, 'feature_importances.png')
+    plt.xticks(rotation=90)
+    plt.savefig(file_name, bbox_inches='tight')

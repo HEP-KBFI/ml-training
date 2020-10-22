@@ -1,0 +1,14 @@
+{
+    "isHbb_boosted": {
+        "min": 2,
+        "max": 2
+    },
+    "numBJets": {
+        "min": 2,
+        "max": 2
+    },
+    "numWJets": {
+        "min": 2,
+        "max": 2
+    }
+}
