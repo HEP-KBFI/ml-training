@@ -256,9 +256,7 @@ def plot_trainvar_multi_distributions(data, trainvars, output_dir):
     plot_dir = os.path.join(output_dir, 'trainvar_distributions')
     if not os.path.exists(plot_dir):
         os.makedirs(plot_dir)
-    print(trainvars)
     for trainvar in trainvars:
-        print(trainvar)
         trainvar_distribs = {}
         all_data = data[trainvar]
         minimum_value = min(all_data)
