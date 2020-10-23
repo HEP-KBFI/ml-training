@@ -19,7 +19,7 @@ from machineLearning.machineLearning import multiclass_tools as mt
 from machineLearning.machineLearning import hh_visualization_tools as hhvt
 
 
-def plot_confusion_matrix(cm, class_names):
+def plot_confusion_matrix(cm, class_names, output_dir):
     figure = plt.figure(figsize=(4, 4))
     plt.imshow(cm, interpolation='nearest', cmap="summer")
     plt.title("Confusion matrix")
@@ -35,7 +35,9 @@ def plot_confusion_matrix(cm, class_names):
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
-    plt.savefig("confusion_matrix.pdf")
+    outfile = os.path.join(output_dir, 'confusion_matrix.png')
+    plt.savefig(outfile, bbox_inches='tight')
+    plt.close('all')
 
 def main(output_dir):
     if output_dir == 'None':
@@ -75,12 +77,13 @@ def main(output_dir):
             even_model, data[trainvars], data['evtWeight'],
             trainvars, data['multitarget']
         )
-        nt.plot_feature_importances(score_dict, global_settings['output_dir'])
-    # hhvt.plotROC(
-    #     [odd_train_info, odd_test_info],
-    #     [even_train_info, even_test_info],
-    #     global_settings
-    # )
+        hhvt.plot_feature_importances_from_dict(
+            score_dict, global_settings['output_dir'])
+    hhvt.plotROC(
+        [odd_train_info, odd_test_info],
+        [even_train_info, even_test_info],
+        global_settings
+    )
     # classes = set(data_dict["even_data"]["process"])
     # for class_ in classes:
     #     multitarget = list(set(
@@ -100,10 +103,24 @@ def create_data_dict(preferences, global_settings):
         global_settings,
         remove_neg_weights=True
     )
+    for trainvar in preferences['trainvars']:
+        if str(data[trainvar].dtype) == 'object':
+            try:
+                data[trainvar] = data[trainvar].astype(int)
+            except:
+                continue
     hhat.normalize_hh_dataframe(
         data,
         preferences,
         global_settings
+    )
+    hhvt.plot_single_mode_correlation(
+        data, preferences['trainvars'],
+        global_settings['output_dir'], 'trainvar'
+    )
+    hhvt.plot_trainvar_multi_distributions(
+        data, preferences['trainvars'],
+        global_settings['output_dir']
     )
     sumall = data.loc[data["process"] == "TT"]["totalWeight"].sum() \
         + data.loc[data["process"] == "W"]["totalWeight"].sum() \
@@ -226,7 +243,6 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
     trainvars = data_dict['trainvars']
     train_data = data_dict["odd_data"] if choose_data == "odd" else data_dict["even_data"]
     test_data = data_dict["even_data"] if choose_data == "odd" else data_dict["odd_data"]
-
     if global_settings['ml_method'] == 'lbn':
         if choose_data == 'odd':
             train_var = {
@@ -259,16 +275,17 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
         train_data["multitarget"].astype(int),
         np.argmax(train_predicted_probabilities, axis=1)
     )
-    plot_confusion_matrix(cm, ["TT","W", "HH", "DY"])
+    plot_confusion_matrix(
+        cm, ["TT","W", "HH", "DY"], global_settings['output_dir'])
     test_fpr, test_tpr= mt.roc_curve(
         data_dict['even_data']['multitarget'].astype(int),
         test_predicted_probabilities,
-        data_dict['even_data']['totalWeight'].astype(float)
+        data_dict['even_data']['evtWeight'].astype(float)
     )
     train_fpr, train_tpr = mt.roc_curve(
         data_dict['odd_data']['multitarget'].astype(int),
         train_predicted_probabilities,
-        data_dict['odd_data']['totalWeight'].astype(float)
+        data_dict['odd_data']['evtWeight'].astype(float)
     )
     train_auc = auc(train_fpr, train_tpr, reorder=True)
     test_auc = auc(test_fpr, test_tpr, reorder=True)

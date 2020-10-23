@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import xgboost as xgb
+from collections import OrderedDict
 
 
 def plot_sampleWise_bdtOutput(
@@ -134,7 +135,6 @@ def plot_single_mode_correlation(data, trainvars, output_dir, addition):
     plt.close('all')
 
 
-
 def plot_nodeWise_performance(
         global_settings, nodeWise_histo_dicts, mode
 ):
@@ -250,4 +250,41 @@ def plot_nodeWise_roc(global_settings, roc_infos, mode):
     plt.xlim([0.0, 1.0])
     plt.tight_layout()
     plt.savefig(plot_out, bbox_inches='tight')
+    plt.close('all')
+
+
+def plot_feature_importances_from_dict(score_dict, output_dir):
+    score_dict = OrderedDict(sorted(score_dict.items(), key=lambda x: -x[1]))
+    plt.bar(range(len(score_dict)), score_dict.values(), align='center')
+    plt.xticks(range(len(score_dict)), list(score_dict.keys()))
+    file_name = os.path.join(output_dir, 'feature_importances.png')
+    plt.xticks(rotation=90)
+    plt.savefig(file_name, bbox_inches='tight')
+
+
+def plot_trainvar_multi_distributions(data, trainvars, output_dir):
+    plot_dir = os.path.join(output_dir, 'trainvar_distributions')
+    if not os.path.exists(plot_dir):
+        os.makedirs(plot_dir)
+    for trainvar in trainvars:
+        trainvar_distribs = {}
+        all_data = data[trainvar]
+        minimum_value = min(all_data)
+        maximum_value = max(all_data)
+        bins = np.linspace(minimum_value, maximum_value, 100)
+        for process in set(data['process']):
+            distrib = data.loc[data['process'] == process, trainvar]
+            trainvar_distribs[process] = distrib
+        plot_single_distrib(trainvar_distribs, plot_dir, trainvar, bins)
+
+
+def plot_single_distrib(trainvar_distribs, output_dir, trainvar, bins):
+    keys = trainvar_distribs.keys()
+    alpha = 1. / len(keys)
+    for key in keys:
+        plt.hist(trainvar_distribs[key], label=key, alpha=alpha, bins=bins)
+    plt.legend()
+    plt.yscale('log')
+    out_file = os.path.join(output_dir, trainvar + '_distribution.png')
+    plt.savefig(out_file, bbox_inches='tight')
     plt.close('all')
