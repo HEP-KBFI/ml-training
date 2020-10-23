@@ -84,18 +84,18 @@ def main(output_dir):
         [even_train_info, even_test_info],
         global_settings
     )
-    # classes = set(data_dict["even_data"]["process"])
-    # for class_ in classes:
-    #     multitarget = list(set(
-    #         data_dict["even_data"].loc[
-    #             data_dict["even_data"]["process"] == class_, "multitarget"
-    #         ]
-    #     ))[0]
-    #     print(str(class_) + '\t' + str(multitarget))
-    #     hhvt.plot_sampleWise_bdtOutput(
-    #         odd_model, data_dict["even_data"], preferences,
-    #         global_settings, multitarget, class_, data_dict
-    #     )
+    classes = set(data_dict["even_data"]["process"])
+    for class_ in classes:
+        multitarget = list(set(
+            data_dict["even_data"].loc[
+                data_dict["even_data"]["process"] == class_, "multitarget"
+            ]
+    ))[0]
+        print(str(class_) + '\t' + str(multitarget))
+        hhvt.plot_sampleWise_bdtOutput(
+            odd_model, data_dict["even_data"], preferences,
+            global_settings, multitarget, class_, data_dict
+        )
 
 def create_data_dict(preferences, global_settings):
     data = dlt.load_data(
@@ -217,7 +217,7 @@ def create_model(
         fitted_model = model_structure.fit(
             train_data[trainvars].values,
             train_data['multitarget'].astype(np.int),
-            epochs=25,
+            epochs=10,
             batch_size=1024,
             sample_weight=train_data['totalWeight'].values,
             validation_data=(
