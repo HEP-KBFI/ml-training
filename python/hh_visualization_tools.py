@@ -38,7 +38,7 @@ def plot_sampleWise_bdtOutput(
         idx = np.where(data_even['process'] == process)[0]
         process_prediction = np.array(model_odd.predict_proba(
             process_data[preferences['trainvars']]
-        )[:,target]) if not global_settings["lbn"] else np.array(model_odd.predict(
+        )[:,target]) if global_settings["ml_method"] != 'lbn' else np.array(model_odd.predict(
             [data_dict["ll_even"][idx], data_dict["hl_even"][idx]], batch_size=1024
         )[:,target])
         weights = np.array(process_data[weight])
@@ -53,7 +53,7 @@ def plot_sampleWise_bdtOutput(
     idx = np.where(data_even['process'] == sig_name)[0]
     process_prediction = np.array(model_odd.predict_proba(
         process_data[preferences['trainvars']]
-    )[:,target]) if not global_settings["lbn"] else np.array(model_odd.predict(
+    )[:,target]) if global_settings["ml_method"] != 'lbn' else np.array(model_odd.predict(
             [data_dict["ll_even"][idx], data_dict["hl_even"][idx]], batch_size=1024
         )[:,target])
     weights = np.array(process_data['totalWeight'])
@@ -62,7 +62,8 @@ def plot_sampleWise_bdtOutput(
         lw=2, ec='k', alpha=1, normed=True, bins=bins, weights=weights
     )
     plt.legend()
-    output_path = os.path.join(output_dir, 'sampleWise_bdtOutput_node_%s_%s.png' %(class_, global_settings["mode"])) if global_settings["channel"] == "bb1l" else os.path.join(output_dir, 'sampleWise_bdtOutput_node.png')
+    cat = 'resolved' if global_settings["dataCuts"].find("resolved") != -1 else 'boosted'
+    output_path = os.path.join(output_dir, 'sampleWise_bdtOutput_node_%s_%s.png' %(class_, cat)) if global_settings["channel"] == "bb1l" else os.path.join(output_dir, 'sampleWise_bdtOutput_node.png')
     plt.tight_layout()
     plt.savefig(output_path, bbox_inches='tight')
     plt.yscale('log')
