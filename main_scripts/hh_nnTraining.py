@@ -103,6 +103,12 @@ def create_data_dict(preferences, global_settings):
         global_settings,
         remove_neg_weights=True
     )
+    for trainvar in preferences['trainvars']:
+        if str(data[trainvar].dtype) == 'object':
+            try:
+                data[trainvar] = data[trainvar].astype(int)
+            except:
+                continue
     hhat.normalize_hh_dataframe(
         data,
         preferences,
