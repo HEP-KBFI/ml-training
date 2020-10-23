@@ -7,6 +7,7 @@ import tensorflow as tf
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import auc
 import matplotlib
+from datetime import datetime
 matplotlib.use('agg')
 from matplotlib import pyplot as plt
 from sklearn.utils.multiclass import type_of_target
@@ -109,13 +110,14 @@ def create_data_dict(preferences, global_settings):
         + data.loc[data["process"] == "DY"]["totalWeight"].sum() \
         + data.loc[data["target"] == 1]["totalWeight"].sum()
     print(
-        "TT:W:DY \t" \
+        "TT:W:DY:HH \t" \
         + str(data.loc[data["process"] == "TT"]["totalWeight"].sum()/sumall) \
         + ":" + str(data.loc[data["process"] == "W"]["totalWeight"].sum()/sumall) \
         + ":" + str(data.loc[data["process"] == "DY"]["totalWeight"].sum()/sumall) \
         + "@" + str(data.loc[data["target"] == 1]["totalWeight"].sum()/sumall)
     )
     data = mt.multiclass_encoding(data)
+    hhvt.plot_correlations(data, preferences["trainvars"], global_settings)
     even_data = data.loc[(data['event'].values % 2 == 0)]
     odd_data = data.loc[~(data['event'].values % 2 == 0)]
     if global_settings['ml_method'] == 'lbn':
@@ -267,6 +269,7 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
         data_dict['odd_data']['multitarget'].astype(int),
         train_predicted_probabilities,
         data_dict['odd_data']['totalWeight'].astype(float)
+    )
     train_auc = auc(train_fpr, train_tpr, reorder=True)
     test_auc = auc(test_fpr, test_tpr, reorder=True)
     test_info = {
@@ -289,4 +292,6 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
 
 
 if __name__ == '__main__':
+    startTime = datetime
     main('None')
+    print(datetime.now() - startTime)
