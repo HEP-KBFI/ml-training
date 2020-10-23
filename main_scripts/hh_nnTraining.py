@@ -84,7 +84,7 @@ def main(output_dir):
         [even_train_info, even_test_info],
         global_settings
     )
-    # classes = set(data_dict["even_data"]["process"])
+    classes = set(data_dict["even_data"]["process"])
     # for class_ in classes:
     #     multitarget = list(set(
     #         data_dict["even_data"].loc[
@@ -96,6 +96,7 @@ def main(output_dir):
     #         odd_model, data_dict["even_data"], preferences,
     #         global_settings, multitarget, class_, data_dict
     #     )
+
 
 def create_data_dict(preferences, global_settings):
     data = dlt.load_data(
