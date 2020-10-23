@@ -53,7 +53,6 @@ def get_high_level(tree, variables) :
     output_mean, output_std = np.mean(output, axis=0), np.std(output, axis=0)
     output = (output - output_mean) / output_std
     return output
->>>>>>> 5511196a56256e3d626833f735054384a0bcd9c1
 
 TLorentzVectorArray = uproot_methods.classes.TLorentzVector.TLorentzVectorArray
 
@@ -264,11 +263,11 @@ def load_data_from_tfile(
         All the loaded data so far.
     '''
     if tree is not None:
-        sel = None
-        if global_settings["channel"] == "bb1l"  and global_settings['mode'] != '':
-            sel =str( data_cutting(data, global_settings))
         try:
-            chunk_arr = tree2array(tree)
+            stop = 10000
+            if global_settings["channel"] == "bb1l" and sample_name == "TT" :
+                stop = 50000
+            chunk_arr = tree2array(tree, stop=stop)
             chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
         except Exception:
@@ -626,22 +625,22 @@ def data_cutting(data, global_settings):
         addition = 'nonRes'
     else:
         addition = 'res/%s' %(global_settings['spinCase'])
-    cut_file = os.path.join(
-        package_dir, 'info', global_settings['process'],
-        global_settings['channel'], addition, 'cuts.json'
-    )
+    if global_settings['dataCuts'] == 1:
+        cut_file = os.path.join(
+            package_dir, 'info', global_settings['process'],
+            global_settings['channel'], addition, 'cuts.json'
+        )
+    else:
+        cut_file = os.path.join(
+            package_dir, 'info', global_settings['process'],
+            global_settings['channel'], addition, global_settings['dataCuts']
+        )
     if os.path.exists(cut_file):
         cut_dict = ut.read_json_cfg(cut_file)
         if cut_dict == {}:
             print('No cuts given in the cut file %s' %(cut_file))
         else:
             cut_keys = list(cut_dict.keys())
-            if global_settings['channel'] in ['bb1l', 'bb2ll'] :
-                for key in cut_keys :
-                    if key == global_settings['mode'] :
-                        sel = cut_dict[key]["sel"]
-                        print "sel =========== ", sel
-                        return sel
             for key in cut_keys:
                 try:
                     min_value = cut_dict[key]['min']
