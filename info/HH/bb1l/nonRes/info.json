@@ -13,13 +13,8 @@
     "tauID_application": {
         "deepVSjMedium": {
             "TTdatacard": 10000,
-<<<<<<< HEAD
-	    "DYdatacard": 10000,
-	    "Wdatacard":10000
-=======
             "DYdatacard": 10000,
             "Wdatacard":10000
->>>>>>> 5511196a56256e3d626833f735054384a0bcd9c1
         }
     },
     "tauID_training": {
@@ -29,24 +24,8 @@
     },
     "keys": {
 	"DY": [16],
-        "TTTo": [16],
-<<<<<<< HEAD
+	"TT" : [16],
 	"W" : [16],
-        "signal_ggf_nonresonant_node_sm_hh_2b2v_sl": [16],
-	"signal_ggf_nonresonant_node_1_hh_2b2v_sl" : [16],
-	"signal_ggf_nonresonant_node_2_hh_2b2v_sl" : [16],
-	"signal_ggf_nonresonant_node_3_hh_2b2v_sl" : [16],
-	"signal_ggf_nonresonant_node_4_hh_2b2v_sl" : [16],
-	"signal_ggf_nonresonant_node_5_hh_2b2v_sl" : [16],
-	"signal_ggf_nonresonant_node_6_hh_2b2v_sl" : [16],
-	"signal_ggf_nonresonant_node_7_hh_2b2v_sl" : [16],
-	"signal_ggf_nonresonant_node_8_hh_2b2v_sl" : [16],
-	"signal_ggf_nonresonant_node_9_hh_2b2v_sl" : [16],
-	"signal_ggf_nonresonant_node_10_hh_2b2v_sl" : [16],
-	"signal_ggf_nonresonant_node_11_hh_2b2v_sl" : [16],
-	"signal_ggf_nonresonant_node_12_hh_2b2v_sl" : [16]
-=======
-        "W" : [16],
         "signal_ggf_nonresonant_node_sm_hh_2b2v_sl": [16],
         "signal_ggf_nonresonant_node_1_hh_2b2v_sl": [16],
         "signal_ggf_nonresonant_node_2_hh_2b2v_sl": [16],
@@ -60,6 +39,5 @@
         "signal_ggf_nonresonant_node_10_hh_2b2v_sl": [16],
         "signal_ggf_nonresonant_node_11_hh_2b2v_sl": [16],
         "signal_ggf_nonresonant_node_12_hh_2b2v_sl": [16]
->>>>>>> 5511196a56256e3d626833f735054384a0bcd9c1
     }
 }
