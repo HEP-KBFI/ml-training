@@ -85,17 +85,17 @@ def main(output_dir):
         global_settings
     )
     classes = set(data_dict["even_data"]["process"])
-    for class_ in classes:
-        multitarget = list(set(
-            data_dict["even_data"].loc[
-                data_dict["even_data"]["process"] == class_, "multitarget"
-            ]
-        ))[0]
-        print(str(class_) + '\t' + str(multitarget))
-        hhvt.plot_sampleWise_bdtOutput(
-            odd_model, data_dict["even_data"], preferences,
-            global_settings, multitarget, class_, data_dict
-        )
+    # for class_ in classes:
+    #     multitarget = list(set(
+    #         data_dict["even_data"].loc[
+    #             data_dict["even_data"]["process"] == class_, "multitarget"
+    #         ]
+    #     ))[0]
+    #     print(str(class_) + '\t' + str(multitarget))
+    #     hhvt.plot_sampleWise_bdtOutput(
+    #         odd_model, data_dict["even_data"], preferences,
+    #         global_settings, multitarget, class_, data_dict
+    #     )
 
 
 def create_data_dict(preferences, global_settings):
