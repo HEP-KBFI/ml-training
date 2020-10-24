@@ -25,7 +25,7 @@ def roc_curve(labels, pred_vectors, weights):
     false_positive_rate = []
     for threshold in thresholds:
         signal = []
-        for vector, weight in zip(pred_vectors, weights):
+        for vector in pred_vectors:
             sig_vector = np.array(vector) >= threshold
             sig_vector = sig_vector.tolist()
             result = []
@@ -36,7 +36,7 @@ def roc_curve(labels, pred_vectors, weights):
         pairs = list(zip(labels, signal))
         sig_score = 0
         bg_score = 0
-        for pair in pairs:
+        for pair, weight in zip(pairs, weights):
             for i in pair[1]:
                 if int(pair[0]) == i:
                     sig_score += weight
@@ -44,6 +44,8 @@ def roc_curve(labels, pred_vectors, weights):
                     bg_score += weight
         true_positive_rate.append(float(sig_score)/len(labels))
         false_positive_rate.append(float(bg_score)/(number_bg*len(labels)))
+    false_positive_rate = np.array(false_positive_rate) / max(false_positive_rate)
+    true_positive_rate = np.array(true_positive_rate) / max(true_positive_rate)
     return false_positive_rate, true_positive_rate
 
 
