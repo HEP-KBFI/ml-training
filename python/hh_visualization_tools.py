@@ -309,7 +309,7 @@ def plot_nn_sampleWise_bdtOutput(
         idx = np.where(data_even['process'] == process)[0]
         process_prediction = np.array(model_odd.predict_proba(
             process_data[preferences['trainvars']]
-        )[:,target]) if not global_settings["lbn"] else np.array(model_odd.predict(
+        )[:,target]) if not global_settings["ml_method"] == 'lbn' else np.array(model_odd.predict(
             [data_dict["ll_even"][idx], data_dict["hl_even"][idx]], batch_size=1024
         )[:,target])
         weights = np.array(process_data[weight])
@@ -324,7 +324,7 @@ def plot_nn_sampleWise_bdtOutput(
     idx = np.where(data_even['process'] == sig_name)[0]
     process_prediction = np.array(model_odd.predict_proba(
         process_data[preferences['trainvars']]
-    )[:,target]) if not global_settings["lbn"] else np.array(model_odd.predict(
+    )[:,target]) if not global_settings["ml_method"] == 'lbn' else np.array(model_odd.predict(
             [data_dict["ll_even"][idx], data_dict["hl_even"][idx]], batch_size=1024
         )[:,target])
     weights = np.array(process_data['totalWeight'])
