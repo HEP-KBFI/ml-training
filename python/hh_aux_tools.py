@@ -1531,11 +1531,14 @@ def get_hh_parameters(
             parameters['trainvars'].append(str(info['key']))
     all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
     all_trainvar_info = dlt.read_trainvar_info(all_trainvars_path)
-    parameters['trainvars_info'] = []
-    with open(all_trainvars_path, 'rt') as infile:
+    parameters['trainvars'] = []
+    with open(trainvars_path, 'rt') as infile:
         for line in infile:
             info = json.loads(line)
-            parameters['trainvars_info'].append(str(info['key']))
+            parameters['trainvars'].append(str(info['key']))
+    all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
+    all_trainvar_info = dlt.read_trainvar_info(all_trainvars_path)
+    parameters['trainvar_info'] = all_trainvar_info
     parameters.update(info_dict)
     return parameters
 
