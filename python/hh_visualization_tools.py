@@ -83,6 +83,7 @@ def plotROC(odd_infos, even_infos, global_settings):
         )
     for even_info, linestyle in zip(even_infos, linestyles):
         ax.plot(
+            even_info['fpr'], even_info['tpr'], ls=linestyle, color='r',
             label='even_' + even_info['type'] + 'AUC = ' + str(
                 round(even_info['auc'], 4))
         )
@@ -111,7 +112,7 @@ def plot_single_mode_correlation(data, trainvars, output_dir, addition):
     correlations = data[trainvars].corr()
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(111)
-    cax = ax.matshow(correlations, vmin=-1, vmax=1)
+    cax = ax.matshow(correlations, vmin=-1, vmax=1, cmap='viridis')
     ticks = np.arange(0, len(trainvars), 1)
     plt.rc('axes', labelsize=8)
     ax.set_xticks(ticks)

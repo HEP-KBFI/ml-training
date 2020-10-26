@@ -52,7 +52,7 @@ def roc_curve(labels, pred_vectors, weights):
         false_positive_rate = total_false_positives / (len(unique_labels) * total_bkg_weights)
         true_positive_rates.append(true_positive_rate)
         false_positive_rates.append(false_positive_rate)
-    return true_positive_rates, false_positive_rates
+    return false_positive_rates, true_positive_rates
 
 
 def multiclass_encoding(data, label_column='process'):
