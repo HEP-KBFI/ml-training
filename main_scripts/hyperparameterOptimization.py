@@ -7,9 +7,7 @@ Usage:
 
 Options:
     -c --continue=BOOL      Whether to continue from a previous optimization [default: 0]
-    -o --opt_dir=STR        Directory of the previous iteration steps
-
-Usage: hyperparameterOptimization.py
+    -o --opt_dir=STR        Directory of the previous iteration steps [default: None]
 '''
 import os
 import numpy as np
