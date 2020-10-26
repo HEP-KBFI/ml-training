@@ -129,7 +129,7 @@ def load_hh_data(preferences, global_settings):
         reweigh_dataframe(
             data,
             preferences['weight_dir'],
-            preferences['trainvars_info'],
+            preferences['trainvar_info'],
             ['gen_mHH'],
             preferences['masses'],
             preferences['trainvars']
