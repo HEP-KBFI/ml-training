@@ -335,7 +335,7 @@ def plot_nn_sampleWise_bdtOutput(
     plt.legend()
     output_path = os.path.join(
         output_dir,
-        'sampleWise_bdtOutput_node_%s_%s.png' %(class_, global_settings["mode"]))
+        'sampleWise_bdtOutput_node_%s_%s.png' %(class_, global_settings["mode"])
     )
     plt.tight_layout()
     plt.savefig(output_path, bbox_inches='tight')
