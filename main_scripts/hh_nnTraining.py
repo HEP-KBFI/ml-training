@@ -280,15 +280,15 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
     )
     plot_confusion_matrix(
         cm, ["TT","W", "HH", "DY"], global_settings['output_dir'])
-    test_fpr, test_tpr= mt.roc_curve(
-        data_dict['even_data']['multitarget'].astype(int),
+    test_fpr, test_tpr = mt.roc_curve(
+        test_data['multitarget'].astype(int),
         test_predicted_probabilities,
-        data_dict['even_data']['evtWeight'].astype(float)
+        test_data['evtWeight'].astype(float)
     )
     train_fpr, train_tpr = mt.roc_curve(
-        data_dict['odd_data']['multitarget'].astype(int),
+        train_data['multitarget'].astype(int),
         train_predicted_probabilities,
-        data_dict['odd_data']['evtWeight'].astype(float)
+        train_data['evtWeight'].astype(float)
     )
     train_auc = auc(train_fpr, train_tpr, reorder=True)
     test_auc = auc(test_fpr, test_tpr, reorder=True)

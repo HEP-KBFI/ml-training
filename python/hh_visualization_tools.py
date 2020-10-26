@@ -83,6 +83,7 @@ def plotROC(odd_infos, even_infos, global_settings):
         )
     for even_info, linestyle in zip(even_infos, linestyles):
         ax.plot(
+            even_info['fpr'], even_info['tpr'], ls=linestyle, color='r',
             label='even_' + even_info['type'] + 'AUC = ' + str(
                 round(even_info['auc'], 4))
         )
@@ -111,7 +112,7 @@ def plot_single_mode_correlation(data, trainvars, output_dir, addition):
     correlations = data[trainvars].corr()
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(111)
-    cax = ax.matshow(correlations, vmin=-1, vmax=1)
+    cax = ax.matshow(correlations, vmin=-1, vmax=1, cmap='viridis')
     ticks = np.arange(0, len(trainvars), 1)
     plt.rc('axes', labelsize=8)
     ax.set_xticks(ticks)
@@ -309,7 +310,7 @@ def plot_nn_sampleWise_bdtOutput(
         idx = np.where(data_even['process'] == process)[0]
         process_prediction = np.array(model_odd.predict_proba(
             process_data[preferences['trainvars']]
-        )[:,target]) if not global_settings["lbn"] else np.array(model_odd.predict(
+        )[:,target]) if not global_settings["ml_method"] == 'lbn' else np.array(model_odd.predict(
             [data_dict["ll_even"][idx], data_dict["hl_even"][idx]], batch_size=1024
         )[:,target])
         weights = np.array(process_data[weight])
@@ -324,7 +325,7 @@ def plot_nn_sampleWise_bdtOutput(
     idx = np.where(data_even['process'] == sig_name)[0]
     process_prediction = np.array(model_odd.predict_proba(
         process_data[preferences['trainvars']]
-    )[:,target]) if not global_settings["lbn"] else np.array(model_odd.predict(
+    )[:,target]) if not global_settings["ml_method"] == 'lbn' else np.array(model_odd.predict(
             [data_dict["ll_even"][idx], data_dict["hl_even"][idx]], batch_size=1024
         )[:,target])
     weights = np.array(process_data['totalWeight'])
@@ -335,7 +336,7 @@ def plot_nn_sampleWise_bdtOutput(
     plt.legend()
     output_path = os.path.join(
         output_dir,
-        'sampleWise_bdtOutput_node_%s_%s.png' %(class_, global_settings["mode"]))
+        'sampleWise_bdtOutput_node_%s.png' %(class_)
     )
     plt.tight_layout()
     plt.savefig(output_path, bbox_inches='tight')
