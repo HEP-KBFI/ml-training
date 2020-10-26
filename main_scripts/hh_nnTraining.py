@@ -77,25 +77,29 @@ def main(output_dir):
             even_model, data[trainvars], data['evtWeight'],
             trainvars, data['multitarget']
         )
-        hhvt.plot_feature_importances_from_dict(
-            score_dict, global_settings['output_dir'])
-    # hhvt.plotROC(
-    #     [odd_train_info, odd_test_info],
-    #     [even_train_info, even_test_info],
-    #     global_settings
-    # )
-    # classes = set(data_dict["even_data"]["process"])
-    # for class_ in classes:
-    #     multitarget = list(set(
-    #         data_dict["even_data"].loc[
-    #             data_dict["even_data"]["process"] == class_, "multitarget"
-    #         ]
-    #     ))[0]
-    #     print(str(class_) + '\t' + str(multitarget))
-    #     hhvt.plot_sampleWise_bdtOutput(
-    #         odd_model, data_dict["even_data"], preferences,
-    #         global_settings, multitarget, class_, data_dict
-    #     )
+    else:
+        score_dict = nt.lbn_feature_importances(
+            even_model, data_dict, preferences['trainvars'])
+    hhvt.plot_feature_importances_from_dict(
+        score_dict, global_settings['output_dir'])
+    hhvt.plotROC(
+        [odd_train_info, odd_test_info],
+        [even_train_info, even_test_info],
+        global_settings
+    )
+    classes = set(data_dict["even_data"]["process"])
+    for class_ in classes:
+        multitarget = list(set(
+            data_dict["even_data"].loc[
+                data_dict["even_data"]["process"] == class_, "multitarget"
+            ]
+        ))[0]
+        print(str(class_) + '\t' + str(multitarget))
+        hhvt.plot_nn_sampleWise_bdtOutput(
+            odd_model, data_dict["even_data"], preferences,
+            global_settings, multitarget, class_, data_dict
+        )
+
 
 def create_data_dict(preferences, global_settings):
     data = dlt.load_data(
@@ -103,10 +107,24 @@ def create_data_dict(preferences, global_settings):
         global_settings,
         remove_neg_weights=True
     )
+    for trainvar in preferences['trainvars']:
+        if str(data[trainvar].dtype) == 'object':
+            try:
+                data[trainvar] = data[trainvar].astype(int)
+            except:
+                continue
     hhat.normalize_hh_dataframe(
         data,
         preferences,
         global_settings
+    )
+    hhvt.plot_single_mode_correlation(
+        data, preferences['trainvars'],
+        global_settings['output_dir'], 'trainvar'
+    )
+    hhvt.plot_trainvar_multi_distributions(
+        data, preferences['trainvars'],
+        global_settings['output_dir']
     )
     sumall = data.loc[data["process"] == "TT"]["totalWeight"].sum() \
         + data.loc[data["process"] == "W"]["totalWeight"].sum() \
@@ -228,7 +246,6 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
     trainvars = data_dict['trainvars']
     train_data = data_dict["odd_data"] if choose_data == "odd" else data_dict["even_data"]
     test_data = data_dict["even_data"] if choose_data == "odd" else data_dict["odd_data"]
-
     if global_settings['ml_method'] == 'lbn':
         if choose_data == 'odd':
             train_var = {
@@ -263,15 +280,15 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
     )
     plot_confusion_matrix(
         cm, ["TT","W", "HH", "DY"], global_settings['output_dir'])
-    test_fpr, test_tpr= mt.roc_curve(
-        data_dict['even_data']['multitarget'].astype(int),
+    test_fpr, test_tpr = mt.roc_curve(
+        test_data['multitarget'].astype(int),
         test_predicted_probabilities,
-        data_dict['even_data']['totalWeight'].astype(float)
+        test_data['evtWeight'].astype(float)
     )
     train_fpr, train_tpr = mt.roc_curve(
-        data_dict['odd_data']['multitarget'].astype(int),
+        train_data['multitarget'].astype(int),
         train_predicted_probabilities,
-        data_dict['odd_data']['totalWeight'].astype(float)
+        train_data['evtWeight'].astype(float)
     )
     train_auc = auc(train_fpr, train_tpr, reorder=True)
     test_auc = auc(test_fpr, test_tpr, reorder=True)

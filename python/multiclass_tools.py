@@ -11,40 +11,48 @@ def roc_curve(labels, pred_vectors, weights):
     pred_vectors: list of lists
         List of lists that contain the probabilities for an event to belong to
         a certain label
+    weights : list
+        List containing the weights of each event.
 
     Returns:
     -------
-    false_positive_rate : list
+    false_positive_rates : list
         List of false positives for given thresholds
-    true_positive_rate : list
+    true_positive_rates : list
         List of true positives for given thresholds
     '''
-    thresholds = np.arange(0, 1, 0.01)
-    number_bg = len(pred_vectors[0]) - 1
-    true_positive_rate = []
-    false_positive_rate = []
+    thresholds = np.linspace(0, 1, num=50)
+    number_bkg = len(pred_vectors[0]) - 1
+    unique_labels = range(len(pred_vectors[0]))
+    true_positive_rates = []
+    false_positive_rates = []
+    weights = np.array(weights)
+    mask_dict = {}
+    total_weights = {}
+    for label in unique_labels:
+        mask_dict[label] = (np.array(labels) == label).astype(int)
+        total_weights[label] = sum(weights * mask_dict[label])
     for threshold in thresholds:
-        signal = []
-        for vector, weight in zip(pred_vectors, weights):
-            sig_vector = np.array(vector) >= threshold
-            sig_vector = sig_vector.tolist()
-            result = []
-            for i, element in enumerate(sig_vector):
-                if element:
-                    result.append(i)
-            signal.append(result)
-        pairs = list(zip(labels, signal))
-        sig_score = 0
-        bg_score = 0
-        for pair in pairs:
-            for i in pair[1]:
-                if int(pair[0]) == i:
-                    sig_score += weight
-                else:
-                    bg_score += weight
-        true_positive_rate.append(float(sig_score)/len(labels))
-        false_positive_rate.append(float(bg_score)/(number_bg*len(labels)))
-    return false_positive_rate, true_positive_rate
+        true_positive_rate = 0
+        false_positive_rate = 0
+        total_bkg_weights = 0
+        total_false_positives = 0
+        total_true_positives = 0
+        signal_vector = (pred_vectors >= threshold).astype(int)
+        for label in unique_labels:
+            bkg_labels = list(unique_labels)
+            bkg_labels.pop(label)
+            total_true_positives += sum(
+                signal_vector[:, label] * mask_dict[label] * weights)
+            for bkg_label in bkg_labels:
+                total_bkg_weights += total_weights[bkg_label]
+                total_false_positives += sum(
+                    signal_vector[:, bkg_label] * weights)
+        true_positive_rate = total_true_positives / sum(weights)
+        false_positive_rate = total_false_positives / (len(unique_labels) * total_bkg_weights)
+        true_positive_rates.append(true_positive_rate)
+        false_positive_rates.append(false_positive_rate)
+    return false_positive_rates, true_positive_rates
 
 
 def multiclass_encoding(data, label_column='process'):
