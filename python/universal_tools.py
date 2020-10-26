@@ -45,8 +45,8 @@ def save_dict_to_json(dictionary, output_path):
     -------
     Nothing
     '''
-    with open(output_path, 'w') as file:
-        json.dump(dictionary, file, indent=4)
+    with open(output_path, 'w') as out_file:
+        json.dump(dictionary, out_file, indent=4)
 
 
 def save_run_settings(output_dir):

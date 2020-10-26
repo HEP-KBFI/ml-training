@@ -125,11 +125,11 @@ def load_hh_data(preferences, global_settings):
                 data[trainvar] = data[trainvar].astype(int)
             except:
                 continue
-    if( "nonres" not in global_settings['bdtType']):
+    if "nonres" not in global_settings['bdtType']:
         reweigh_dataframe(
             data,
             preferences['weight_dir'],
-            preferences['trainvar_info'],
+            preferences['trainvars_info'],
             ['gen_mHH'],
             preferences['masses'],
             preferences['trainvars']
