@@ -122,7 +122,7 @@ def calculate_d_score(train_score, test_score, kappa=1.5):
     '''
     difference = max(0, train_score - test_score)
     fr_difference = difference / (1 - test_score)
-    d_score = test_score - kappa * difference
+    d_score = test_score - kappa * fr_difference
     return d_score
 
 
