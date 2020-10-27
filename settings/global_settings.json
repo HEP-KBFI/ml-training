@@ -1,16 +1,16 @@
 {
-    "output_dir": "bdt_jpa_all",
-    "ml_method": "lbn",
+    "output_dir": "$HOME/ml_training_output",
+    "ml_method": "xgb",
     "process": "HH",
     "optimization_algo": "pso",
-    "bdtType": "evtLevelSUM_HH_bb1l_nonres",
+    "bdtType": "evtLevelSUM_HH_0l_4tau_res",
     "tauID_training": "deepVSjVVVLoose",
     "bkg_mass_rand": "oversampling",
-    "channel": "bb1l",
+    "channel": "0l_4tau",
     "fitness_fn": "d_roc",
     "use_kfold": 1,
     "nthread": 8,
-    "kappa": 3.5,
+    "kappa": 1,
     "spinCase": "spin0",
-    "dataCuts": "cuts_resolved_allreconstructed.json"
+    "dataCuts": 0
 }

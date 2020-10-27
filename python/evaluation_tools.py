@@ -121,6 +121,7 @@ def calculate_d_score(train_score, test_score, kappa=1.5):
         Score based on D-score and AUC
     '''
     difference = max(0, train_score - test_score)
+    fr_difference = difference / (1 - test_score)
     d_score = test_score - kappa * difference
     return d_score
 
