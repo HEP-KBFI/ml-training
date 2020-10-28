@@ -30,8 +30,9 @@ def main(to_continue, opt_dir):
     output_dir = os.path.expandvars(global_settings['output_dir'])
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
-    ut.save_run_settings(output_dir)
-    ut.save_info_dir(output_dir)
+    if not to_continue:
+        ut.save_run_settings(output_dir)
+        ut.save_info_dir(output_dir)
     print("::::::: Reading parameters :::::::")
     param_file = os.path.join(
         settings_dir,
