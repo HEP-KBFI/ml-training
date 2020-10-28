@@ -142,10 +142,10 @@ class ParticleSwarm:
         self.settings = settings
         self.fitness_function = fitness_function
         self.hyperparameter_info = hyperparameter_info
-        hyperparameter_sets = get_iteration_info(
-            self.output_dir, 0, self.settings)[1]
         self.swarm = self.createSwarm()
         if self.continuation:
+            hyperparameter_sets = get_iteration_info(
+                self.output_dir, 0, self.settings)[1]
             self.createSetSwarm(hyperparameter_sets)
 
     def createSwarm(self):
