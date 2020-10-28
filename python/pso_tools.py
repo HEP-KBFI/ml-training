@@ -236,7 +236,7 @@ def collect_iteration_particles(iteration_dir):
 def check_last_iteration_completeness(all_iterations, iteration_dir):
     iteration_nrs = [int(iteration.split('_')[-1]) for iteration in all_iterations]
     iteration_nrs.sort()
-    second_last = os.path.join(iteration_dir, 'iteration_' + str(iteration_nrs[-2]))
+    last_iteration = os.path.join(iteration_dir, 'iteration_' + str(iteration_nrs[-1]))
     all_particles_wildcard = os.path.join(last_iteration, '*')
     for path in glob.glob(all_particles_wildcard):
         parameter_file = os.path.join(path, 'parameters.json')
