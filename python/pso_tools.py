@@ -127,13 +127,25 @@ class Particle():
         self.track_history()
         self.confidence_coefficients['w'] -= self.weight_step
 
+    def set_hyperparameter_values(self, hyperparameters):
+        for key in self.keys:
+            self.hyperparameters[key] = hyperparameters[key]
 
 class ParticleSwarm:
-    def __init__(self, settings, fitness_function, hyperparameter_info):
+    def __init__(
+            self, settings, fitness_function,
+            hyperparameter_info, continuation, output_dir
+    ):
+        self.continuation = continuation
+        self.output_dir = output_dir
         self.settings = settings
         self.fitness_function = fitness_function
         self.hyperparameter_info = hyperparameter_info
+        hyperparameter_sets = get_iteration_info(
+            self.output_dir, 0, self.settings)
         self.swarm = self.createSwarm()
+        if self.continuation:
+            self.createSetSwarm(hyperparameter_sets)
 
     def createSwarm(self):
         particle_swarm = []
@@ -142,6 +154,10 @@ class ParticleSwarm:
                 self.hyperparameter_info, self.settings['iterations'])
             particle_swarm.append(single_particle)
         return particle_swarm
+
+    def createSetSwarm(self, hyperparameter_sets):
+        for particle, hyperparameters in zip(self.swarm, hyperparameter_sets):
+            particle.set_hyperparameter_values(hyperparameters)
 
     def espionage(self):
         for particle in self.swarm:
@@ -175,23 +191,27 @@ class ParticleSwarm:
         best_location = best_locations[index]
         return best_fitness, best_location
 
-    def particleSwarmOptimization(self, continuation, output_dir):
-        if continuation:
-            last_complete_iteration = collect_iteration_particles(output_dir)
+    def particleSwarmOptimization(self):
         iteration = 0
-        all_locations = [particle.hyperparameters for particle in self.swarm]
-        fitnesses = self.fitness_function(all_locations, self.settings)
+        if self.continuation:
+            last_complete_iteration = collect_iteration_particles(self.output_dir)
+            fitnesses = get_iteration_info(self.output_dir, iteration, self.settings)
+        else:
+            all_locations = [particle.hyperparameters for particle in self.swarm]
+            fitnesses = self.fitness_function(all_locations, self.settings)
         self.set_particle_fitnesses(fitnesses, initial=True)
         for particle in self.swarm:
             particle.next_iteration()
         not_clustered = True
         while iteration <= self.settings['iterations'] and not_clustered:
-            if iteration < last_complete_iteration:
-
             print('::::::: Iteration: ' + str(iteration) + ' ::::::::')
             self.espionage()
-            all_locations = [particle.hyperparameters for particle in self.swarm]
-            fitnesses = self.fitness_function(all_locations, self.settings)
+            if self.continuation and iteration <= last_complete_iteration:
+                fitnesses, _ = get_iteration_info(
+                    self.output_dir, iteration, self.settings)
+            else:
+                all_locations = [particle.hyperparameters for particle in self.swarm]
+                fitnesses = self.fitness_function(all_locations, self.settings)
             self.set_particle_fitnesses(fitnesses)
             for particle in self.swarm:
                 particle.next_iteration()
