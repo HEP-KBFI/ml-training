@@ -24,14 +24,17 @@ def main(to_continue, opt_dir):
             os.path.expandvars('$CMSSW_BASE'),
             'src/machineLearning/machineLearning/settings'
         )
+        global_settings = ut.read_settings(settings_dir, 'global')
+        output_dir = os.path.expandvars(global_settings['output_dir'])
     else:
         settings_dir = os.path.join(opt_dir, 'run_settings')
-    global_settings = ut.read_settings(settings_dir, 'global')
-    output_dir = os.path.expandvars(global_settings['output_dir'])
+        global_settings = ut.read_settings(settings_dir, 'global')
+        output_dir = opt_dir
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
-    ut.save_run_settings(output_dir)
-    ut.save_info_dir(output_dir)
+    if not to_continue:
+        ut.save_run_settings(output_dir)
+        ut.save_info_dir(output_dir)
     print("::::::: Reading parameters :::::::")
     param_file = os.path.join(
         settings_dir,
@@ -41,7 +44,10 @@ def main(to_continue, opt_dir):
     pso_settings = ut.read_settings(settings_dir, 'pso')
     pso_settings.update(global_settings)
     print("\n============ Starting hyperparameter optimization ==========\n")
-    swarm = pt.ParticleSwarm(pso_settings, st.get_fitness_score, hyperparameter_info)
+    swarm = pt.ParticleSwarm(
+        pso_settings, st.get_fitness_score, hyperparameter_info,
+        to_continue, output_dir
+    )
     optimal_hyperparameters = swarm.particleSwarmOptimization()[0]
     print("\n============ Saving results ================\n")
     best_parameters_path = os.path.join(
