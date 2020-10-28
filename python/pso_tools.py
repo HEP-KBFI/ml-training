@@ -196,7 +196,6 @@ class ParticleSwarm:
         iteration = 0
         if self.continuation:
             last_complete_iteration = collect_iteration_particles(self.output_dir)
-            print(last_complete_iteration)
             fitnesses = get_iteration_info(self.output_dir, iteration, self.settings)[0]
         else:
             all_locations = [particle.hyperparameters for particle in self.swarm]
@@ -205,6 +204,7 @@ class ParticleSwarm:
         for particle in self.swarm:
             particle.next_iteration()
         not_clustered = True
+        iteration = 1
         while iteration <= self.settings['iterations'] and not_clustered:
             print('::::::: Iteration: ' + str(iteration) + ' ::::::::')
             self.espionage()
@@ -265,4 +265,3 @@ def get_iteration_info(output_dir, iteration, settings):
         fitnesses.append(fitness)
         parameters_list.append(parameters)
     return fitnesses, parameters_list
-
