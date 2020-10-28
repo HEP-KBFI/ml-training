@@ -24,10 +24,11 @@ def main(to_continue, opt_dir):
             os.path.expandvars('$CMSSW_BASE'),
             'src/machineLearning/machineLearning/settings'
         )
+        global_settings = ut.read_settings(settings_dir, 'global')
+        output_dir = os.path.expandvars(global_settings['output_dir'])
     else:
         settings_dir = os.path.join(opt_dir, 'run_settings')
-    global_settings = ut.read_settings(settings_dir, 'global')
-    output_dir = os.path.expandvars(global_settings['output_dir'])
+        output_dir = opt_dir
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
     if not to_continue:

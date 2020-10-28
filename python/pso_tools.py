@@ -2,6 +2,7 @@ import numpy as np
 from machineLearning.machineLearning import evaluation_tools as et
 import glob
 import os
+import json
 
 
 class Particle():
