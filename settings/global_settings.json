@@ -10,7 +10,7 @@
     "fitness_fn": "d_roc",
     "use_kfold": 1,
     "nthread": 8,
-    "kappa": 1,
+    "kappa": 0.3,
     "spinCase": "spin0",
     "dataCuts": 0
 }
