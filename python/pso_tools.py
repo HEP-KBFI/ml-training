@@ -143,7 +143,7 @@ class ParticleSwarm:
         self.fitness_function = fitness_function
         self.hyperparameter_info = hyperparameter_info
         hyperparameter_sets = get_iteration_info(
-            self.output_dir, 0, self.settings)
+            self.output_dir, 0, self.settings)[1]
         self.swarm = self.createSwarm()
         if self.continuation:
             self.createSetSwarm(hyperparameter_sets)
@@ -196,7 +196,8 @@ class ParticleSwarm:
         iteration = 0
         if self.continuation:
             last_complete_iteration = collect_iteration_particles(self.output_dir)
-            fitnesses = get_iteration_info(self.output_dir, iteration, self.settings)
+            print(last_complete_iteration)
+            fitnesses = get_iteration_info(self.output_dir, iteration, self.settings)[0]
         else:
             all_locations = [particle.hyperparameters for particle in self.swarm]
             fitnesses = self.fitness_function(all_locations, self.settings)
@@ -207,11 +208,11 @@ class ParticleSwarm:
         while iteration <= self.settings['iterations'] and not_clustered:
             print('::::::: Iteration: ' + str(iteration) + ' ::::::::')
             self.espionage()
+            all_locations = [particle.hyperparameters for particle in self.swarm]
             if self.continuation and iteration <= last_complete_iteration:
                 fitnesses, _ = get_iteration_info(
                     self.output_dir, iteration, self.settings)
             else:
-                all_locations = [particle.hyperparameters for particle in self.swarm]
                 fitnesses = self.fitness_function(all_locations, self.settings)
             self.set_particle_fitnesses(fitnesses)
             for particle in self.swarm:
@@ -227,7 +228,7 @@ class ParticleSwarm:
 
 
 def collect_iteration_particles(iteration_dir):
-    iteration_paths = os.path.join(iteration_dir, 'iteration_*')
+    iteration_paths = os.path.join(iteration_dir, 'previous_files',  'iteration_*')
     all_iterations = glob.glob(iteration_paths)
     return check_last_iteration_completeness(all_iterations, iteration_dir)
 
@@ -235,17 +236,16 @@ def collect_iteration_particles(iteration_dir):
 def check_last_iteration_completeness(all_iterations, iteration_dir):
     iteration_nrs = [int(iteration.split('_')[-1]) for iteration in all_iterations]
     iteration_nrs.sort()
-    last_iteration = os.path.join(iteration_dir, 'iteration_' + str(iteration_nrs[-1]))
     second_last = os.path.join(iteration_dir, 'iteration_' + str(iteration_nrs[-2]))
     all_particles_wildcard = os.path.join(last_iteration, '*')
     for path in glob.glob(all_particles_wildcard):
         parameter_file = os.path.join(path, 'parameters.json')
         score_file = os.path.join(path, 'score.json')
         if not os.path.exists(parameter_file):
-            return second_last
+            return iteration_nrs[-2]
         if not os.path.exists(score_file):
-            return second_last
-    return last_iteration
+            return iteration_nrs[-2]
+    return iteration_nrs[-1]
 
 
 def get_iteration_info(output_dir, iteration, settings):
