@@ -230,7 +230,10 @@ def load_data_from_tfile(
     '''
     if tree is not None:
         try:
-            chunk_arr = tree2array(tree)
+            if bool(global_settings['trainvarOpt']):
+                chunk_arr = tree2array(tree)
+            else:
+                chunk_arr = tree2array(tree, branches=preferences['trainvars'])
             chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
         except Exception:
