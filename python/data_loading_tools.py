@@ -237,7 +237,7 @@ def load_data_from_tfile(
                 to_be_loaded = list(preferences['trainvars'])
                 to_be_loaded.extend(weightBranches)
                 to_be_dropped = ['gen_mHH']
-                to_be_dropped.extend(list(preferences['nonResScenarioss']))
+                to_be_dropped.extend(list(preferences['nonResScenarios']))
                 if 'nonres' in sample_name:
                     nonres_weights = [str('Weight_') + scenario for scenario in preferences['nonResScenarios']]
                     to_be_loaded.extend(nonres_weights)
