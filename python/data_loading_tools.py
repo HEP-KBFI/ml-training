@@ -12,7 +12,7 @@ import glob
 import numpy as np
 from root_numpy import tree2array
 import uproot_methods
-
+from datetime import datetime
 
 TLorentzVectorArray = uproot_methods.classes.TLorentzVector.TLorentzVectorArray
 
@@ -76,18 +76,6 @@ def tree_to_array(data, name="Jet"):
     array = np.moveaxis(array,0,1)
     return array
 
-def get_low_level(data) :
-    b1jets = tree_to_array(data, name="bjet1")
-    b2jets = tree_to_array(data, name="bjet2")
-    w1jets = tree_to_array(data, name="wjet1")
-    w2jets = tree_to_array(data, name="wjet2")
-    leptons = tree_to_array(data, name="lep")
-    events = np.stack([b1jets,b2jets,w1jets,w2jets,leptons],axis=1)
-    return events
-
-def get_high_level(tree, variables) :
-    output = np.array([np.array(tree[variable].astype(np.float32)) for variable in variables])
-    return np.moveaxis(output, 0, 1)
 def load_data(
         preferences,
         global_settings,
@@ -123,8 +111,30 @@ def load_data(
         )
         data['era'] = era
         total_data = total_data.append(data)
+    print("DY: " , len(total_data.loc[total_data["process"] == "DY"]),\
+          "W: " , len(total_data.loc[total_data["process"] == "W"]),\
+          "TT: " , len(total_data.loc[total_data["process"] == "TT"]),\
+          'ST: ', len(total_data.loc[total_data["process"] == "ST"]), \
+          'Other:', len(total_data.loc[total_data["process"] == "Other"]),\
+          'HH', len(total_data.loc[total_data["process"] == "signal_ggf_nonresonant_hh_bbvv_sl"])
+      )
     if global_settings['dataCuts'] != 0:
-        data = data_cutting(data, global_settings)
+        total_data = data_cutting(total_data, global_settings)
+    TT = total_data.loc[total_data["process"]=="TT"].head(200000)
+    ST = total_data.loc[total_data["process"]=="ST"].head(200000)
+    Other = total_data.loc[total_data["process"]=="Other"].head(200000)
+    W = total_data.loc[total_data["process"]=="W"].head(200000)
+    DY = total_data.loc[total_data["process"]=="DY"].head(200000)
+    HH = total_data.loc[total_data["process"]=="signal_ggf_nonresonant_hh_bbvv_sl"]
+    alldata = [TT, ST, Other, W, DY, HH]
+    total_data = pandas.concat(alldata)
+    print("DY: " , len(total_data.loc[total_data["process"] == "DY"]), "\t" ,\
+          "W: " , len(total_data.loc[total_data["process"] == "W"]), "\t",\
+          "TT: " , len(total_data.loc[total_data["process"] == "TT"]), '\t', \
+          'ST: ', len(total_data.loc[total_data["process"] == "ST"]), "\t" , \
+          'Other:', len(total_data.loc[total_data["process"] == "Other"]), '\t', \
+          'HH', len(total_data.loc[total_data["process"] == "signal_ggf_nonresonant_hh_bbvv_sl"])
+      )
     return total_data
 
 
@@ -210,8 +220,12 @@ def data_main_loop(
     paths = get_all_paths(
         preferences['era_inputPath'], folder_name, global_settings['bdtType']
     )
+    start_time = datetime.now()
     for path in paths:
         print('Loading from: ' + path)
+        if ((datetime.now() -start_time).total_seconds()/60) > 5 :
+            print 'Start time: ', start_time, '\t', 'Current time: ' , datetime.now()
+            start_time = datetime.now()
         tree, tfile = read_root_tree(path, input_tree)
         data = load_data_from_tfile(
             tree,
@@ -264,9 +278,9 @@ def load_data_from_tfile(
     '''
     if tree is not None:
         try:
-            stop = 10000
+            stop = 1000#None
             if global_settings["channel"] == "bb1l" and sample_name == "TT" :
-                stop = 50000
+                stop = 1000#3000000
             chunk_arr = tree2array(tree, stop=stop)
             chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
@@ -328,6 +342,7 @@ def define_new_variables(
     chunk_df['key'] = folder_name
     chunk_df['target'] = int(target)
     chunk_df['totalWeight'] = chunk_df['evtWeight']
+    chunk_df.loc[chunk_df["process"].isin(["TTW", "TTWW", "WW", "WZ", "ZZ", "TTH", "TH", "VH", "Other"]), "process"] = "Other"
     if 'HH' in global_settings['bdtType']:
         data = hhdt.define_new_variables(
             chunk_df, sample_name, folder_name, target, preferences,
@@ -641,6 +656,7 @@ def data_cutting(data, global_settings):
             print('No cuts given in the cut file %s' %(cut_file))
         else:
             cut_keys = list(cut_dict.keys())
+            print '1st len=== ', len(data)
             for key in cut_keys:
                 try:
                     min_value = cut_dict[key]['min']
@@ -654,4 +670,5 @@ def data_cutting(data, global_settings):
                     print('Maximum condition for %s not implemented' %(key))
     else:
         print('Cut file %s does not exist' %(cut_file))
+    print '2nd len== ', len(data)
     return data
