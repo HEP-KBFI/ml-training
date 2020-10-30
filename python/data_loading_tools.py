@@ -236,9 +236,10 @@ def load_data_from_tfile(
                 weightBranches = ['evtWeight']
                 to_be_loaded = list(preferences['trainvars'])
                 to_be_loaded.extend(weightBranches)
-                if 'nonRes' in global_settings['bdtType']:
+                if 'nonres' in global_settings['bdtType']:
                     nonres_weights = [str('Weight_') + scenario for scenario in preferences['nonResScenarios']]
-                    to_be_loaded.extend(nonres_weights)
+                    if 'nonres' in sample_name:
+                        to_be_loaded.extend(nonres_weights)
                     for scenario in preferences['nonResScenarios']:
                         to_be_loaded.remove(scenario)
                 else:
