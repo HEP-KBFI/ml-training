@@ -236,14 +236,16 @@ def load_data_from_tfile(
                 weightBranches = ['evtWeight', 'event']
                 to_be_loaded = list(preferences['trainvars'])
                 to_be_loaded.extend(weightBranches)
-                if 'nonres' in global_settings['bdtType']:
+                if global_settings['debug']:
+                    to_be_loaded.extend(['luminosityBlock', 'run'])
+                to_be_dropped = ['gen_mHH']
+                to_be_dropped.extend(list(preferences['nonResScenarios']))
+                if 'nonres' in sample_name:
                     nonres_weights = [str('Weight_') + scenario for scenario in preferences['nonResScenarios']]
-                    if 'nonres' in sample_name:
-                        to_be_loaded.extend(nonres_weights)
-                    for scenario in preferences['nonResScenarios']:
-                        to_be_loaded.remove(scenario)
-                else:
-                    to_be_loaded.remove('gen_mHH')
+                    to_be_loaded.extend(nonres_weights)
+                for drop in to_be_dropped:
+                    if drop in to_be_loaded:
+                        to_be_loaded.remove(drop)
                 chunk_arr = tree2array(tree, branches=to_be_loaded)
             chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
