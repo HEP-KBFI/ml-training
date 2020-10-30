@@ -233,7 +233,7 @@ def load_data_from_tfile(
             if bool(global_settings['trainvarOpt']):
                 chunk_arr = tree2array(tree)
             else:
-                weightBranches = ['evtWeight']
+                weightBranches = ['evtWeight', 'event']
                 to_be_loaded = list(preferences['trainvars'])
                 to_be_loaded.extend(weightBranches)
                 if 'nonres' in global_settings['bdtType']:
