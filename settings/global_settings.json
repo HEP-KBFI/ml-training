@@ -1,6 +1,7 @@
 {
-    "output_dir": "bdt_jpa_all",
-    "ml_method": "lbn",
+    "output_dir": "bdt_jpa_all_resolved",
+    "ml_method": "nn",
+    "feature_importance" : 0,
     "process": "HH",
     "optimization_algo": "pso",
     "bdtType": "evtLevelSUM_HH_bb1l_nonres",
@@ -12,5 +13,7 @@
     "nthread": 8,
     "kappa": 3.5,
     "spinCase": "spin0",
-    "dataCuts": "cuts_resolved_allreconstructed.json"
+    "save_model" : 1,
+    "mode" : "resolved",
+    "dataCuts": "cuts_resolved.json"
 }
