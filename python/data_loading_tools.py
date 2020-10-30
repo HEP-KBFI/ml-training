@@ -233,12 +233,16 @@ def load_data_from_tfile(
             if bool(global_settings['trainvarOpt']):
                 chunk_arr = tree2array(tree)
             else:
-                weightBranches = ['evtWeight', 'totalWeight']
+                weightBranches = ['evtWeight']
                 to_be_loaded = list(preferences['trainvars'])
                 to_be_loaded.extend(weightBranches)
                 if 'nonRes' in global_settings['bdtType']:
                     nonres_weights = [str('Weight_') + scenario for scenario in preferences['nonResScenarios']]
                     to_be_loaded.extend(nonres_weights)
+                    for scenario in preferences['nonResScenarios']:
+                        to_be_loaded.remove(scenario)
+                else:
+                    to_be_loaded.remove('gen_mHH')
                 chunk_arr = tree2array(tree, branches=to_be_loaded)
             chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
