@@ -1495,7 +1495,8 @@ def PlotClassifierByX(
 def get_hh_parameters(
         channel_dir,
         tau_id_training,
-        info_dir
+        info_dir,
+        global_settings
 ):
     '''Reads the parameters for HH data loading
 
@@ -1515,6 +1516,7 @@ def get_hh_parameters(
     '''
     info_path = os.path.join(info_dir, 'info.json')
     trainvars_path = os.path.join(info_dir, 'trainvars.json')
+    if global_settings["dataCuts"].find("boosted") != -1 : trainvars_path = os.path.join(info_dir, 'trainvars_boosted.json')
     info_dict = ut.read_json_cfg(info_path)
     default_tauID = info_dict['default_tauID_application']
     parameters = {}
