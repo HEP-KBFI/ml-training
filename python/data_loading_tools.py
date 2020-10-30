@@ -236,6 +236,8 @@ def load_data_from_tfile(
                 weightBranches = ['evtWeight', 'event']
                 to_be_loaded = list(preferences['trainvars'])
                 to_be_loaded.extend(weightBranches)
+                if debug:
+                    to_be_loaded.extend(['luminosityBlock', 'run'])
                 to_be_dropped = ['gen_mHH']
                 to_be_dropped.extend(list(preferences['nonResScenarios']))
                 if 'nonres' in sample_name:

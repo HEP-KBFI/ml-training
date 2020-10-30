@@ -44,6 +44,7 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
         global_settings['output_dir'])
     if not os.path.exists(global_settings['output_dir']):
         os.makedirs(global_settings['output_dir'])
+    global_settings['debug'] = debug
     channel_dir, info_dir, _ = ut.find_settings()
     preferences = hhat.get_hh_parameters(
         channel_dir,
@@ -81,20 +82,20 @@ def evaluation_main(global_settings, preferences, hyperparameters, debug):
         odd_data, hyperparameters, preferences, global_settings, 'odd_half'
     )
     odd_infos = list(performance_prediction(
-            odd_model, even_data, odd_data, global_settings,
-            'odd', preferences, debug
+        odd_model, even_data, odd_data, global_settings,
+        'odd', preferences, debug
     ))
     even_infos = list(performance_prediction(
-            even_model, odd_data, even_data, global_settings,
-            'even', preferences, debug
+        even_model, odd_data, even_data, global_settings,
+        'even', preferences, debug
     ))
     hhvt.plotROC(odd_infos, even_infos, global_settings)
     hhvt.plot_sampleWise_bdtOutput(
         odd_model, even_data, preferences, global_settings
     )
     nodeWise_modelPredictions(
-            odd_data, even_data, odd_model, even_model, preferences,
-            global_settings
+        odd_data, even_data, odd_model, even_model, preferences,
+        global_settings
     )
 
 
@@ -156,20 +157,20 @@ def nodeWise_modelPredictions(
         split_even_data_sig = split_even_data.loc[split_even_data['target'] == 1]
         split_even_data_bkg = split_even_data.loc[split_even_data['target'] == 0]
         odd_info_sig = list(performance_prediction(
-                odd_model, split_even_data_sig, split_odd_data_sig,
-                global_settings, 'odd', preferences, False
+            odd_model, split_even_data_sig, split_odd_data_sig,
+            global_settings, 'odd', preferences, False
         ))
         odd_info_bkg = list(performance_prediction(
-                odd_model, split_even_data_bkg, split_odd_data_bkg,
-                global_settings, 'odd', preferences, False
+            odd_model, split_even_data_bkg, split_odd_data_bkg,
+            global_settings, 'odd', preferences, False
         ))
         odd_total_infos = list(performance_prediction(
-                odd_model, split_even_data, split_odd_data, global_settings,
-                'odd', preferences, False
+            odd_model, split_even_data, split_odd_data, global_settings,
+            'odd', preferences, False
         ))
         even_total_infos = list(performance_prediction(
-                even_model, split_odd_data, split_even_data, global_settings,
-                'even', preferences, False
+            even_model, split_odd_data, split_even_data, global_settings,
+            'even', preferences, False
         ))
         nodeWise_histo_dict = {
             'sig_test_w': split_even_data_sig[weight],
