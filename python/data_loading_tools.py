@@ -230,7 +230,21 @@ def load_data_from_tfile(
     '''
     if tree is not None:
         try:
-            chunk_arr = tree2array(tree)
+            if bool(global_settings['trainvarOpt']):
+                chunk_arr = tree2array(tree)
+            else:
+                weightBranches = ['evtWeight', 'event']
+                to_be_loaded = list(preferences['trainvars'])
+                to_be_loaded.extend(weightBranches)
+                if 'nonres' in global_settings['bdtType']:
+                    nonres_weights = [str('Weight_') + scenario for scenario in preferences['nonResScenarios']]
+                    if 'nonres' in sample_name:
+                        to_be_loaded.extend(nonres_weights)
+                    for scenario in preferences['nonResScenarios']:
+                        to_be_loaded.remove(scenario)
+                else:
+                    to_be_loaded.remove('gen_mHH')
+                chunk_arr = tree2array(tree, branches=to_be_loaded)
             chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
         except Exception:
