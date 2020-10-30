@@ -30,7 +30,7 @@ except:
 
 
 def main(output_dir, settings_dir, hyperparameter_file, debug):
-    if output_dir == 'None':
+    if settings_dir == 'None':
         settings_dir = os.path.join(
             os.path.expandvars('$CMSSW_BASE'),
             'src/machineLearning/machineLearning/settings'
