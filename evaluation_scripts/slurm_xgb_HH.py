@@ -36,6 +36,7 @@ def main(hyperparameter_file, output_dir):
         global_settings['tauID_training'],
         info_dir
     )
+    global_settings['debug'] = False
     data = hhat.load_hh_data(preferences, global_settings)
     if bool(global_settings['use_kfold']):
         score = et.kfold_cv(
