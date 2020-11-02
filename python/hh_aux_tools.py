@@ -18,7 +18,6 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 ROOT.gROOT.SetBatch(True)
 
-
 def normalize_hh_dataframe(
         data,
         preferences,
@@ -1516,7 +1515,14 @@ def get_hh_parameters(
     '''
     info_path = os.path.join(info_dir, 'info.json')
     trainvars_path = os.path.join(info_dir, 'trainvars.json')
-    if global_settings["dataCuts"].find("boosted") != -1 : trainvars_path = os.path.join(info_dir, 'trainvars_boosted.json')
+    if global_settings["ml_method"] == "lbn" :
+        trainvars_path = os.path.join(info_dir, 'trainvars_resolved_lbn.json')
+    if global_settings["dataCuts"].find("boosted") != -1 :
+        trainvars_path = os.path.join(info_dir, 'trainvars_boosted.json')
+    if global_settings["dataCuts"].find("boosted") != -1 and global_settings["ml_method"] == "lbn" :
+        trainvars_path = os.path.join(info_dir, 'trainvars_boosted_lbn.json')
+    if global_settings["dataCuts"].find("boosted") == -1 and global_settings["ml_method"] == "lbn" :
+        trainvars_path = os.path.join(info_dir, 'trainvars_resolved_lbn.json')
     info_dict = ut.read_json_cfg(info_path)
     default_tauID = info_dict['default_tauID_application']
     parameters = {}
