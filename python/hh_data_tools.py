@@ -55,30 +55,32 @@ def get_ntuple_paths(input_path, folder_name, bdt_type, file_type='*'):
     if (folder_name in sample_categories.keys()):
         for fname in sample_categories[folder_name]:
             wild_card_path = os.path.join(
-                input_path, fname + '*', 'central', file_type + '.root')
+                input_path, fname + '*', 'central', file_type + 'hadd*Tight.root')
+            print '1stwild=', wild_card_path
             addpaths = glob.glob(wild_card_path)
             if len(addpaths) == 0:
                 wild_card_path = os.path.join(
-                    input_path, fname + '*', file_type + '.root')
+                    input_path, fname + '*', file_type + 'hadd*Tight.root')
                 addpaths = glob.glob(wild_card_path)
             paths.extend(addpaths)
         paths = list(dict.fromkeys(paths))
     if len(paths) == 0:
         if 'signal' in folder_name:
             wild_card_path = os.path.join(
-                input_path, folder_name, 'central', file_type + '.root')
+                input_path, folder_name, 'central', file_type + 'hadd*Tight.root')
             paths = glob.glob(wild_card_path)
             if len(paths) == 0:
                 wild_card_path = os.path.join(
-                    input_path, folder_name, file_type + '.root')
+                    input_path, folder_name, file_type + 'hadd*Tight.root')
                 paths = glob.glob(wild_card_path)
         else:
             wild_card_path = os.path.join(
-                input_path, folder_name + '*', 'central', file_type + '.root')
+                input_path, folder_name + '*', 'central', file_type + 'hadd*Tight.root')
+            print 'wild=', wild_card_path
             paths = glob.glob(wild_card_path)
             if len(paths) == 0:
                 wild_card_path = os.path.join(
-                    input_path, folder_name + '*', file_type + '.root')
+                    input_path, folder_name + '*', file_type + 'hadd*Tight.root')
                 paths = glob.glob(wild_card_path)
     #paths = [path for path in paths if 'hadd' not in path]
     paths = [path for path in paths]
