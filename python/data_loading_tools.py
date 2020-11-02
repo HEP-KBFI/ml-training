@@ -50,8 +50,6 @@ def get_low_level(data) :
 def get_high_level(tree, variables) :
     output = np.array([np.array(tree[variable].astype(np.float32)) for variable in variables])
     output = np.moveaxis(output, 0, 1)
-    output_mean, output_std = np.mean(output, axis=0), np.std(output, axis=0)
-    output = (output - output_mean) / output_std
     return output
 
 TLorentzVectorArray = uproot_methods.classes.TLorentzVector.TLorentzVectorArray
@@ -111,30 +109,32 @@ def load_data(
         )
         data['era'] = era
         total_data = total_data.append(data)
-    print("DY: " , len(total_data.loc[total_data["process"] == "DY"]),\
-          "W: " , len(total_data.loc[total_data["process"] == "W"]),\
-          "TT: " , len(total_data.loc[total_data["process"] == "TT"]),\
-          'ST: ', len(total_data.loc[total_data["process"] == "ST"]), \
-          'Other:', len(total_data.loc[total_data["process"] == "Other"]),\
-          'HH', len(total_data.loc[total_data["process"] == "signal_ggf_nonresonant_hh_bbvv_sl"])
-      )
+    if global_settings["channel"] == "bb1l" :
+        print("DY: " , len(total_data.loc[total_data["process"] == "DY"]),\
+              "W: " , len(total_data.loc[total_data["process"] == "W"]),\
+              "TT: " , len(total_data.loc[total_data["process"] == "TT"]),\
+              'ST: ', len(total_data.loc[total_data["process"] == "ST"]), \
+              'Other:', len(total_data.loc[total_data["process"] == "Other"]),\
+              'HH', len(total_data.loc[total_data["process"] == "signal_ggf_nonresonant_hh_bbvv_sl"])
+          )
     if global_settings['dataCuts'] != 0:
         total_data = data_cutting(total_data, global_settings)
-    TT = total_data.loc[total_data["process"]=="TT"].head(200000)
-    ST = total_data.loc[total_data["process"]=="ST"].head(200000)
-    Other = total_data.loc[total_data["process"]=="Other"].head(200000)
-    W = total_data.loc[total_data["process"]=="W"].head(200000)
-    DY = total_data.loc[total_data["process"]=="DY"].head(200000)
-    HH = total_data.loc[total_data["process"]=="signal_ggf_nonresonant_hh_bbvv_sl"]
-    alldata = [TT, ST, Other, W, DY, HH]
-    total_data = pandas.concat(alldata)
-    print("DY: " , len(total_data.loc[total_data["process"] == "DY"]), "\t" ,\
-          "W: " , len(total_data.loc[total_data["process"] == "W"]), "\t",\
-          "TT: " , len(total_data.loc[total_data["process"] == "TT"]), '\t', \
-          'ST: ', len(total_data.loc[total_data["process"] == "ST"]), "\t" , \
-          'Other:', len(total_data.loc[total_data["process"] == "Other"]), '\t', \
-          'HH', len(total_data.loc[total_data["process"] == "signal_ggf_nonresonant_hh_bbvv_sl"])
-      )
+    if global_settings["channel"] == "bb1l" :
+        TT = total_data.loc[total_data["process"]=="TT"].head(200000)
+        ST = total_data.loc[total_data["process"]=="ST"].head(200000)
+        Other = total_data.loc[total_data["process"]=="Other"].head(200000)
+        W = total_data.loc[total_data["process"]=="W"].head(200000)
+        DY = total_data.loc[total_data["process"]=="DY"].head(200000)
+        HH = total_data.loc[total_data["process"]=="signal_ggf_nonresonant_hh_bbvv_sl"]
+        alldata = [TT, ST, Other, W, DY, HH]
+        total_data = pandas.concat(alldata)
+        print("DY: " , len(total_data.loc[total_data["process"] == "DY"]),\
+              "W: " , len(total_data.loc[total_data["process"] == "W"]), \
+              "TT: " , len(total_data.loc[total_data["process"] == "TT"]), \
+              'ST: ', len(total_data.loc[total_data["process"] == "ST"]), \
+              'Other:', len(total_data.loc[total_data["process"] == "Other"]), \
+              'HH', len(total_data.loc[total_data["process"] == "signal_ggf_nonresonant_hh_bbvv_sl"])
+          )
     return total_data
 
 
@@ -280,7 +280,7 @@ def load_data_from_tfile(
         try:
             stop = 1000#None
             if global_settings["channel"] == "bb1l" and sample_name == "TT" :
-                stop = 1000#3000000
+                stop = 10000#3000000
             chunk_arr = tree2array(tree, stop=stop)
             chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
