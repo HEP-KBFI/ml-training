@@ -11,17 +11,15 @@ Options:
     -s --step_size=INT              Number of trainvars dropped per iteration [default: 5]
 
 '''
+import shutil
+import os
+import json
 from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_aux_tools as hhat
 from machineLearning.machineLearning import xgb_tools as xt
 import numpy as np
-import xgboost as xgb
 import docopt
-from pathlib import Path
-import shutil
-import os
-import json
 
 
 def prepare_data():

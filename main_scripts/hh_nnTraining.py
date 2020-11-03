@@ -55,6 +55,7 @@ def main(output_dir):
         global_settings['output_dir'] = output_dir
     global_settings['output_dir'] = os.path.expandvars(
         global_settings['output_dir'])
+    global_settings['debug'] = False
     if not os.path.exists(global_settings['output_dir']):
         os.makedirs(global_settings['output_dir'])
     channel_dir, info_dir, _ = ut.find_settings()
@@ -90,8 +91,11 @@ def main(output_dir):
             even_model, data[trainvars], data['evtWeight'],
             trainvars, data['multitarget']
         )
-        hhvt.plot_feature_importances_from_dict(
-            score_dict, global_settings['output_dir'])
+    else:
+        score_dict = nt.lbn_feature_importances(
+            even_model, data_dict, preferences['trainvars'])
+    hhvt.plot_feature_importances_from_dict(
+        score_dict, global_settings['output_dir'])
     hhvt.plotROC(
         [odd_train_info, odd_test_info],
         [even_train_info, even_test_info],
@@ -103,8 +107,13 @@ def main(output_dir):
             data_dict["even_data"].loc[
                 data_dict["even_data"]["process"] == class_, "multitarget"
             ]
-    ))[0]
+        ))[0]
         print(str(class_) + '\t' + str(multitarget))
+        hhvt.plot_nn_sampleWise_bdtOutput(
+            odd_model, data_dict["even_data"], preferences,
+            global_settings, multitarget, class_, data_dict
+        )
+
 
 def create_data_dict(preferences, global_settings):
     data = dlt.load_data(

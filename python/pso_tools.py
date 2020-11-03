@@ -1,5 +1,8 @@
 import numpy as np
 from machineLearning.machineLearning import evaluation_tools as et
+import glob
+import os
+import json
 
 
 class Particle():
@@ -125,13 +128,25 @@ class Particle():
         self.track_history()
         self.confidence_coefficients['w'] -= self.weight_step
 
+    def set_hyperparameter_values(self, hyperparameters):
+        for key in self.keys:
+            self.hyperparameters[key] = hyperparameters[key]
 
 class ParticleSwarm:
-    def __init__(self, settings, fitness_function, hyperparameter_info):
+    def __init__(
+            self, settings, fitness_function,
+            hyperparameter_info, continuation, output_dir
+    ):
+        self.continuation = continuation
+        self.output_dir = output_dir
         self.settings = settings
         self.fitness_function = fitness_function
         self.hyperparameter_info = hyperparameter_info
         self.swarm = self.createSwarm()
+        if self.continuation:
+            hyperparameter_sets = get_iteration_info(
+                self.output_dir, 0, self.settings)[1]
+            self.createSetSwarm(hyperparameter_sets)
 
     def createSwarm(self):
         particle_swarm = []
@@ -140,6 +155,10 @@ class ParticleSwarm:
                 self.hyperparameter_info, self.settings['iterations'])
             particle_swarm.append(single_particle)
         return particle_swarm
+
+    def createSetSwarm(self, hyperparameter_sets):
+        for particle, hyperparameters in zip(self.swarm, hyperparameter_sets):
+            particle.set_hyperparameter_values(hyperparameters)
 
     def espionage(self):
         for particle in self.swarm:
@@ -175,17 +194,26 @@ class ParticleSwarm:
 
     def particleSwarmOptimization(self):
         iteration = 0
-        all_locations = [particle.hyperparameters for particle in self.swarm]
-        fitnesses = self.fitness_function(all_locations, self.settings)
+        if self.continuation:
+            last_complete_iteration = collect_iteration_particles(self.output_dir)
+            fitnesses = get_iteration_info(self.output_dir, iteration, self.settings)[0]
+        else:
+            all_locations = [particle.hyperparameters for particle in self.swarm]
+            fitnesses = self.fitness_function(all_locations, self.settings)
         self.set_particle_fitnesses(fitnesses, initial=True)
         for particle in self.swarm:
             particle.next_iteration()
         not_clustered = True
+        iteration = 1
         while iteration <= self.settings['iterations'] and not_clustered:
             print('::::::: Iteration: ' + str(iteration) + ' ::::::::')
             self.espionage()
             all_locations = [particle.hyperparameters for particle in self.swarm]
-            fitnesses = self.fitness_function(all_locations, self.settings)
+            if self.continuation and iteration <= last_complete_iteration:
+                fitnesses, _ = get_iteration_info(
+                    self.output_dir, iteration, self.settings)
+            else:
+                fitnesses = self.fitness_function(all_locations, self.settings)
             self.set_particle_fitnesses(fitnesses)
             for particle in self.swarm:
                 particle.next_iteration()
@@ -197,3 +225,43 @@ class ParticleSwarm:
         print('Best location is: ' + str(best_location))
         print('Best_fitness is: ' + str(best_fitness))
         return best_location, best_fitness
+
+
+def collect_iteration_particles(iteration_dir):
+    iteration_paths = os.path.join(iteration_dir, 'previous_files',  'iteration_*')
+    all_iterations = glob.glob(iteration_paths)
+    return check_last_iteration_completeness(all_iterations, iteration_dir)
+
+
+def check_last_iteration_completeness(all_iterations, iteration_dir):
+    iteration_nrs = [int(iteration.split('_')[-1]) for iteration in all_iterations]
+    iteration_nrs.sort()
+    last_iteration = os.path.join(iteration_dir, 'iteration_' + str(iteration_nrs[-1]))
+    all_particles_wildcard = os.path.join(last_iteration, '*')
+    for path in glob.glob(all_particles_wildcard):
+        parameter_file = os.path.join(path, 'parameters.json')
+        score_file = os.path.join(path, 'score.json')
+        if not os.path.exists(parameter_file):
+            return iteration_nrs[-2]
+        if not os.path.exists(score_file):
+            return iteration_nrs[-2]
+    return iteration_nrs[-1]
+
+
+def get_iteration_info(output_dir, iteration, settings):
+    number_particles = settings['sample_size']
+    iteration_dir = os.path.join(
+        output_dir, 'previous_files', 'iteration_' + str(iteration))
+    fitnesses = []
+    parameters_list = []
+    for particle in range(number_particles):
+        particle_dir = os.path.join(iteration_dir, str(particle))
+        score_file = os.path.join(particle_dir, 'score.json')
+        parameter_file = os.path.join(particle_dir, 'parameters.json')
+        with open(score_file, 'rt') as inFile:
+            fitness = json.load(inFile)['d_roc']
+        with open(parameter_file, 'rt') as inFile:
+            parameters = json.load(inFile)
+        fitnesses.append(fitness)
+        parameters_list.append(parameters)
+    return fitnesses, parameters_list
