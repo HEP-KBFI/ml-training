@@ -34,10 +34,11 @@ def tree_to_array(data, name="Jet"):
         lorentz.y[:],
         lorentz.z[:],
     ])
-    array = np.moveaxis(array,0,1)
+    array = np.moveaxis(array, 0, 1)
     return array
 
-def get_low_level(data) :
+
+def get_low_level(data):
     b1jets = tree_to_array(data, name="bjet1")
     b2jets = tree_to_array(data, name="bjet2")
     w1jets = tree_to_array(data, name="wjet1")
@@ -47,7 +48,7 @@ def get_low_level(data) :
     return events
 
 
-def get_high_level(tree, variables) :
+def get_high_level(tree, variables):
     output = np.array([np.array(tree[variable].astype(np.float32)) for variable in variables])
     output = np.moveaxis(output, 0, 1)
     output_mean, output_std = np.mean(output, axis=0), np.std(output, axis=0)
@@ -264,10 +265,23 @@ def load_data_from_tfile(
     '''
     if tree is not None:
         try:
-            stop = 10000
-            if global_settings["channel"] == "bb1l" and sample_name == "TT" :
-                stop = 50000
-            chunk_arr = tree2array(tree, stop=stop)
+            if bool(global_settings['trainvarOpt']):
+                chunk_arr = tree2array(tree)
+            else:
+                weightBranches = ['evtWeight', 'event']
+                to_be_loaded = list(preferences['trainvars'])
+                to_be_loaded.extend(weightBranches)
+                if global_settings['debug']:
+                    to_be_loaded.extend(['luminosityBlock', 'run'])
+                to_be_dropped = ['gen_mHH']
+                to_be_dropped.extend(list(preferences['nonResScenarios']))
+                if 'nonres' in sample_name:
+                    nonres_weights = [str('Weight_') + scenario for scenario in preferences['nonResScenarios']]
+                    to_be_loaded.extend(nonres_weights)
+                for drop in to_be_dropped:
+                    if drop in to_be_loaded:
+                        to_be_loaded.remove(drop)
+                chunk_arr = tree2array(tree, branches=to_be_loaded)
             chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
         except Exception:

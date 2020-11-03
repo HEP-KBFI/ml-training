@@ -94,6 +94,7 @@ def plotROC(odd_infos, even_infos, global_settings):
         )
     for even_info, linestyle in zip(even_infos, linestyles):
         ax.plot(
+            even_info['fpr'], even_info['tpr'], ls=linestyle, color='r',
             label='even_' + even_info['type'] + 'AUC = ' + str(
                 round(even_info['auc'], 4))
         )
@@ -122,7 +123,7 @@ def plot_single_mode_correlation(data, trainvars, output_dir, addition):
     correlations = data[trainvars].corr()
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(111)
-    cax = ax.matshow(correlations, vmin=-1, vmax=1)
+    cax = ax.matshow(correlations, vmin=-1, vmax=1, cmap='viridis')
     ticks = np.arange(0, len(trainvars), 1)
     plt.rc('axes', labelsize=8)
     ax.set_xticks(ticks)
@@ -288,4 +289,67 @@ def plot_single_distrib(trainvar_distribs, output_dir, trainvar, bins):
     plt.yscale('log')
     out_file = os.path.join(output_dir, trainvar + '_distribution.png')
     plt.savefig(out_file, bbox_inches='tight')
+    plt.close('all')
+
+
+def plot_nn_sampleWise_bdtOutput(
+        model_odd,
+        data_even,
+        preferences,
+        global_settings,
+        target = 1,
+        class_ = "",
+        data_dict = {},
+        weight='totalWeight',
+):
+    output_dir = global_settings['output_dir']
+    data_even = data_even.copy()
+    if 'nonres' in global_settings['bdtType']:
+        sig_name = 'HH_nonres_decay'
+    else:
+        sig_name = 'signal'
+    data_even.loc[
+        data_even['process'].str.contains('signal'), ['process']] = sig_name#'signal'
+    bkg_predictions = []
+    bkg_labels = []
+    bkg_weights = []
+    bins = np.linspace(0., 1., 11)
+    for process in set(data_even['process']):
+        if process == sig_name:
+            continue
+        process_data = data_even.loc[data_even['process'] == process]
+        idx = np.where(data_even['process'] == process)[0]
+        process_prediction = np.array(model_odd.predict_proba(
+            process_data[preferences['trainvars']]
+        )[:,target]) if not global_settings["ml_method"] == 'lbn' else np.array(model_odd.predict(
+            [data_dict["ll_even"][idx], data_dict["hl_even"][idx]], batch_size=1024
+        )[:,target])
+        weights = np.array(process_data[weight])
+        bkg_weights.append(weights)
+        bkg_predictions.append(process_prediction)
+        bkg_labels.append(str(process))
+    plt.hist(
+        bkg_predictions, histtype='bar', label=bkg_labels, lw=2, bins=bins,
+        weights=bkg_weights, alpha=1, stacked=True, normed=True
+    )
+    process_data = data_even.loc[data_even['process'] == sig_name]
+    idx = np.where(data_even['process'] == sig_name)[0]
+    process_prediction = np.array(model_odd.predict_proba(
+        process_data[preferences['trainvars']]
+    )[:,target]) if not global_settings["ml_method"] == 'lbn' else np.array(model_odd.predict(
+            [data_dict["ll_even"][idx], data_dict["hl_even"][idx]], batch_size=1024
+        )[:,target])
+    weights = np.array(process_data['totalWeight'])
+    plt.hist(
+        process_prediction, histtype='step', label=sig_name,
+        lw=2, ec='k', alpha=1, normed=True, bins=bins, weights=weights
+    )
+    plt.legend()
+    output_path = os.path.join(
+        output_dir,
+        'sampleWise_bdtOutput_node_%s.png' %(class_)
+    )
+    plt.tight_layout()
+    plt.savefig(output_path, bbox_inches='tight')
+    plt.yscale('log')
     plt.close('all')

@@ -52,6 +52,7 @@ def main(output_dir):
         global_settings['output_dir'] = output_dir
     global_settings['output_dir'] = os.path.expandvars(
         global_settings['output_dir'])
+    global_settings['debug'] = False
     if not os.path.exists(global_settings['output_dir']):
         os.makedirs(global_settings['output_dir'])
     channel_dir, info_dir, _ = ut.find_settings()
@@ -77,8 +78,11 @@ def main(output_dir):
             even_model, data[trainvars], data['evtWeight'],
             trainvars, data['multitarget']
         )
-        hhvt.plot_feature_importances_from_dict(
-            score_dict, global_settings['output_dir'])
+    else:
+        score_dict = nt.lbn_feature_importances(
+            even_model, data_dict, preferences['trainvars'])
+    hhvt.plot_feature_importances_from_dict(
+        score_dict, global_settings['output_dir'])
     hhvt.plotROC(
         [odd_train_info, odd_test_info],
         [even_train_info, even_test_info],
@@ -90,9 +94,9 @@ def main(output_dir):
             data_dict["even_data"].loc[
                 data_dict["even_data"]["process"] == class_, "multitarget"
             ]
-    ))[0]
+        ))[0]
         print(str(class_) + '\t' + str(multitarget))
-        hhvt.plot_sampleWise_bdtOutput(
+        hhvt.plot_nn_sampleWise_bdtOutput(
             odd_model, data_dict["even_data"], preferences,
             global_settings, multitarget, class_, data_dict
         )
@@ -277,15 +281,15 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
     )
     plot_confusion_matrix(
         cm, ["TT","W", "HH", "DY"], global_settings['output_dir'])
-    test_fpr, test_tpr= mt.roc_curve(
-        data_dict['even_data']['multitarget'].astype(int),
+    test_fpr, test_tpr = mt.roc_curve(
+        test_data['multitarget'].astype(int),
         test_predicted_probabilities,
-        data_dict['even_data']['evtWeight'].astype(float)
+        test_data['evtWeight'].astype(float)
     )
     train_fpr, train_tpr = mt.roc_curve(
-        data_dict['odd_data']['multitarget'].astype(int),
+        train_data['multitarget'].astype(int),
         train_predicted_probabilities,
-        data_dict['odd_data']['evtWeight'].astype(float)
+        train_data['evtWeight'].astype(float)
     )
     train_auc = auc(train_fpr, train_tpr, reorder=True)
     test_auc = auc(test_fpr, test_tpr, reorder=True)

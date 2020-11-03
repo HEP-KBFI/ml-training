@@ -365,3 +365,38 @@ def calculate_acc_with_weights(prediction, labels, weights):
     accuracy = (true_positives + true_negatives) / (total_positive + total_negative)
     return accuracy
 
+
+def lbn_feature_importances(
+        model, data_dict, trainvars,
+        permutations=5, case='even'
+):
+    labels = data_dict[case + '_data']['multitarget']
+    weights = data_dict[case + '_data']['evtWeight']
+    ll_names = ['b1jets', 'b2jets', 'w1jets', 'w2jets', 'leptons']
+    high_level = data_dict['hl_' + case]
+    low_level = data_dict['ll_' + case]
+    reference_prediction = model.predict(
+        [low_level, high_level], batch_size=1024)
+    reference_score = calculate_acc_with_weights(
+        reference_prediction, labels, weights)
+    print(reference_prediction)
+    score_dict = {}
+    for i, feature in enumerate(ll_names):
+        print(feature)
+        t_score = 0
+        for permutation in range(permutations):
+            print('Permutation: ' + str(i))
+            shuffled_low_level = shuffle_low_level(low_level, i)
+            prediction = model.predict(
+                [shuffled_low_level, high_level], batch_size=1024)
+            score = calculate_acc_with_weights(prediction, labels, weights)
+            t_score += score
+        score_dict[feature] = abs(reference_score - (t_score/permutations))
+    return score_dict
+
+
+def shuffle_low_level(low_level, i):
+    low_level_ = low_level.copy()
+    shuffled_elements = np.random.permutation(low_level_[:, i])
+    low_level_[:, i] = shuffled_elements
+    return low_level_

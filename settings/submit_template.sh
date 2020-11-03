@@ -1,5 +1,5 @@
 #!/bin/bash
 #SBATCH --job-name=optimization
 #SBATCH --ntasks=1
-#SBATCH --time=3:30:00
-#SBATCH --mem-per-cpu=500
+#SBATCH --time=12:00:00
+#SBATCH --cpus-per-task=3

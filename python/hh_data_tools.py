@@ -43,7 +43,7 @@ def set_sample_info(folder_name, samplename_info, masses, bdt_type):
     return sample_name, target
 
 
-def get_ntuple_paths(input_path, folder_name, bdt_type, file_type='*'):
+def get_ntuple_paths(input_path, folder_name, bdt_type, file_type='hadd*'):
     paths = []
     catfile = os.path.join(
         os.path.expandvars('$CMSSW_BASE'),
