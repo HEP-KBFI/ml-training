@@ -23,7 +23,7 @@ def plot_sampleWise_bdtOutput(
     else:
         sig_name = 'signal'
     data_even.loc[
-        data_even['process'].str.contains('signal'), ['process']] = 'signal'
+        data_even['process'].str.contains('signal'), ['process']] = sig_name
     bkg_predictions = []
     bkg_labels = []
     bkg_weights = []
@@ -34,7 +34,7 @@ def plot_sampleWise_bdtOutput(
         process_data = data_even.loc[data_even['process'] == process]
         process_prediction = np.array(model_odd.predict_proba(
             process_data[preferences['trainvars']]
-        )[:,1])
+        )[:, 1])
         weights = np.array(process_data[weight])
         bkg_weights.append(weights)
         bkg_predictions.append(process_prediction)
