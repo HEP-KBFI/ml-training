@@ -53,13 +53,13 @@ def Normal(ref, const=None, ignore_zeros=False, name=None, **kwargs):
     Normalizing layer according to ref.
     If given, variables at the indices const will not be normalized.
     """
-    print 'ref=====================', ref
     if ignore_zeros:
         mean = np.nanmean(np.where(ref == 0, np.ones_like(ref) * np.nan, ref), **kwargs)
         std = np.nanstd(np.where(ref == 0, np.ones_like(ref) * np.nan, ref), **kwargs)
     else:
         mean = ref.mean(**kwargs)
         std = ref.std(**kwargs)
+    print mean, '\t', type(mean)
     if const is not None:
         mean[const] = 0
         std[const] = 1
@@ -73,6 +73,7 @@ def create_nn_model(
         nr_trainvars,
         num_class,
         input_var,
+        categorical_var_index,
         lbn=False
 ):
     ''' Creates the neural network model. The normalization used is
@@ -110,7 +111,7 @@ def create_nn_model(
         )
         lbn_features = lbn_layer(ll_inputs)
         normalized_lbn_features = tf.keras.layers.BatchNormalization()(lbn_features)
-        normalized_hl_inputs = Normal(ref=input_var, axis=1)(hl_inputs)
+        normalized_hl_inputs = Normal(ref=input_var, const=categorical_var_index, axis=1)(hl_inputs)
         x = tf.keras.layers.concatenate([normalized_lbn_features, normalized_hl_inputs])
         for layer in range(0,6) :
             x = tf.keras.layers.Dense(1024, activation="softplus",
@@ -130,7 +131,7 @@ def create_nn_model(
         )
     else:
         inputs = tf.keras.Input(shape=(nr_trainvars,), name="input_var")
-        normalized_vars = Normal(ref=input_var, axis=1)(inputs)
+        normalized_vars = Normal(ref=input_var, const=categorical_var_index, axis=1)(inputs)
         x = tf.keras.layers.Layer()(normalized_vars)
         for layer in range(0,6) :
             x = tf.keras.layers.Dense(1024, activation="softplus",
