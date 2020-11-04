@@ -291,6 +291,7 @@ def load_data_from_tfile(
                     to_be_loaded.extend(['luminosityBlock', 'run'])
                 to_be_dropped = ['gen_mHH']
                 to_be_dropped.extend(list(preferences['nonResScenarios']))
+                if global_settings["channel" ] == "bb1l" : to_be_dropped.extend(['nodeX'])
                 if 'nonres' in sample_name:
                     nonres_weights = [str('Weight_') + scenario for scenario in preferences['nonResScenarios']]
                     to_be_loaded.extend(nonres_weights)
@@ -299,7 +300,7 @@ def load_data_from_tfile(
                         to_be_loaded.remove(drop)
                 stop = 1000#None
                 if global_settings["channel"] == "bb1l" and sample_name == "TT" :
-                    stop = 3000000
+                    stop = 10000#3000000
                 chunk_arr = tree2array(tree, branches=to_be_loaded, stop=stop)
             chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
