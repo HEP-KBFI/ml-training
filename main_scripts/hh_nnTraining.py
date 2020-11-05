@@ -412,12 +412,15 @@ def define_trainvars(global_settings, preferences):
         trainvars_path = os.path.join(info_dir, 'trainvars_boosted_lbn.json')
     if global_settings["dataCuts"].find("boosted") == -1 and global_settings["ml_method"] == "lbn":
         trainvars_path = os.path.join(info_dir, 'trainvars_resolved_lbn.json')
-    trainvar_info = dlt.read_trainvar_info(trainvars_path)
-    preferences['trainvars'] = []
-    with open(trainvars_path, 'rt') as infile:
-        for line in infile:
-            info = json.loads(line)
-            preferences['trainvars'].append(str(info['key']))
+    try:
+        trainvar_info = dlt.read_trainvar_info(trainvars_path)
+        preferences['trainvars'] = []
+        with open(trainvars_path, 'rt') as infile:
+            for line in infile:
+                info = json.loads(line)
+                preferences['trainvars'].append(str(info['key']))
+    except:
+        print("Using trainvars from trainvars.json")
     return preferences
 
 
@@ -425,8 +428,8 @@ if __name__ == '__main__':
     startTime = datetime.now()
     try:
         arguments = docopt.docopt(__doc__)
-        debug = bool(int(arguments['--save_model']))
-        main(output_dir, save_model)
+        save_model = bool(int(arguments['--save_model']))
+        main('None', save_model)
     except docopt.DocoptExit as e:
         print(e)
     print(datetime.now() - startTime)
