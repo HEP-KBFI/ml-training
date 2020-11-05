@@ -1495,7 +1495,7 @@ def get_hh_parameters(
         channel_dir,
         tau_id_training,
         info_dir,
-        global_settings
+        global_settings = {}
 ):
     '''Reads the parameters for HH data loading
 
