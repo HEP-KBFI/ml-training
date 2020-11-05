@@ -1495,7 +1495,7 @@ def PlotClassifierByX(
 def get_hh_parameters(
         channel_dir,
         tau_id_training,
-        info_dir
+        info_dir,
 ):
     '''Reads the parameters for HH data loading
 

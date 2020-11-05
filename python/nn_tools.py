@@ -48,10 +48,32 @@ def model_evaluation_main(nn_hyperparameters, data_dict, global_settings):
     )
     return score, pred_train, pred_test
 
+def Normal(ref, const=None, ignore_zeros=False, name=None, **kwargs):
+    """
+    Normalizing layer according to ref.
+    If given, variables at the indices const will not be normalized.
+    """
+    if ignore_zeros:
+        mean = np.nanmean(np.where(ref == 0, np.ones_like(ref) * np.nan, ref), **kwargs)
+        std = np.nanstd(np.where(ref == 0, np.ones_like(ref) * np.nan, ref), **kwargs)
+    else:
+        mean = ref.mean(**kwargs)
+        std = ref.std(**kwargs)
+    print(mean)
+    if const is not None:
+        mean[const] = 0
+        std[const] = 1
+    std = np.where(std == 0, 1, std)
+    mul = 1.0 / std
+    add = -mean / std
+    return tf.keras.layers.Lambda((lambda x: (x * mul) + add), name=name)
+
 
 def create_nn_model(
         nr_trainvars,
         num_class,
+        input_var,
+        categorical_var_index,
         lbn=False
 ):
     ''' Creates the neural network model. The normalization used is
@@ -81,19 +103,21 @@ def create_nn_model(
     '''
     if lbn:
         ll_inputs = tf.keras.Input(shape=(5, 4), name="LL")
-        hl_inputs = tf.keras.Input(shape=(17,), name="HL")
+        hl_inputs = tf.keras.Input(shape=(nr_trainvars,), name="HL")
         lbn_layer = LBNLayer(
-            ll_inputs.shape, 10,
+            ll_inputs.shape, 16,
             boost_mode=LBN.PAIRS,
             features=["E", "pt", "eta", "phi", "m", "pair_cos"]
         )
         lbn_features = lbn_layer(ll_inputs)
         normalized_lbn_features = tf.keras.layers.BatchNormalization()(lbn_features)
-        x = tf.keras.layers.concatenate([normalized_lbn_features, hl_inputs])
-        x = tf.keras.layers.Dense(256, activation="relu")(x)
-        x = tf.keras.layers.Dropout(0.50)(x)
-        x = tf.keras.layers.Dense(256, activation="relu")(x)
-        x = tf.keras.layers.Dropout(0.50)(x)
+        normalized_hl_inputs = Normal(ref=input_var, const=categorical_var_index, axis=1)(hl_inputs)
+        x = tf.keras.layers.concatenate([normalized_lbn_features, normalized_hl_inputs])
+        for layer in range(0, 6):
+            x = tf.keras.layers.Dense(1024, activation="softplus",
+                                      kernel_regularizer=tf.keras.regularizers.l2(0.0003))(x)
+            x = tf.keras.layers.BatchNormalization()(x)
+            x = tf.keras.layers.Dropout(0.0)(x)
         outputs = tf.keras.layers.Dense(num_class, activation='softmax')(x)
         model = tf.keras.Model(
             inputs=[ll_inputs, hl_inputs],
@@ -101,27 +125,28 @@ def create_nn_model(
             name='lbn_dnn'
         )
         model.compile(
-            optimizer=tf.keras.optimizers.Adam(lr=0.0001),
+            optimizer=tf.keras.optimizers.Adam(lr=0.0003),
             loss='sparse_categorical_crossentropy',
             metrics=["accuracy"]
         )
     else:
-        model = keras.models.Sequential()
-        model.add(keras.layers.InputLayer(input_shape=[nr_trainvars]))
-        model.add(BatchNormalization())
-        model.add(keras.layers.Dense(256, activation="relu"))
-        model.add(BatchNormalization())
-        model.add(Dropout(0.1))
-        model.add(keras.layers.Dense(256, activation="relu"))
-        model.add(BatchNormalization())
-        model.add(Dropout(0.1))
-        model.add(Dense(num_class, activation='softmax'))
+        inputs = tf.keras.Input(shape=(nr_trainvars,), name="input_var")
+        normalized_vars = Normal(ref=input_var, const=categorical_var_index, axis=1)(inputs)
+        x = tf.keras.layers.Layer()(normalized_vars)
+        for layer in range(0, 6):
+            x = tf.keras.layers.Dense(1024, activation="softplus",
+                                      kernel_regularizer=tf.keras.regularizers.l2(0.0003))(x)
+            x = tf.keras.layers.BatchNormalization()(x)
+            x = tf.keras.layers.Dropout(0.0)(x)
+        outputs = tf.keras.layers.Dense(num_class, activation='softmax')(x)
+        model = tf.keras.Model(
+            inputs=[inputs],
+            outputs=outputs
+        )
         model.compile(
+            optimizer=tf.keras.optimizers.Adam(lr=0.0003),
             loss='sparse_categorical_crossentropy',
-            optimizer=Nadam(
-                lr=.001
-            ),
-            metrics=['accuracy'],#metrics,
+            metrics=["accuracy"]
         )
     return model
 
@@ -345,6 +370,8 @@ def custom_permutation_importance(
             print(score)
             t_score += score
         score_dict[trainvar] = abs(original_score - (t_score/permutations))
+    sorted_sd = sorted(score_dict.items(), key=lambda kv: kv[1], reverse=True)
+    print(sorted_sd)
     return score_dict
 
 

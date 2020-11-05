@@ -12,6 +12,7 @@ import glob
 import numpy as np
 from root_numpy import tree2array
 import uproot_methods
+from datetime import datetime
 
 TLorentzVectorArray = uproot_methods.classes.TLorentzVector.TLorentzVectorArray
 
@@ -43,15 +44,13 @@ def get_low_level(data):
     w1jets = tree_to_array(data, name="wjet1")
     w2jets = tree_to_array(data, name="wjet2")
     leptons = tree_to_array(data, name="lep")
-    events = np.stack([b1jets,b2jets,w1jets,w2jets,leptons],axis=1)
+    events = np.stack([b1jets, b2jets, w1jets, w2jets, leptons], axis=1)
     return events
 
 
 def get_high_level(tree, variables):
     output = np.array([np.array(tree[variable].astype(np.float32)) for variable in variables])
     output = np.moveaxis(output, 0, 1)
-    output_mean, output_std = np.mean(output, axis=0), np.std(output, axis=0)
-    output = (output - output_mean) / output_std
     return output
 
 
@@ -91,7 +90,7 @@ def load_data(
         data['era'] = era
         total_data = total_data.append(data)
     if global_settings['dataCuts'] != 0:
-        data = data_cutting(data, global_settings)
+        total_data = data_cutting(total_data, global_settings)
     return total_data
 
 
@@ -237,10 +236,13 @@ def load_data_from_tfile(
                 weightBranches = ['evtWeight', 'event']
                 to_be_loaded = list(preferences['trainvars'])
                 to_be_loaded.extend(weightBranches)
+                if global_settings["channel"] == "bb1l":
+                    to_be_loaded.extend(["isHbb_boosted"])
                 if global_settings['debug']:
                     to_be_loaded.extend(['luminosityBlock', 'run'])
                 to_be_dropped = ['gen_mHH']
                 to_be_dropped.extend(list(preferences['nonResScenarios']))
+                if global_settings["channel"] == "bb1l": to_be_dropped.extend(['nodeX'])
                 if 'nonres' in sample_name:
                     nonres_weights = [str('Weight_') + scenario for scenario in preferences['nonResScenarios']]
                     to_be_loaded.extend(nonres_weights)
