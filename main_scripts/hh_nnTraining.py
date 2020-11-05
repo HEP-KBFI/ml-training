@@ -2,8 +2,8 @@
 Call with 'python'
 
 Usage: 
-    bdtTraining.py
-    bdtTraining.py [--save_model=INT]
+    hh_nnTraining.py
+    hh_nnTraining.py [--save_model=INT]
 
 Options:
     -s --save_model=INT             Whether or not to save the model [default: 0]
