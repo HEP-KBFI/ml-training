@@ -52,6 +52,7 @@ def main(output_dir):
         global_settings['output_dir'] = output_dir
     global_settings['output_dir'] = os.path.expandvars(
         global_settings['output_dir'])
+    global_settings['debug'] = False
     if not os.path.exists(global_settings['output_dir']):
         os.makedirs(global_settings['output_dir'])
     channel_dir, info_dir, _ = ut.find_settings()

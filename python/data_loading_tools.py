@@ -33,10 +33,11 @@ def tree_to_array(data, name="Jet"):
         lorentz.y[:],
         lorentz.z[:],
     ])
-    array = np.moveaxis(array,0,1)
+    array = np.moveaxis(array, 0, 1)
     return array
 
-def get_low_level(data) :
+
+def get_low_level(data):
     b1jets = tree_to_array(data, name="bjet1")
     b2jets = tree_to_array(data, name="bjet2")
     w1jets = tree_to_array(data, name="wjet1")
@@ -46,7 +47,7 @@ def get_low_level(data) :
     return events
 
 
-def get_high_level(tree, variables) :
+def get_high_level(tree, variables):
     output = np.array([np.array(tree[variable].astype(np.float32)) for variable in variables])
     output = np.moveaxis(output, 0, 1)
     output_mean, output_std = np.mean(output, axis=0), np.std(output, axis=0)
@@ -236,6 +237,8 @@ def load_data_from_tfile(
                 weightBranches = ['evtWeight', 'event']
                 to_be_loaded = list(preferences['trainvars'])
                 to_be_loaded.extend(weightBranches)
+                if global_settings['debug']:
+                    to_be_loaded.extend(['luminosityBlock', 'run'])
                 to_be_dropped = ['gen_mHH']
                 to_be_dropped.extend(list(preferences['nonResScenarios']))
                 if 'nonres' in sample_name:
