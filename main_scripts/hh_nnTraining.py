@@ -29,7 +29,7 @@ def plot_confusion_matrix(cm, class_names, output_dir):
     plt.xticks(tick_marks, class_names, fontsize=5, rotation=70)
     plt.yticks(tick_marks, class_names, fontsize=5)
     cm = np.moveaxis(
-        np.around(cm.astype('float') / cm.sum(axis=1)[:, np.newaxis],
+        np.around(cm.astype('float') / cm.sum(axis=1)[:, np.newaxis],\
             decimals=2), 0, 1)
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
         plt.text(i, j, cm[i, j], horizontalalignment="center", size=5)
@@ -84,7 +84,7 @@ def main(output_dir):
         even_model, data_dict, global_settings, "even_data")
     odd_train_info, odd_test_info = evaluate_model(
         odd_model, data_dict, global_settings, "odd")
-    if global_settings['ml_method'] != 'lbn' and global_settings['feature_importance'] == 1 :
+    if global_settings['ml_method'] != 'lbn' and global_settings['feature_importance'] == 1:
         trainvars = preferences['trainvars']
         data = data_dict['odd_data']
         score_dict = nt.custom_permutation_importance(
@@ -191,14 +191,17 @@ def create_model(
     trainvars = preferences['trainvars']
     nr_trainvars = len(trainvars)
     num_class = max((data_dict['odd_data']['multitarget'])) + 1
-    number_samples = len(data_dict[choose_data]) #if choose_data == "odd" else len(data_dict['even_data'])
-    reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.2,
-                              patience=5, min_lr=0.001)
+    number_samples = len(data_dict[choose_data])
+    reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.2,\
+                                                     patience=5, min_lr=0.001)
     input_var = np.array([data_dict[choose_data][var] for var in preferences["trainvars"]])
+    categorical_var_index = [data_dict[choose_data].columns.get_loc(c) for c in ["nodeX"] \
+                             if c in data_dict[choose_data]]
     model_structure = nt.create_nn_model(
         nr_trainvars,
         num_class,
         input_var,
+        categorical_var_index,
         lbn=lbn
     )
     if global_settings['ml_method'] == 'lbn':
@@ -254,18 +257,18 @@ def create_model(
             callbacks=[reduce_lr]
         )
     if global_settings["save_model"] == 1:
-        pb_filename = os.path.join(global_settings["output_dir"],"multiclass_DNN_w%s_for_%s_%s_%s.pb"
+        pb_filename = os.path.join(global_settings["output_dir"], "multiclass_DNN_w%s_for_%s_%s_%s.pb"\
                                 %(global_settings["ml_method"], global_settings["channel"], \
                                   global_settings["mode"], choose_data))
-        log_filename = os.path.join(global_settings["output_dir"],"multiclass_DNN_w%s_for_%s_%s_%s.log"
+        log_filename = os.path.join(global_settings["output_dir"], "multiclass_DNN_w%s_for_%s_%s_%s.log"\
                                 %(global_settings["ml_method"], global_settings["channel"], \
                                   global_settings["mode"], choose_data))
         cmsml.tensorflow.save_graph(pb_filename, model_structure, variables_to_constants=True)
-        file = open(log_filename,"w")
+        file = open(log_filename, "w")
         file.write(str(trainvars))
         file.close()
     fig1, ax = plt.subplots()
-    pd.DataFrame(fitted_model.history).plot(figsize=(8,5))
+    pd.DataFrame(fitted_model.history).plot(figsize=(8, 5))
     plt.grid(True)
     plt.show()
     plt.yscale('log')
@@ -279,8 +282,8 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
     trainvars = data_dict['trainvars']
     train_data = data_dict["odd_data"] if choose_data == "odd_data" else data_dict["even_data"]
     test_data = data_dict["even_data"] if choose_data == "odd_data" else data_dict["odd_data"]
-    train_data["max_node_pos"] =-1
-    train_data["max_node_val"] =-1
+    train_data["max_node_pos"] = -1
+    train_data["max_node_val"] = -1
 
     if global_settings['ml_method'] == 'lbn':
         if choose_data == 'odd_data':
@@ -313,53 +316,57 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
     cm = confusion_matrix(
         train_data["multitarget"].astype(int),
         np.argmax(train_predicted_probabilities, axis=1),
-        sample_weight = train_data["evtWeight"].astype(float)
+        sample_weight=train_data["evtWeight"].astype(float)
     )
     samples = []
-    for i in sorted(set(train_data["multitarget"])) :
-        samples.append(list(set(train_data.loc[train_data["multitarget"]==i]["process"]))[0])
-    samples=['HH' if x.find('signal') !=-1 else x for x in samples]
+    for i in sorted(set(train_data["multitarget"])):
+        samples.append(list(set(train_data.loc[train_data["multitarget"] == i]["process"]))[0])
+    samples = ['HH' if x.find('signal') != -1 else x for x in samples]
     plot_confusion_matrix(
         cm, samples, global_settings['output_dir'])
 
     if global_settings['ml_method'] != 'lbn':
-        for process in set(train_data["process"]) :
+        for process in set(train_data["process"]):
             data = train_data.loc[train_data["process"] == process]
-            value =  model.predict(data[trainvars].values)
-            train_data.loc[train_data["process"] == process, "max_node_pos"] = np.argmax(value, axis=1)
-            train_data.loc[train_data["process"] == process, "max_node_val"] = np.amax(value, axis=1)
+            value = model.predict(data[trainvars].values)
+            train_data.loc[train_data["process"] == process, "max_node_pos"]\
+                = np.argmax(value, axis=1)
+            train_data.loc[train_data["process"] == process, "max_node_val"] \
+                = np.amax(value, axis=1)
     if global_settings['ml_method'] == 'lbn':
-        for process in set(train_data["process"]) :
+        for process in set(train_data["process"]):
             idx = np.where(np.array(train_data["process"]) == process)[0]
-            value =  model.predict(
+            value = model.predict(
                 [train_var["ll"][idx], train_var["hl"][idx]], batch_size=1024)
             train_data.loc[train_data["process"] == process, "max_node_pos"] = np.argmax(value, axis=1)
             train_data.loc[train_data["process"] == process, "max_node_val"] = np.amax(value, axis=1)
 
-    color=['b', 'g', 'y', 'r', 'magenta', 'orange' ]
-    for node in sorted(set(train_data["multitarget"])) :
+    color = ['b', 'g', 'y', 'r', 'magenta', 'orange']
+    for node in sorted(set(train_data["multitarget"])):
         fig1, ax = plt.subplots()
         values = []
         weights = []
         labels = []
         colors = []
-        for i, process in enumerate(set(train_data["process"])) :
-            values.append(train_data.loc[((train_data["max_node_pos"]==node) & (train_data["process"]==process)),["max_node_val"]].values.tolist())
-            weights.append(train_data.loc[((train_data["max_node_pos"]==node) & (train_data["process"]==process)),["evtWeight"]].values.tolist())
+        for i, process in enumerate(set(train_data["process"])):
+            values.append(train_data.loc[((train_data["max_node_pos"] == node) & \
+                                          (train_data["process"] == process)), ["max_node_val"]].values.tolist())
+            weights.append(train_data.loc[((train_data["max_node_pos"] == node) & \
+                                           (train_data["process"] == process)), ["evtWeight"]].values.tolist())
             labels.append(process) if process.find('signal') == -1 else labels.append("HH")
             colors.append(color[i])
-        plt.hist(values,weights=weights,
+        plt.hist(values, weights=weights,
                  label=labels, color=colors,
-                 histtype='bar', stacked=True, range=(0,1), bins=20)
-        nodeName = list(set(train_data.loc[train_data["multitarget"]==node]["process"]))[0]
-        plt.legend(loc='best', title = nodeName+"_node")
+                 histtype='bar', stacked=True, range=(0, 1), bins=20)
+        nodeName = list(set(train_data.loc[train_data["multitarget"] == node]["process"]))[0]
+        plt.legend(loc='best', title=nodeName+"_node")
         plt.yscale('log')
         outfile = os.path.join(global_settings["output_dir"], 'DNNScore_'+nodeName+'_node_resolved.png')\
                   if global_settings["dataCuts"].find("resolved") != -1 \
                      else os.path.join(global_settings["output_dir"], 'DNNScore_'+nodeName+'_node_boosted.png')
         plt.savefig(outfile)
         plt.clf()
-    test_fpr, test_tpr= mt.roc_curve(
+    test_fpr, test_tpr = mt.roc_curve(
         test_data['multitarget'].astype(int),
         test_predicted_probabilities,
         test_data['evtWeight'].astype(float)

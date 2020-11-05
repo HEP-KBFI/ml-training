@@ -59,7 +59,7 @@ def Normal(ref, const=None, ignore_zeros=False, name=None, **kwargs):
     else:
         mean = ref.mean(**kwargs)
         std = ref.std(**kwargs)
-    print mean, '\t', type(mean)
+    print(mean)
     if const is not None:
         mean[const] = 0
         std[const] = 1
@@ -113,7 +113,7 @@ def create_nn_model(
         normalized_lbn_features = tf.keras.layers.BatchNormalization()(lbn_features)
         normalized_hl_inputs = Normal(ref=input_var, const=categorical_var_index, axis=1)(hl_inputs)
         x = tf.keras.layers.concatenate([normalized_lbn_features, normalized_hl_inputs])
-        for layer in range(0,6) :
+        for layer in range(0, 6):
             x = tf.keras.layers.Dense(1024, activation="softplus",
                                       kernel_regularizer=tf.keras.regularizers.l2(0.0003))(x)
             x = tf.keras.layers.BatchNormalization()(x)
@@ -133,7 +133,7 @@ def create_nn_model(
         inputs = tf.keras.Input(shape=(nr_trainvars,), name="input_var")
         normalized_vars = Normal(ref=input_var, const=categorical_var_index, axis=1)(inputs)
         x = tf.keras.layers.Layer()(normalized_vars)
-        for layer in range(0,6) :
+        for layer in range(0, 6):
             x = tf.keras.layers.Dense(1024, activation="softplus",
                                       kernel_regularizer=tf.keras.regularizers.l2(0.0003))(x)
             x = tf.keras.layers.BatchNormalization()(x)

@@ -44,7 +44,7 @@ def get_low_level(data):
     w1jets = tree_to_array(data, name="wjet1")
     w2jets = tree_to_array(data, name="wjet2")
     leptons = tree_to_array(data, name="lep")
-    events = np.stack([b1jets,b2jets,w1jets,w2jets,leptons],axis=1)
+    events = np.stack([b1jets, b2jets, w1jets, w2jets, leptons], axis=1)
     return events
 
 
@@ -72,7 +72,7 @@ def tree_to_array(data, name="Jet"):
         lorentz.y[:],
         lorentz.z[:],
     ])
-    array = np.moveaxis(array,0,1)
+    array = np.moveaxis(array, 0, 1)
     return array
 
 def load_data(
@@ -110,32 +110,32 @@ def load_data(
         )
         data['era'] = era
         total_data = total_data.append(data)
-    if global_settings["channel"] == "bb1l" :
-        print("DY: " , len(total_data.loc[total_data["process"] == "DY"]),\
-              "W: " , len(total_data.loc[total_data["process"] == "W"]),\
-              "TT: " , len(total_data.loc[total_data["process"] == "TT"]),\
+    if global_settings["channel"] == "bb1l":
+        print("DY: ", len(total_data.loc[total_data["process"] == "DY"]),\
+              "W: ", len(total_data.loc[total_data["process"] == "W"]),\
+              "TT: ", len(total_data.loc[total_data["process"] == "TT"]),\
               'ST: ', len(total_data.loc[total_data["process"] == "ST"]), \
               'Other:', len(total_data.loc[total_data["process"] == "Other"]),\
               'HH', len(total_data.loc[total_data["process"] == "signal_ggf_nonresonant_hh_bbvv_sl"])
-          )
+        )
     if global_settings['dataCuts'] != 0:
         total_data = data_cutting(total_data, global_settings)
-    if global_settings["channel"] == "bb1l" :
-        TT = total_data.loc[total_data["process"]=="TT"].head(200000)
-        ST = total_data.loc[total_data["process"]=="ST"].head(200000)
-        Other = total_data.loc[total_data["process"]=="Other"].head(200000)
-        W = total_data.loc[total_data["process"]=="W"].head(200000)
-        DY = total_data.loc[total_data["process"]=="DY"].head(200000)
-        HH = total_data.loc[total_data["process"]=="signal_ggf_nonresonant_hh_bbvv_sl"]
+    if global_settings["channel"] == "bb1l":
+        TT = total_data.loc[total_data["process"] == "TT"].head(200000)
+        ST = total_data.loc[total_data["process"] == "ST"].head(200000)
+        Other = total_data.loc[total_data["process"] == "Other"].head(200000)
+        W = total_data.loc[total_data["process"] == "W"].head(200000)
+        DY = total_data.loc[total_data["process"] == "DY"].head(200000)
+        HH = total_data.loc[total_data["process"] == "signal_ggf_nonresonant_hh_bbvv_sl"]
         alldata = [TT, ST, Other, W, DY, HH]
         total_data = pandas.concat(alldata)
-    print("DY: " , len(total_data.loc[total_data["process"] == "DY"]),\
-          "W: " , len(total_data.loc[total_data["process"] == "W"]), \
-          "TT: " , len(total_data.loc[total_data["process"] == "TT"]), \
-          'ST: ', len(total_data.loc[total_data["process"] == "ST"]), \
-          'Other:', len(total_data.loc[total_data["process"] == "Other"]), \
-          'HH', len(total_data.loc[total_data["process"] == "signal_ggf_nonresonant_hh_bbvv_sl"])
-    )
+        print("DY: ", len(total_data.loc[total_data["process"] == "DY"]),\
+              "W: ", len(total_data.loc[total_data["process"] == "W"]), \
+              "TT: ", len(total_data.loc[total_data["process"] == "TT"]), \
+              'ST: ', len(total_data.loc[total_data["process"] == "ST"]), \
+              'Other:', len(total_data.loc[total_data["process"] == "Other"]), \
+              'HH', len(total_data.loc[total_data["process"] == "signal_ggf_nonresonant_hh_bbvv_sl"])
+          )
     return total_data
 
 
@@ -224,8 +224,8 @@ def data_main_loop(
     start_time = datetime.now()
     for path in paths:
         print('Loading from: ' + path)
-        if ((datetime.now() -start_time).total_seconds()/60) > 5 :
-            print 'Start time: ', start_time, '\t', 'Current time: ' , datetime.now()
+        if ((datetime.now() -start_time).total_seconds()/60) > 5:
+            print('Start time: ' + str(start_time) + '\t Current time: ' + str(datetime.now()))
             start_time = datetime.now()
         tree, tfile = read_root_tree(path, input_tree)
         data = load_data_from_tfile(
@@ -285,22 +285,25 @@ def load_data_from_tfile(
                 weightBranches = ['evtWeight', 'event']
                 to_be_loaded = list(preferences['trainvars'])
                 to_be_loaded.extend(weightBranches)
-                if global_settings["channel"] == "bb1l" :
+                if global_settings["channel"] == "bb1l":
                     to_be_loaded.extend(["isHbb_boosted"])
                 if global_settings['debug']:
                     to_be_loaded.extend(['luminosityBlock', 'run'])
                 to_be_dropped = ['gen_mHH']
                 to_be_dropped.extend(list(preferences['nonResScenarios']))
-                if global_settings["channel" ] == "bb1l" : to_be_dropped.extend(['nodeX'])
+                if global_settings["channel"] == "bb1l": to_be_dropped.extend(['nodeX'])
                 if 'nonres' in sample_name:
                     nonres_weights = [str('Weight_') + scenario for scenario in preferences['nonResScenarios']]
                     to_be_loaded.extend(nonres_weights)
                 for drop in to_be_dropped:
                     if drop in to_be_loaded:
                         to_be_loaded.remove(drop)
-                stop = 1000#None
-                if global_settings["channel"] == "bb1l" and sample_name == "TT" :
-                    stop = 10000#3000000
+                stop = None
+                if global_settings["channel"] == "bb1l":
+                    stop = 1000
+                    if sample_name == "TT":
+                        stop = 10000#3000000
+                print 'stop=== ', stop
                 chunk_arr = tree2array(tree, branches=to_be_loaded, stop=stop)
             chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
