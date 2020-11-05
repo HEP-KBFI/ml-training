@@ -15,8 +15,8 @@
             "TTdatacard": 10000,
             "DYdatacard": 10000,
             "Wdatacard":10000,
-	    "Other":10000,
-	    "ST": 10000
+            "Other":10000,
+            "ST": 10000
         }
     },
     "tauID_training": {
@@ -25,19 +25,19 @@
         }
     },
     "keys": {
-	"DY" : [16],
-	"TT" : [16],
-	"W" : [16],
-	"ST" : [16],
-	"TTWW" :[16],
-	"TTZ" : [16],
-	"TTW" : [16],
-	"WW" : [16],
-	"ZZ" : [16],
-	"WZ" : [16],
-	"Other" : [16],
-	"VH" :[16],
-	"TH": [16],
+        "DY" : [16],
+        "TT" : [16],
+        "W" : [16],
+        "ST" : [16],
+        "TTWW" :[16],
+        "TTZ" : [16],
+        "TTW" : [16],
+        "WW" : [16],
+        "ZZ" : [16],
+        "WZ" : [16],
+        "Other" : [16],
+        "VH" :[16],
+        "TH": [16],
         "signal_ggf_nonresonant_node_sm_hh_2b2v_sl": [16],
         "signal_ggf_nonresonant_node_1_hh_2b2v_sl": [16],
         "signal_ggf_nonresonant_node_2_hh_2b2v_sl": [16],

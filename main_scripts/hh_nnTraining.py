@@ -1,4 +1,15 @@
+'''
+Call with 'python'
+
+Usage: 
+    bdtTraining.py
+    bdtTraining.py [--save_model=INT]
+
+Options:
+    -s --save_model=INT             Whether or not to save the model [default: 0]
+'''
 import os
+import docopt
 import numpy as np
 import json
 import pandas as pd
@@ -18,7 +29,7 @@ from machineLearning.machineLearning import nn_tools as nt
 from machineLearning.machineLearning import multiclass_tools as mt
 from machineLearning.machineLearning import hh_visualization_tools as hhvt
 import cmsml
-#np.set_printoptions(threshold=np.inf)
+
 
 def plot_confusion_matrix(cm, class_names, output_dir):
     figure = plt.figure(figsize=(4, 4))
@@ -29,8 +40,11 @@ def plot_confusion_matrix(cm, class_names, output_dir):
     plt.xticks(tick_marks, class_names, fontsize=5, rotation=70)
     plt.yticks(tick_marks, class_names, fontsize=5)
     cm = np.moveaxis(
-        np.around(cm.astype('float') / cm.sum(axis=1)[:, np.newaxis],\
-            decimals=2), 0, 1)
+        np.around(
+            cm.astype('float') / cm.sum(axis=1)[:, np.newaxis],
+            decimals=2),
+        0, 1
+    )
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
         plt.text(i, j, cm[i, j], horizontalalignment="center", size=5)
     plt.tight_layout()
@@ -42,7 +56,8 @@ def plot_confusion_matrix(cm, class_names, output_dir):
     plt.savefig(outfile, bbox_inches='tight')
     plt.close('all')
 
-def main(output_dir):
+
+def main(output_dir, save_model):
     if output_dir == 'None':
         settings_dir = os.path.join(
             os.path.expandvars('$CMSSW_BASE'),
@@ -63,22 +78,13 @@ def main(output_dir):
         channel_dir,
         global_settings['tauID_training'],
         info_dir,
-        global_settings
     )
+    preferences = define_trainvars(global_settings, preferences)
     data_dict = create_data_dict(preferences, global_settings)
     even_model = create_model(
-        preferences, global_settings, data_dict, "even_data")
-    '''proba = even_model.predict_proba([[66.9519, 1.66455, -2.77441, -0.0314026, 206.855, 1.59888,
-                                  0.260132, 30.5423, 39.9062, 1.13428, 1.23242, 7.94068,
-                                  211.678, 1.82446, 2.875, 20.4069,
-                                  0,0,0,0, 120.351, 103.09, 1.59329,
-                                  0.946307, -1, 104.996, 2.54912, 103.09, 103.09, 6,
-                                  2, 2, 386.574, 3.03526, 133.764,
-                                  775.376, 0, 4037.13, 0.653634, 2.11992,
-                                  0, 0.982792, 0.10002, -1000]])
-    print '**************************', proba'''
+        preferences, global_settings, data_dict, "even_data", save_model)
     odd_model = create_model(
-        preferences, global_settings, data_dict, "odd_data")
+        preferences, global_settings, data_dict, "odd_data", save_model)
     print(odd_model.summary())
     even_train_info, even_test_info = evaluate_model(
         even_model, data_dict, global_settings, "even_data")
@@ -185,15 +191,17 @@ def create_model(
         preferences,
         global_settings,
         data_dict,
-        choose_data
+        choose_data,
+        save_model
 ):
     lbn = 1 if global_settings['ml_method'] == 'lbn' else 0
     trainvars = preferences['trainvars']
     nr_trainvars = len(trainvars)
     num_class = max((data_dict['odd_data']['multitarget'])) + 1
     number_samples = len(data_dict[choose_data])
-    reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.2,\
-                                                     patience=5, min_lr=0.001)
+    reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
+        monitor='val_loss', factor=0.2, patience=5, min_lr=0.001
+    )
     input_var = np.array([data_dict[choose_data][var] for var in preferences["trainvars"]])
     categorical_var_index = [data_dict[choose_data].columns.get_loc(c) for c in ["nodeX"] \
                              if c in data_dict[choose_data]]
@@ -256,7 +264,7 @@ def create_model(
             ),
             callbacks=[reduce_lr]
         )
-    if global_settings["save_model"] == 1:
+    if save_model:
         pb_filename = os.path.join(global_settings["output_dir"], "multiclass_DNN_w%s_for_%s_%s_%s.pb"\
                                 %(global_settings["ml_method"], global_settings["channel"], \
                                   global_settings["mode"], choose_data))
@@ -395,9 +403,30 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
     return train_info, test_info
 
 
+def define_trainvars(global_settings, preferences):
+    if global_settings["ml_method"] == "lbn" :
+        trainvars_path = os.path.join(info_dir, 'trainvars_resolved_lbn.json')
+    if global_settings["dataCuts"].find("boosted") != -1 :
+        trainvars_path = os.path.join(info_dir, 'trainvars_boosted.json')
+    if global_settings["dataCuts"].find("boosted") != -1 and global_settings["ml_method"] == "lbn":
+        trainvars_path = os.path.join(info_dir, 'trainvars_boosted_lbn.json')
+    if global_settings["dataCuts"].find("boosted") == -1 and global_settings["ml_method"] == "lbn":
+        trainvars_path = os.path.join(info_dir, 'trainvars_resolved_lbn.json')
+    trainvar_info = dlt.read_trainvar_info(trainvars_path)
+    preferences['trainvars'] = []
+    with open(trainvars_path, 'rt') as infile:
+        for line in infile:
+            info = json.loads(line)
+            preferences['trainvars'].append(str(info['key']))
+    return preferences
 
 
 if __name__ == '__main__':
     startTime = datetime.now()
-    main('None')
+    try:
+        arguments = docopt.docopt(__doc__)
+        debug = bool(int(arguments['--save_model']))
+        main(output_dir, save_model)
+    except docopt.DocoptExit as e:
+        print(e)
     print(datetime.now() - startTime)

@@ -14,7 +14,5 @@
     "nthread": 3,
     "kappa": 0.3,
     "spinCase": "spin0",
-    "save_model" : 0,
-    "mode" : "resolved",
     "dataCuts": "cuts_resolved.json"
 }
