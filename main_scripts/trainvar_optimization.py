@@ -24,6 +24,7 @@ import docopt
 
 def prepare_data():
     channel_dir, info_dir, global_settings = ut.find_settings()
+    global_settings['debug'] = False
     trainvars_path = os.path.join(info_dir, 'trainvars.json')
     all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
     shutil.copy(all_trainvars_path, trainvars_path)
