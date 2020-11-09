@@ -5,3 +5,4 @@ attrs==19.1.0
 py==1.8.0
 uproot-methods
 eli5
+cmsml

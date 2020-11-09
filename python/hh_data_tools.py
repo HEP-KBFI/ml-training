@@ -82,8 +82,6 @@ def get_ntuple_paths(input_path, folder_name, bdt_type, file_type='hadd*'):
                 wild_card_path = os.path.join(
                     input_path, folder_name + '*', file_type + 'hadd*Tight.root')
                 paths = glob.glob(wild_card_path)
-    #paths = [path for path in paths if 'hadd' not in path]
-    paths = [path for path in paths]
     return paths
 
 
