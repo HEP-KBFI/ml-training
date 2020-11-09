@@ -12,6 +12,7 @@ Options:
 import os
 import numpy as np
 import docopt
+import subprocess
 from machineLearning.machineLearning import slurm_tools as st
 from machineLearning.machineLearning import pso_tools as pt
 from machineLearning.machineLearning import universal_tools as ut
@@ -54,6 +55,31 @@ def main(to_continue, opt_dir):
         output_dir, 'best_hyperparameters.json')
     ut.save_dict_to_json(optimal_hyperparameters, best_parameters_path)
     print("Results saved to " + str(output_dir))
+
+
+def use_scratch_for_data(global_settings):
+    USER = os.path.expandvars('$USER')
+    paths_copy = renew_data_paths(global_settings, USER)
+    print(paths_copy)
+    SCRATCH_DIR = os.path.join('/scratch', USER)
+    for key in paths_copy:
+        era_dir = paths_copy[key]
+        subprocess.call(['rsync', '-rR', era_dir, SCRATCH_DIR])
+
+
+def renew_data_paths(global_settings, user):
+    addition = ut.create_infoPath_addition(global_settings)
+    channel_dir = os.path.expandvars(
+        os.path.join(global_settings['output_dir'], 'run_info')
+    )
+    info_file = os.path.join(channel_dir, addition, 'info.json')
+    info_dict = ut.read_json_cfg(info_file)
+    paths = info_dict['tauID_training'][global_settings['tauID_training']]
+    paths_copy = paths.copy()
+    for path in paths:
+        paths[path] = s.replace(s.split('/hhAnalysis')[0], '/scratch/' + user)
+    ut.save_dict_to_json(info_dict, info_file)
+    return paths_copy
 
 
 if __name__ == '__main__':
