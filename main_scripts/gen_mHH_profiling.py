@@ -401,6 +401,7 @@ def find_masses(masses_type):
         global_settings['tauID_training'],
         info_dir
     )
+    global_settings['debug'] = False
     if masses_type == 'all':
         masses = preferences['masses']
     else:
@@ -538,6 +539,7 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
     Nothing
     '''
     channel_dir, info_dir, global_settings = ut.find_settings()
+    global_settings['debug'] = False
     preferences = hhat.get_hh_parameters(
         channel_dir,
         global_settings['tauID_training'],
