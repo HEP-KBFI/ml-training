@@ -168,11 +168,9 @@ def data_main_loop(
     sample_name, target = find_sample_info(
         folder_name, global_settings['bdtType'], preferences['masses']
     )
-    print " sample_name ", sample_name
     input_tree = str(os.path.join(
         preferences['channelInTree'], 'sel/evtntuple', sample_name, 'evtTree'))
     print(':::::::::::::::::')
-    print "input_tree ", input_tree
     print('Sample name:\t' + str(folder_name))
     print('Tree path:\t' + input_tree + '\n')
     paths = get_all_paths(
