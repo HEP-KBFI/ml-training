@@ -7,9 +7,10 @@ import os
 import docopt
 from machineLearning.machineLearning import hh_aux_tools as hhat
 from machineLearning.machineLearning import eventYield_creator as eyc
+from machineLearning.machineLearning import universal_tools as ut
 
 
-def main(bdtClass='evtLevelSUM')
+def main(bdtClass='evtLevelSUM'):
     cmssw_path = os.path.expandvars('$CMSSW_BASE')
     package_dir = os.path.join(
         cmssw_path,
