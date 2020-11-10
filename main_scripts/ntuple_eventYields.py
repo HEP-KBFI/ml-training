@@ -43,7 +43,7 @@ def main(bdtClass='evtLevelSUM'):
         )
         mode_data = hhat.load_hh_data(preferences, global_settings)
         for era in set(mode_data['era']):
-            era_data = mode_data.loc[data['era'] == era]
+            era_data = mode_data.loc[mode_data['era'] == era]
             table_creator = EventYieldTable(era_data, channel, era, scenario)
             table_info = table_creator.create_table()
             table_infos.append(table_info)
