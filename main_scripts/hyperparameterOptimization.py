@@ -36,6 +36,7 @@ def main(to_continue, opt_dir):
     if not to_continue:
         ut.save_run_settings(output_dir)
         ut.save_info_dir(output_dir)
+
     print("::::::: Reading parameters :::::::")
     param_file = os.path.join(
         settings_dir,
@@ -59,12 +60,30 @@ def main(to_continue, opt_dir):
 
 def use_scratch_for_data(global_settings):
     USER = os.path.expandvars('$USER')
-    original_paths = renew_data_paths(global_settings, USER)
+    renew_data_paths(global_settings, USER)
+    original_paths = get_original_input_paths(global_settings)
     SCRATCH_DIR = os.path.join('/scratch', USER)
     for key in original_paths:
         era_dir = original_paths[key]
         wildcard = os.path.join(era_dir, '*', 'hadd*.root')
-        subprocess.call(['rsync', '-rR', era_dir, SCRATCH_DIR])
+        print('rsyncing ' + str(key) + ' paths ')
+        subprocess.call(['rsync', '-aRv', era_dir, SCRATCH_DIR])
+
+
+def get_original_input_paths(global_settings):
+    info_dir = os.path.join(
+        os.path.expandvars('$CMSSW_BASE'),
+        'src/machineLearning/machineLearning/info/HH'
+    )
+    addition = ut.create_infoPath_addition(global_settings)
+    info_file = os.path.join(
+        info_dir, global_settings['channel'], addition, 'info.json')
+    info_dict = ut.read_json_cfg(info_file)
+    paths = info_dict['tauID_training'][global_settings['tauID_training']]
+    for key in paths.keys():
+        paths[key] = path.replace(
+            path.split('/hhAnalysis')[0], path.split('/hhAnalysis')[0] + '/.')
+    return paths
 
 
 def renew_data_paths(global_settings, user):
@@ -75,13 +94,11 @@ def renew_data_paths(global_settings, user):
     info_file = os.path.join(channel_dir, addition, 'info.json')
     info_dict = ut.read_json_cfg(info_file)
     paths = info_dict['tauID_training'][global_settings['tauID_training']]
-    original_paths = paths.copy()
     for key in paths:
         path = paths[key]
-        paths[key] = path.replace(path.split('/hhAnalysis')[0], '/scratch/' + user)
-        original_paths[key] = path.replace(path.split('/hhAnalysis')[0], path.split('/hhAnalysis')[0] + '/.')
+        paths[key] = path.replace(
+            path.split('/hhAnalysis')[0], '/scratch/' + user)
     ut.save_dict_to_json(info_dict, info_file)
-    return original_paths
 
 
 if __name__ == '__main__':
