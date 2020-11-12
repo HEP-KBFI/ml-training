@@ -97,7 +97,7 @@ def renew_data_paths(global_settings):
     for key in paths:
         path = paths[key]
         paths[key] = path.replace(
-            path.split('/hhAnalysis')[0], '/scratch-persistent/')
+            path.split('/hhAnalysis')[0], '/scratch-persistent')
     ut.save_dict_to_json(info_dict, info_file)
 
 
