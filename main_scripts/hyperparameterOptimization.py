@@ -59,10 +59,9 @@ def main(to_continue, opt_dir):
 
 
 def use_scratch_for_data(global_settings):
-    USER = os.path.expandvars('$USER')
-    renew_data_paths(global_settings, USER)
+    renew_data_paths(global_settings)
     original_paths = get_original_input_paths(global_settings)
-    SCRATCH_DIR = os.path.join('/scratch', USER)
+    SCRATCH_DIR = '/scratch-persistent'
     for key in original_paths:
         era_dir = original_paths[key]
         wildcard = os.path.join(era_dir, '*', 'hadd*.root')
@@ -87,7 +86,7 @@ def get_original_input_paths(global_settings):
     return paths
 
 
-def renew_data_paths(global_settings, user):
+def renew_data_paths(global_settings):
     addition = ut.create_infoPath_addition(global_settings)
     channel_dir = os.path.expandvars(
         os.path.join(global_settings['output_dir'], 'run_info')
@@ -98,7 +97,7 @@ def renew_data_paths(global_settings, user):
     for key in paths:
         path = paths[key]
         paths[key] = path.replace(
-            path.split('/hhAnalysis')[0], '/scratch/' + user)
+            path.split('/hhAnalysis')[0], '/scratch-persistent/')
     ut.save_dict_to_json(info_dict, info_file)
 
 

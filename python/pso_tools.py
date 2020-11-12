@@ -228,7 +228,7 @@ class ParticleSwarm:
 
 
 def collect_iteration_particles(iteration_dir):
-    iteration_paths = os.path.join(iteration_dir, 'previous_files',  'iteration_*')
+    iteration_paths = os.path.join(iteration_dir, 'previous_files', 'iteration_*')
     all_iterations = glob.glob(iteration_paths)
     return check_last_iteration_completeness(all_iterations, iteration_dir)
 
