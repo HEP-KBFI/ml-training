@@ -36,7 +36,7 @@ def main(to_continue, opt_dir):
     if not to_continue:
         ut.save_run_settings(output_dir)
         ut.save_info_dir(output_dir)
-
+    use_scratch_for_data(global_settings)
     print("::::::: Reading parameters :::::::")
     param_file = os.path.join(
         settings_dir,
