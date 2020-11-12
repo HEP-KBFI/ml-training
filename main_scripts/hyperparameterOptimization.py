@@ -81,6 +81,7 @@ def get_original_input_paths(global_settings):
     info_dict = ut.read_json_cfg(info_file)
     paths = info_dict['tauID_training'][global_settings['tauID_training']]
     for key in paths.keys():
+        path = paths[key]
         paths[key] = path.replace(
             path.split('/hhAnalysis')[0], path.split('/hhAnalysis')[0] + '/.')
     return paths
