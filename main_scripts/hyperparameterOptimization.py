@@ -59,11 +59,11 @@ def main(to_continue, opt_dir):
 
 def use_scratch_for_data(global_settings):
     USER = os.path.expandvars('$USER')
-    paths_copy = renew_data_paths(global_settings, USER)
-    print(paths_copy)
+    original_paths = renew_data_paths(global_settings, USER)
     SCRATCH_DIR = os.path.join('/scratch', USER)
-    for key in paths_copy:
-        era_dir = paths_copy[key]
+    for key in original_paths:
+        era_dir = original_paths[key]
+        wildcard = os.path.join(era_dir, '*', 'hadd*.root')
         subprocess.call(['rsync', '-rR', era_dir, SCRATCH_DIR])
 
 
@@ -75,11 +75,13 @@ def renew_data_paths(global_settings, user):
     info_file = os.path.join(channel_dir, addition, 'info.json')
     info_dict = ut.read_json_cfg(info_file)
     paths = info_dict['tauID_training'][global_settings['tauID_training']]
-    paths_copy = paths.copy()
-    for path in paths:
-        paths[path] = s.replace(s.split('/hhAnalysis')[0], '/scratch/' + user)
+    original_paths = paths.copy()
+    for key in paths:
+        path = paths[key]
+        paths[key] = path.replace(path.split('/hhAnalysis')[0], '/scratch/' + user)
+        original_paths[key] = path.replace(path.split('/hhAnalysis')[0], path.split('/hhAnalysis')[0] + '/.')
     ut.save_dict_to_json(info_dict, info_file)
-    return paths_copy
+    return original_paths
 
 
 if __name__ == '__main__':
