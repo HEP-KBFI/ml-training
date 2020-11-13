@@ -60,7 +60,7 @@ def main(hyperparameter_file, output_dir):
     score_dict = {
         global_settings['fitness_fn']: score,
         'train': list(train),
-        'test': list(test)
+        'test': (test)
     }
     with open(score_path, 'w') as score_file:
         json.dump(score_dict, score_file)

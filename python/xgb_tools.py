@@ -107,7 +107,7 @@ def evaluate_model(data_dict, global_settings, model):
     pred_test = model.predict_proba(data_dict['test'][trainvars])[:,1]
     kappa = global_settings['kappa']
     if global_settings['fitness_fn'] == 'd_roc':
-        score = et.calculate_d_roc(
+        score, test, train = et.calculate_d_roc(
             data_dict, pred_train, pred_test, kappa=kappa)
     elif global_settings['fitness_fn'] == 'd_ams':
         score = et.calculate_d_ams(
@@ -116,7 +116,7 @@ def evaluate_model(data_dict, global_settings, model):
         print('The' + str(global_settings['fitness_fn']) + \
             ' fitness_fn is not implemented'
         )
-    return score, pred_train, pred_test
+    return score, train, test
 
 
 def model_evaluation_main(
@@ -146,6 +146,6 @@ def model_evaluation_main(
         hyperparameters, data_dict, global_settings['nthread'], objective,
         weight
     )
-    score, pred_train, pred_test = evaluate_model(
+    score, train, test = evaluate_model(
         data_dict, global_settings, model)
-    return score, pred_train, pred_test
+    return score, train, test
