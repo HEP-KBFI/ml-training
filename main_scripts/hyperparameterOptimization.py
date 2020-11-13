@@ -16,6 +16,8 @@ import subprocess
 from machineLearning.machineLearning import slurm_tools as st
 from machineLearning.machineLearning import pso_tools as pt
 from machineLearning.machineLearning import universal_tools as ut
+from machineLearning.machineLearning import hh_aux_tools as hhat
+
 np.random.seed(1)
 
 
@@ -45,6 +47,19 @@ def main(to_continue, opt_dir):
     hyperparameter_info = ut.read_json_cfg(param_file)
     pso_settings = ut.read_settings(settings_dir, 'pso')
     pso_settings.update(global_settings)
+    print('::::::::: Loading data to be saved to pandas.DataFrame :::::::::')
+    addition = ut.create_infoPath_addition(global_settings)
+    channel_dir = os.path.join(output_dir, 'run_info')
+    info_dir = os.path.join(channel_dir, addition)
+    preferences = hhat.get_hh_parameters(
+        channel_dir,
+        global_settings['tauID_training'],
+        info_dir
+    )
+    global_settings['debug'] = False
+    data = hhat.load_hh_data(preferences, global_settings)
+    data_path = os.path.join(output_dir, 'data.csv')
+    data.to_csv(data_path, index=False)
     print("\n============ Starting hyperparameter optimization ==========\n")
     swarm = pt.ParticleSwarm(
         pso_settings, st.get_fitness_score, hyperparameter_info,

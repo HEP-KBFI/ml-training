@@ -12,7 +12,8 @@ def kfold_cv(
         trainvars,
         global_settings,
         hyperparameters,
-        weight='totalWeight'
+        weight='totalWeight',
+        n_folds=2
 ):
     ''' Splits the dataset into 5 parts that are to be used in all combinations
     as training and testing sets
@@ -38,8 +39,10 @@ def kfold_cv(
         Calculated as the average minus stdev of all the cv scores
     '''
 
-    kfold = KFold(n_splits=5, shuffle=True, random_state=1)
+    kfold = KFold(n_splits=n_folds, shuffle=True, random_state=1)
     scores = []
+    tests = []
+    trains = []
     for train_index, test_index in kfold.split(prepared_data):
         train = prepared_data.iloc[train_index]
         test = prepared_data.iloc[test_index]
@@ -48,12 +51,14 @@ def kfold_cv(
             'train': train,
             'test': test
         }
-        score = evaluation(hyperparameters, data_dict, global_settings)[0]
+        score, train, test = evaluation(hyperparameters, data_dict, global_settings)
         scores.append(score)
+        tests.append(test)
+        trains.append(trains)
     avg_score = np.mean(scores)
     stdev_scores = np.std(scores)
     final_score = avg_score - stdev_scores
-    return final_score
+    return final_score, np.mean(trains), np.mean(tests)
 
 
 def get_evaluation(
