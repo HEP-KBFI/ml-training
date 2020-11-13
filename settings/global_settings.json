@@ -11,7 +11,7 @@
     "channel": "2lss",
     "fitness_fn": "d_roc",
     "use_kfold": 1,
-    "nthread": 3,
+    "nthread": 6,
     "kappa": 0.3,
     "spinCase": "spin0",
     "dataCuts": 0
