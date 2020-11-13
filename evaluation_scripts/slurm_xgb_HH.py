@@ -19,6 +19,7 @@ import os
 import csv
 import docopt
 import json
+import pandas
 
 
 def main(hyperparameter_file, output_dir):
@@ -37,7 +38,8 @@ def main(hyperparameter_file, output_dir):
         info_dir
     )
     global_settings['debug'] = False
-    data = hhat.load_hh_data(preferences, global_settings)
+    data_file = os.path.join(output_dir, 'data.csv')
+    data = pandas.read_csv(data_file)
     if bool(global_settings['use_kfold']):
         score = et.kfold_cv(
             xt.model_evaluation_main,
