@@ -16,6 +16,8 @@ import subprocess
 from machineLearning.machineLearning import slurm_tools as st
 from machineLearning.machineLearning import pso_tools as pt
 from machineLearning.machineLearning import universal_tools as ut
+from machineLearning.machineLearning import hh_aux_tools as hhat
+
 np.random.seed(1)
 
 
