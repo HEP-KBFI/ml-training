@@ -3,6 +3,7 @@ from machineLearning.machineLearning import evaluation_tools as et
 import glob
 import os
 import json
+import matplotlib.pyplot as plt
 
 
 class Particle():
@@ -142,6 +143,9 @@ class ParticleSwarm:
         self.settings = settings
         self.fitness_function = fitness_function
         self.hyperparameter_info = hyperparameter_info
+        self.compactnesses = []
+        self.global_bests = []
+        self.global_best = 0
         self.swarm = self.createSwarm()
         if self.continuation:
             hyperparameter_sets = get_iteration_info(
@@ -192,32 +196,48 @@ class ParticleSwarm:
         best_location = best_locations[index]
         return best_fitness, best_location
 
+    def check_global_best(self):
+        for particle in self.swarm:
+            if particle.fitness > self.global_best:
+                self.global_best = particle.fitness
+        self.global_bests.append(self.global_best)
+
     def particleSwarmOptimization(self):
         iteration = 0
         if self.continuation:
             last_complete_iteration = collect_iteration_particles(self.output_dir)
-            fitnesses = get_iteration_info(self.output_dir, iteration, self.settings)[0]
+            fitnesses, all_locations = get_iteration_info(
+                self.output_dir, iteration, self.settings)
         else:
             all_locations = [particle.hyperparameters for particle in self.swarm]
             fitnesses = self.fitness_function(all_locations, self.settings)
         self.set_particle_fitnesses(fitnesses, initial=True)
+        self.check_global_best()
         for particle in self.swarm:
             particle.next_iteration()
+        compactness = et.calculate_compactness(all_locations)
+        self.compactnesses.append(compactness)
         not_clustered = True
+        plot_progress(iteration, self.compactnesses, 'compactness', self.output_dir)
+        plot_progress(iteration, self.global_bests, 'global_best', self.output_dir)
         iteration = 1
         while iteration <= self.settings['iterations'] and not_clustered:
             print('::::::: Iteration: ' + str(iteration) + ' ::::::::')
             self.espionage()
             all_locations = [particle.hyperparameters for particle in self.swarm]
             if self.continuation and iteration <= last_complete_iteration:
-                fitnesses, _ = get_iteration_info(
+                fitnesses, all_locations = get_iteration_info(
                     self.output_dir, iteration, self.settings)
             else:
                 fitnesses = self.fitness_function(all_locations, self.settings)
             self.set_particle_fitnesses(fitnesses)
+            self.check_global_best()
+            plot_progress(iteration, self.compactnesses, 'compactness', self.output_dir)
+            plot_progress(iteration, self.global_bests, 'global_best', self.output_dir)
             for particle in self.swarm:
                 particle.next_iteration()
             compactness = et.calculate_compactness(all_locations)
+            self.compactnesses.append(compactness)
             print(' --- Compactness: ' + str(compactness) + '---')
             not_clustered = compactness > self.settings['compactness_threshold']
             iteration += 1
@@ -228,7 +248,7 @@ class ParticleSwarm:
 
 
 def collect_iteration_particles(iteration_dir):
-    iteration_paths = os.path.join(iteration_dir, 'previous_files',  'iteration_*')
+    iteration_paths = os.path.join(iteration_dir, 'previous_files', 'iteration_*')
     all_iterations = glob.glob(iteration_paths)
     return check_last_iteration_completeness(all_iterations, iteration_dir)
 
@@ -265,3 +285,13 @@ def get_iteration_info(output_dir, iteration, settings):
         fitnesses.append(fitness)
         parameters_list.append(parameters)
     return fitnesses, parameters_list
+
+
+def plot_progress(iteration, y_values, variable_name, output_dir):
+    iterations = np.arange(iteration + 1)
+    plt.plot(iterations, y_value)
+    plt.xlabel(iterations)
+    plt.ylabel(variable_name)
+    plt.grid()
+    output_path = os.path.join(output_path, variable_name + '_progress.png')
+    plt.savefig(output_path, bbox_inches='tight')

@@ -12,9 +12,12 @@ Options:
 import os
 import numpy as np
 import docopt
+import subprocess
 from machineLearning.machineLearning import slurm_tools as st
 from machineLearning.machineLearning import pso_tools as pt
 from machineLearning.machineLearning import universal_tools as ut
+from machineLearning.machineLearning import hh_aux_tools as hhat
+
 np.random.seed(1)
 
 
@@ -35,6 +38,7 @@ def main(to_continue, opt_dir):
     if not to_continue:
         ut.save_run_settings(output_dir)
         ut.save_info_dir(output_dir)
+    use_scratch_for_data(global_settings)
     print("::::::: Reading parameters :::::::")
     param_file = os.path.join(
         settings_dir,
@@ -43,6 +47,19 @@ def main(to_continue, opt_dir):
     hyperparameter_info = ut.read_json_cfg(param_file)
     pso_settings = ut.read_settings(settings_dir, 'pso')
     pso_settings.update(global_settings)
+    print('::::::::: Loading data to be saved to pandas.DataFrame :::::::::')
+    addition = ut.create_infoPath_addition(global_settings)
+    channel_dir = os.path.join(output_dir, 'run_info')
+    info_dir = os.path.join(channel_dir, addition)
+    preferences = hhat.get_hh_parameters(
+        channel_dir,
+        global_settings['tauID_training'],
+        info_dir
+    )
+    global_settings['debug'] = False
+    data = hhat.load_hh_data(preferences, global_settings)
+    data_path = os.path.join(output_dir, 'data.csv')
+    data.to_csv(data_path, index=False)
     print("\n============ Starting hyperparameter optimization ==========\n")
     swarm = pt.ParticleSwarm(
         pso_settings, st.get_fitness_score, hyperparameter_info,
@@ -54,6 +71,49 @@ def main(to_continue, opt_dir):
         output_dir, 'best_hyperparameters.json')
     ut.save_dict_to_json(optimal_hyperparameters, best_parameters_path)
     print("Results saved to " + str(output_dir))
+
+
+def use_scratch_for_data(global_settings):
+    renew_data_paths(global_settings)
+    original_paths = get_original_input_paths(global_settings)
+    SCRATCH_DIR = '/scratch-persistent'
+    for key in original_paths:
+        era_dir = original_paths[key]
+        wildcard = os.path.join(era_dir, '*', 'hadd*.root')
+        print('rsyncing ' + str(key) + ' paths ')
+        subprocess.call(['rsync', '-aRv', era_dir, SCRATCH_DIR])
+
+
+def get_original_input_paths(global_settings):
+    info_dir = os.path.join(
+        os.path.expandvars('$CMSSW_BASE'),
+        'src/machineLearning/machineLearning/info/HH'
+    )
+    addition = ut.create_infoPath_addition(global_settings)
+    info_file = os.path.join(
+        info_dir, global_settings['channel'], addition, 'info.json')
+    info_dict = ut.read_json_cfg(info_file)
+    paths = info_dict['tauID_training'][global_settings['tauID_training']]
+    for key in paths.keys():
+        path = paths[key]
+        paths[key] = path.replace(
+            path.split('/hhAnalysis')[0], path.split('/hhAnalysis')[0] + '/.')
+    return paths
+
+
+def renew_data_paths(global_settings):
+    addition = ut.create_infoPath_addition(global_settings)
+    channel_dir = os.path.expandvars(
+        os.path.join(global_settings['output_dir'], 'run_info')
+    )
+    info_file = os.path.join(channel_dir, addition, 'info.json')
+    info_dict = ut.read_json_cfg(info_file)
+    paths = info_dict['tauID_training'][global_settings['tauID_training']]
+    for key in paths:
+        path = paths[key]
+        paths[key] = path.replace(
+            path.split('/hhAnalysis')[0], '/scratch-persistent')
+    ut.save_dict_to_json(info_dict, info_file)
 
 
 if __name__ == '__main__':

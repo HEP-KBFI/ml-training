@@ -19,6 +19,7 @@ import os
 import csv
 import docopt
 import json
+import pandas
 
 
 def main(hyperparameter_file, output_dir):
@@ -37,9 +38,10 @@ def main(hyperparameter_file, output_dir):
         info_dir
     )
     global_settings['debug'] = False
-    data = hhat.load_hh_data(preferences, global_settings)
+    data_file = os.path.join(output_dir, 'data.csv')
+    data = pandas.read_csv(data_file)
     if bool(global_settings['use_kfold']):
-        score = et.kfold_cv(
+        score, train, test = et.kfold_cv(
             xt.model_evaluation_main,
             data,
             preferences['trainvars'],
@@ -47,7 +49,7 @@ def main(hyperparameter_file, output_dir):
             hyperparameters
         )
     else:
-        score, pred_train, pred_test = et.get_evaluation(
+        score, train, test = et.get_evaluation(
             xt.model_evaluation_main,
             data,
             preferences['trainvars'],
@@ -55,8 +57,13 @@ def main(hyperparameter_file, output_dir):
             hyperparameters
         )
     score_path = os.path.join(save_dir, 'score.json')
+    score_dict = {
+        global_settings['fitness_fn']: score,
+        'train': train,
+        'test': test
+    }
     with open(score_path, 'w') as score_file:
-        json.dump({global_settings['fitness_fn']: score}, score_file)
+        json.dump(score_dict, score_file)
 
 
 if __name__ == '__main__':
