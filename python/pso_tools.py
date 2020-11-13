@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib
+matplotlib.use('agg')
 from machineLearning.machineLearning import evaluation_tools as et
 import glob
 import os
