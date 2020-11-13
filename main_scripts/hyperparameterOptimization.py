@@ -39,7 +39,7 @@ def main(to_continue, opt_dir):
         if not os.path.exists(os.path.join(output_dir, 'run_settings')):
             ut.save_run_settings(output_dir)
         if not os.path.exists(os.path.join(output_dir, 'run_info')):
-        ut.save_info_dir(output_dir)
+            ut.save_info_dir(output_dir)
     use_scratch_for_data(global_settings)
     print("::::::: Reading parameters :::::::")
     param_file = os.path.join(
