@@ -290,7 +290,7 @@ def get_iteration_info(output_dir, iteration, settings):
 
 
 def plot_progress(iteration, y_values, variable_name, output_dir):
-    iterations = np.arange(iteration + 1)
+    iterations = np.arange(len(y_values))
     plt.plot(iterations, y_values)
     plt.xlabel(iterations)
     plt.ylabel(variable_name)
