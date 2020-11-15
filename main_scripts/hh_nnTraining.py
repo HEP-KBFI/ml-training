@@ -78,7 +78,7 @@ def main(output_dir, save_model):
         global_settings['tauID_training'],
         info_dir,
     )
-    preferences = define_trainvars(global_settings, preferences)
+    preferences = define_trainvars(global_settings, preferences, info_dir)
     data_dict = create_data_dict(preferences, global_settings)
     even_model = create_model(
         preferences, global_settings, data_dict, "even_data", save_model)
@@ -89,18 +89,19 @@ def main(output_dir, save_model):
         even_model, data_dict, global_settings, "even_data")
     odd_train_info, odd_test_info = evaluate_model(
         odd_model, data_dict, global_settings, "odd")
-    if global_settings['ml_method'] != 'lbn' and global_settings['feature_importance'] == 1:
-        trainvars = preferences['trainvars']
-        data = data_dict['odd_data']
-        score_dict = nt.custom_permutation_importance(
-            even_model, data[trainvars], data['evtWeight'],
-            trainvars, data['multitarget']
-        )
-    else:
-        score_dict = nt.lbn_feature_importances(
-            even_model, data_dict, preferences['trainvars'])
-    hhvt.plot_feature_importances_from_dict(
-        score_dict, global_settings['output_dir'])
+    if global_settings['feature_importance'] == 1:
+        if global_settings['ml_method'] != 'lbn':
+            trainvars = preferences['trainvars']
+            data = data_dict['odd_data']
+            score_dict = nt.custom_permutation_importance(
+                even_model, data[trainvars], data['evtWeight'],
+                trainvars, data['multitarget']
+            )
+        else:
+          score_dict = nt.lbn_feature_importances(
+             even_model, data_dict, preferences['trainvars'])
+        hhvt.plot_feature_importances_from_dict(
+         score_dict, global_settings['output_dir'])
     hhvt.plotROC(
         [odd_train_info, odd_test_info],
         [even_train_info, even_test_info],
@@ -114,10 +115,6 @@ def main(output_dir, save_model):
             ]
         ))[0]
         print(str(class_) + '\t' + str(multitarget))
-        hhvt.plot_nn_sampleWise_bdtOutput(
-            odd_model, data_dict["even_data"], preferences,
-            global_settings, multitarget, class_, data_dict
-        )
 
 def create_data_dict(preferences, global_settings):
     data = dlt.load_data(
@@ -193,16 +190,27 @@ def create_model(
         save_model
 ):
     lbn = 1 if global_settings['ml_method'] == 'lbn' else 0
+    low_level_var = ["%s_%s" %(jet, var) for jet in ["bjet1", "bjet2", "wjet1", "wjet2", "lep"]\
+                    for var in ["e", "px", "py", "pz"]]
     trainvars = preferences['trainvars']
-    nr_trainvars = len(trainvars)
     num_class = max((data_dict['odd_data']['multitarget'])) + 1
     number_samples = len(data_dict[choose_data])
     reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
-        monitor='val_loss', factor=0.2, patience=5, min_lr=0.001
+        monitor='val_loss', factor=0.1, patience=5, min_lr=0.001
     )
-    input_var = np.array([data_dict[choose_data][var] for var in preferences["trainvars"]])
-    categorical_var_index = [data_dict[choose_data].columns.get_loc(c) for c in ["nodeX"] \
-                             if c in data_dict[choose_data]]
+    categorical_vars = ["SM", "BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"]
+    if lbn:
+        nr_trainvars = len(trainvars) - len(low_level_var)
+        input_var = np.array([data_dict[choose_data][var] for var in list(set(preferences["trainvars"]) - set(low_level_var))])
+        categorical_var_index = [list(set(preferences["trainvars"]) - set(low_level_var)).index(categorical_var) for \
+                          categorical_var in categorical_vars if categorical_var in preferences["trainvars"]]
+    else :
+        nr_trainvars = len(trainvars)
+        input_var = np.array([data_dict[choose_data][var] for var in preferences["trainvars"]])
+        categorical_var_index = [preferences["trainvars"].index(categorical_var) for categorical_var in \
+                             categorical_vars if categorical_var in preferences["trainvars"]]
+
+    if len(categorical_var_index) == 0: categorical_var_index = None
     model_structure = nt.create_nn_model(
         nr_trainvars,
         num_class,
@@ -248,11 +256,11 @@ def create_model(
         )
     else:
         train_data = data_dict['odd_data'] if choose_data == "odd_data" else data_dict['even_data']
-        val_data = data_dict['even_data']  if choose_data == "even_data" else data_dict['odd_data']
+        val_data = data_dict['even_data']  if choose_data == "odd_data" else data_dict['odd_data']
         fitted_model = model_structure.fit(
             train_data[trainvars].values,
             train_data['multitarget'].astype(np.int),
-            epochs=10,
+            epochs=25,
             batch_size=1024,
             sample_weight=train_data['totalWeight'].values,
             validation_data=(
@@ -273,12 +281,32 @@ def create_model(
         file = open(log_filename, "w")
         file.write(str(trainvars))
         file.close()
-    fig1, ax = plt.subplots()
+    '''fig1, ax = plt.subplots()
     pd.DataFrame(fitted_model.history).plot(figsize=(8, 5))
     plt.grid(True)
     plt.show()
-    plt.yscale('log')
-    plt.savefig("loss_sampleweight_%s.png" %choose_data)
+    plt.yscale('log')'''
+    epochs = range(1, len(fitted_model.history["loss"])+1)
+    plt.figure(figsize=(9, 4))
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs, fitted_model.history["loss"], "o-", label="Training")
+    plt.plot(epochs, fitted_model.history["val_loss"], "o-", label="Validation")
+    plt.xlabel("Epochs"), plt.ylabel("Loss")
+    plt.ylim(0.0,1.0)
+    plt.grid()
+    plt.legend();
+
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs, fitted_model.history["accuracy"], "o-", label="Training")
+    plt.plot(epochs, fitted_model.history["val_accuracy"], "o-", label="Validation")
+    plt.xlabel("Epochs"), plt.ylabel("Accuracy")
+    #plt.yscale("log")
+    plt.ylim(0.0,1.0)
+    plt.grid()
+    plt.legend(loc="best");
+    loss_vs_epoch = os.path.join(global_settings["output_dir"], "loss_vs_epoch_%s_%s.png" \
+                   %(global_settings["mode"], choose_data))
+    plt.savefig(loss_vs_epoch)
     plt.close('all')
 
     return model_structure
@@ -401,15 +429,15 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
     return train_info, test_info
 
 
-def define_trainvars(global_settings, preferences):
+def define_trainvars(global_settings, preferences, info_dir):
     if global_settings["ml_method"] == "lbn" :
-        trainvars_path = os.path.join(info_dir, 'trainvars_resolved_lbn.json')
+        trainvars_path = os.path.join(info_dir, 'trainvars.json')
     if global_settings["dataCuts"].find("boosted") != -1 :
         trainvars_path = os.path.join(info_dir, 'trainvars_boosted.json')
     if global_settings["dataCuts"].find("boosted") != -1 and global_settings["ml_method"] == "lbn":
         trainvars_path = os.path.join(info_dir, 'trainvars_boosted_lbn.json')
     if global_settings["dataCuts"].find("boosted") == -1 and global_settings["ml_method"] == "lbn":
-        trainvars_path = os.path.join(info_dir, 'trainvars_resolved_lbn.json')
+        trainvars_path = os.path.join(info_dir, 'trainvars.json')
     try:
         trainvar_info = dlt.read_trainvar_info(trainvars_path)
         preferences['trainvars'] = []
