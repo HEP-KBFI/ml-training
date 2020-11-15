@@ -1,6 +1,6 @@
 {
-    "output_dir": "bdt_jpa_test",
-    "ml_method": "nn",
+    "output_dir": "test_lbn_resolved_onlySM",
+    "ml_method": "lbn",
     "feature_importance" : 0,
     "trainvarOpt" : 0,
     "process": "HH",
@@ -14,5 +14,6 @@
     "nthread": 3,
     "kappa": 0.3,
     "spinCase": "spin0",
+    "mode" : "resolved",
     "dataCuts": "cuts_resolved.json"
 }
