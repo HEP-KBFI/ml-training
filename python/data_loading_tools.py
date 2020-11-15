@@ -14,7 +14,6 @@ from root_numpy import tree2array
 import uproot_methods
 from datetime import datetime
 
-
 TLorentzVectorArray = uproot_methods.classes.TLorentzVector.TLorentzVectorArray
 
 
@@ -28,13 +27,14 @@ def tree_to_lorentz(data, name="Jet"):
 
 
 def tree_to_array(data, name="Jet"):
-    lorentz = tree_to_lorentz(data, name=name)
-    array = np.array([
-        lorentz.E[:],
-        lorentz.x[:],
-        lorentz.y[:],
-        lorentz.z[:],
-    ])
+    #lorentz = tree_to_lorentz(data, name=name)
+    #array = np.array([
+     #   lorentz.E[:],
+      #  lorentz.x[:],
+       # lorentz.y[:],
+        #lorentz.z[:],
+    #])
+    array = np.array([data[var] for var in ["%s_%s" %(name, ll_var) for ll_var in ["e", "px", "py", "pz"]]])
     array = np.moveaxis(array, 0, 1)
     return array
 
@@ -50,44 +50,12 @@ def get_low_level(data):
 
 
 def get_high_level(tree, variables):
-    output = np.array([np.array(tree[variable].astype(np.float32)) for variable in variables])
+    low_level_var = ["%s_%s" %(jet, var) for jet in ["bjet1", "bjet2", "wjet1", "wjet2", "lep"]\
+                    for var in ["e", "px", "py", "pz"]]
+    output = np.array([np.array(tree[variable].astype(np.float32)) for variable in list(set(variables) - set(low_level_var))])
     output = np.moveaxis(output, 0, 1)
     return output
 
-TLorentzVectorArray = uproot_methods.classes.TLorentzVector.TLorentzVectorArray
-
-def tree_to_lorentz(data, name="Jet"):
-    return TLorentzVectorArray.from_ptetaphim(
-        np.array(data["%s_pt" % name]).astype(np.float64),
-        np.array(data["%s_eta" % name]).astype(np.float64),
-        np.array(data["%s_phi" % name]).astype(np.float64),
-        np.array(data["%s_mass" % name]).astype(np.float64)
-    )
-
-
-def tree_to_array(data, name="Jet"):
-    lorentz = tree_to_lorentz(data, name=name)
-    array = np.array([
-        lorentz.E[:],
-        lorentz.x[:],
-        lorentz.y[:],
-        lorentz.z[:],
-    ])
-    array = np.moveaxis(array,0,1)
-    return array
-
-def get_low_level(data) :
-    b1jets = tree_to_array(data, name="bjet1")
-    b2jets = tree_to_array(data, name="bjet2")
-    w1jets = tree_to_array(data, name="wjet1")
-    w2jets = tree_to_array(data, name="wjet2")
-    leptons = tree_to_array(data, name="lep")
-    events = np.stack([b1jets,b2jets,w1jets,w2jets,leptons],axis=1)
-    return events
-
-def get_high_level(tree, variables) :
-    output = np.array([np.array(tree[variable].astype(np.float32)) for variable in variables])
-    return np.moveaxis(output, 0, 1)
 def load_data(
         preferences,
         global_settings,
@@ -123,8 +91,32 @@ def load_data(
         )
         data['era'] = era
         total_data = total_data.append(data)
+    if 'bb1l' in global_settings["channel"]:
+        print("DY: ", len(total_data.loc[total_data["process"] == "DY"]),\
+              "W: ", len(total_data.loc[total_data["process"] == "W"]),\
+              "TT: ", len(total_data.loc[total_data["process"] == "TT"]),\
+              'ST: ', len(total_data.loc[total_data["process"] == "ST"]), \
+              'Other:', len(total_data.loc[total_data["process"] == "Other"]),\
+              'HH', len(total_data.loc[total_data["process"] == "signal_ggf_nonresonant_hh_bbvv_sl"])
+        )
     if global_settings['dataCuts'] != 0:
         total_data = data_cutting(total_data, global_settings)
+    if 'bb1l' in global_settings["channel"]:
+        TT = total_data.loc[total_data["process"] == "TT"].head(200000)
+        ST = total_data.loc[total_data["process"] == "ST"].head(200000)
+        Other = total_data.loc[total_data["process"] == "Other"].head(200000)
+        W = total_data.loc[total_data["process"] == "W"].head(200000)
+        DY = total_data.loc[total_data["process"] == "DY"].head(200000)
+        HH = total_data.loc[total_data["process"] == "signal_ggf_nonresonant_hh_bbvv_sl"]
+        alldata = [TT, ST, Other, W, DY, HH]
+        total_data = pandas.concat(alldata)
+        print("DY: ", len(total_data.loc[total_data["process"] == "DY"]),\
+              "W: ", len(total_data.loc[total_data["process"] == "W"]), \
+              "TT: ", len(total_data.loc[total_data["process"] == "TT"]), \
+              'ST: ', len(total_data.loc[total_data["process"] == "ST"]), \
+              'Other:', len(total_data.loc[total_data["process"] == "Other"]), \
+              'HH', len(total_data.loc[total_data["process"] == "signal_ggf_nonresonant_hh_bbvv_sl"])
+          )
     return total_data
 
 
@@ -210,8 +202,12 @@ def data_main_loop(
     paths = get_all_paths(
         preferences['era_inputPath'], folder_name, global_settings['bdtType']
     )
+    start_time = datetime.now()
     for path in paths:
         print('Loading from: ' + path)
+        if ((datetime.now() -start_time).total_seconds()/60) > 5:
+            print('Start time: ' + str(start_time) + '\t Current time: ' + str(datetime.now()))
+            start_time = datetime.now()
         tree, tfile = read_root_tree(path, input_tree)
         data = load_data_from_tfile(
             tree,
@@ -270,20 +266,24 @@ def load_data_from_tfile(
                 weightBranches = ['evtWeight', 'event']
                 to_be_loaded = list(preferences['trainvars'])
                 to_be_loaded.extend(weightBranches)
-                if global_settings["channel"] == "bb1l":
+                if 'bb1l' in global_settings["channel"]:
                     to_be_loaded.extend(["isHbb_boosted"])
                 if global_settings['debug']:
                     to_be_loaded.extend(['luminosityBlock', 'run'])
                 to_be_dropped = ['gen_mHH']
                 to_be_dropped.extend(list(preferences['nonResScenarios']))
-                if global_settings["channel"] == "bb1l": to_be_dropped.extend(['nodeX'])
+                if 'bb1l' in global_settings["channel"]: to_be_dropped.extend(['nodeX'])
                 if 'nonres' in sample_name:
                     nonres_weights = [str('Weight_') + scenario for scenario in preferences['nonResScenarios']]
                     to_be_loaded.extend(nonres_weights)
                 for drop in to_be_dropped:
                     if drop in to_be_loaded:
                         to_be_loaded.remove(drop)
-                chunk_arr = tree2array(tree, branches=to_be_loaded)
+                stop = None
+                if 'bb1l' in global_settings["channel"]:
+                    if sample_name == "TT":
+                        stop = 3000000
+                chunk_arr = tree2array(tree, branches=to_be_loaded, stop=stop)
             chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
         except Exception:
@@ -344,6 +344,7 @@ def define_new_variables(
     chunk_df['key'] = folder_name
     chunk_df['target'] = int(target)
     chunk_df['totalWeight'] = chunk_df['evtWeight']
+    chunk_df.loc[chunk_df["process"].isin(["TTW", "TTWW", "WW", "WZ", "ZZ", "TTH", "TH", "VH", "Other"]), "process"] = "Other"
     if 'HH' in global_settings['bdtType']:
         data = hhdt.define_new_variables(
             chunk_df, sample_name, folder_name, target, preferences,
