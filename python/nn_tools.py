@@ -53,13 +53,13 @@ def Normal(ref, const=None, ignore_zeros=False, name=None, **kwargs):
     Normalizing layer according to ref.
     If given, variables at the indices const will not be normalized.
     """
+    #print 'ref=== ', ref
     if ignore_zeros:
         mean = np.nanmean(np.where(ref == 0, np.ones_like(ref) * np.nan, ref), **kwargs)
         std = np.nanstd(np.where(ref == 0, np.ones_like(ref) * np.nan, ref), **kwargs)
     else:
         mean = ref.mean(**kwargs)
         std = ref.std(**kwargs)
-    print(mean)
     if const is not None:
         mean[const] = 0
         std[const] = 1
@@ -114,7 +114,7 @@ def create_nn_model(
         normalized_hl_inputs = Normal(ref=input_var, const=categorical_var_index, axis=1)(hl_inputs)
         x = tf.keras.layers.concatenate([normalized_lbn_features, normalized_hl_inputs])
         for layer in range(0, 6):
-            x = tf.keras.layers.Dense(1024, activation="softplus",
+            x = tf.keras.layers.Dense(256, activation="softplus",
                                       kernel_regularizer=tf.keras.regularizers.l2(0.0003))(x)
             x = tf.keras.layers.BatchNormalization()(x)
             x = tf.keras.layers.Dropout(0.0)(x)
@@ -127,7 +127,8 @@ def create_nn_model(
         model.compile(
             optimizer=tf.keras.optimizers.Adam(lr=0.0003),
             loss='sparse_categorical_crossentropy',
-            metrics=["accuracy"]
+            #metrics=["accuracy"]
+            weighted_metrics = [tf.keras.metrics.CategoricalAccuracy(name="accuracy")]
         )
     else:
         inputs = tf.keras.Input(shape=(nr_trainvars,), name="input_var")
@@ -146,7 +147,8 @@ def create_nn_model(
         model.compile(
             optimizer=tf.keras.optimizers.Adam(lr=0.0003),
             loss='sparse_categorical_crossentropy',
-            metrics=["accuracy"]
+            #metrics=["accuracy"]
+            weighted_metrics=[tf.keras.metrics.CategoricalAccuracy(name="accuracy")]
         )
     return model
 
