@@ -249,7 +249,7 @@ def create_model(
             sample_weight=train_data["train_data"]['totalWeight'].values,
             validation_data=(
                 [val_data["ll"], val_data["hl"]],
-                val_data["val_data"]["multitarget"],
+                val_data["val_data"]["multitarget"].values,
                 val_data["val_data"]["totalWeight"].values
             ),
             callbacks=[reduce_lr]
