@@ -36,8 +36,10 @@ def main(to_continue, opt_dir):
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
     if not to_continue:
-        ut.save_run_settings(output_dir)
-        ut.save_info_dir(output_dir)
+        if not os.path.exists(os.path.join(output_dir, 'run_settings')):
+            ut.save_run_settings(output_dir)
+        if not os.path.exists(os.path.join(output_dir, 'run_info')):
+            ut.save_info_dir(output_dir)
     use_scratch_for_data(global_settings)
     print("::::::: Reading parameters :::::::")
     param_file = os.path.join(
@@ -57,9 +59,10 @@ def main(to_continue, opt_dir):
         info_dir
     )
     global_settings['debug'] = False
-    data = hhat.load_hh_data(preferences, global_settings)
     data_path = os.path.join(output_dir, 'data.csv')
-    data.to_csv(data_path, index=False)
+    if not os.path.exists(data_path):
+        data = hhat.load_hh_data(preferences, global_settings)
+        data.to_csv(data_path, index=False)
     print("\n============ Starting hyperparameter optimization ==========\n")
     swarm = pt.ParticleSwarm(
         pso_settings, st.get_fitness_score, hyperparameter_info,
