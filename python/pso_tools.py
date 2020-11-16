@@ -290,8 +290,9 @@ def get_iteration_info(output_dir, iteration, settings):
 def plot_progress(iteration, y_values, variable_name, output_dir):
     iterations = np.arange(iteration + 1)
     plt.plot(iterations, y_value)
-    plt.xlabel(iterations)
+    plt.xlabel('iterations')
     plt.ylabel(variable_name)
     plt.grid()
     output_path = os.path.join(output_path, variable_name + '_progress.png')
     plt.savefig(output_path, bbox_inches='tight')
+    plt.close('all')
