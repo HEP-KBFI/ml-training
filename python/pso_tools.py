@@ -295,6 +295,6 @@ def plot_progress(iteration, y_values, variable_name, output_dir):
     plt.xlabel('iterations')
     plt.ylabel(variable_name)
     plt.grid()
-    output_path = os.path.join(output_path, variable_name + '_progress.png')
+    output_path = os.path.join(output_dir, variable_name + '_progress.png')
     plt.savefig(output_path, bbox_inches='tight')
     plt.close('all')
