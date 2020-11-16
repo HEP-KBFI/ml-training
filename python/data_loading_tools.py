@@ -165,9 +165,25 @@ def data_main_loop(
     data : pandas DataFrame
         All the loaded data so far.
     '''
-    sample_name, target = find_sample_info(
-        folder_name, global_settings['bdtType'], preferences['masses']
-    )
+    if 'nonres' in global_settings['bdtType']:
+            sample_name, target = find_sample_info(
+                folder_name, global_settings['bdtType'], preferences['nonResScenarios']
+            )
+            print("Old sample_name", sample_name)
+            if '_tttt' in sample_name:
+                sample_name = sample_name.replace('_tttt', '')
+            if '_wwtt' in sample_name:
+                sample_name = sample_name.replace('_wwtt', '')
+            if '_wwww' in sample_name:
+                sample_name = sample_name.replace('_wwww', '')
+            print("New sample_name", sample_name)
+    else:
+        sample_name, target = find_sample_info(
+            folder_name, global_settings['bdtType'], preferences['masses']
+        )        
+    #sample_name, target = find_sample_info( ## DEF LINES
+    #    folder_name, global_settings['bdtType'], preferences['masses']
+    #)
     input_tree = str(os.path.join(
         preferences['channelInTree'], 'sel/evtntuple', sample_name, 'evtTree'))
     print(':::::::::::::::::')
