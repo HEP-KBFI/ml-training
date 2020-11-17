@@ -104,9 +104,9 @@ def get_evaluation(
         'test': test,
     }
     score, pred_train, pred_test = evaluation(
-         hyperparameters, data_dict, global_settings)
+        hyperparameters, data_dict, global_settings)
     return score, pred_train, pred_test
-    
+
 
 def calculate_d_score(train_score, test_score, kappa=1.5):
     ''' Calculates the d_score with the given kappa, train_score and
