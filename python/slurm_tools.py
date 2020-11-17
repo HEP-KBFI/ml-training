@@ -129,13 +129,12 @@ def prepare_job_file(
     copyfile(template_file, job_file)
     with open(job_file, 'a') as filehandle:
         filehandle.writelines('''
-#SBATCH --cpus-per-task=%s
 #SBATCH -e %s
 #SBATCH -o %s
 env
 date
 python %s --parameter_file %s --output_dir %s
-        ''' % (global_settings['nthread'], error_file, output_file, run_script,
+        ''' % (error_file, output_file, run_script,
                parameter_file, output_dir))
     return job_file
 
