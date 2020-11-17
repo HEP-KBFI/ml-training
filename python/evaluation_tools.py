@@ -44,17 +44,18 @@ def kfold_cv(
     tests = []
     trains = []
     for train_index, test_index in kfold.split(prepared_data):
-        train = prepared_data.iloc[train_index]
-        test = prepared_data.iloc[test_index]
+        train_set = prepared_data.iloc[train_index]
+        test_set = prepared_data.iloc[test_index]
         data_dict = {
             'trainvars': trainvars,
-            'train': train,
-            'test': test
+            'train': train_set,
+            'test': test_set
         }
         score, train, test = evaluation(hyperparameters, data_dict, global_settings)
+        del train_set, test_set, data_dict
         scores.append(score)
         tests.append(test)
-        trains.append(trains)
+        trains.append(train)
     avg_score = np.mean(scores)
     stdev_scores = np.std(scores)
     final_score = avg_score - stdev_scores
