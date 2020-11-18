@@ -52,15 +52,19 @@ def get_ntuple_paths(input_path, folder_name, bdt_type, file_type='hadd*'):
             'HH',
             'background_categories.json'
         )
-        background_categories = ut.read_json_cfg(catfile)
+        background_categories = ut.read_json_cfg(background_catfile)
         bkg_elements = background_categories[folder_name]
+        print(bkg_elements)
         for bkg_element in bkg_elements:
+            bkg_element = bkg_element.keys()
+            print(bkg_element)
             bkg_element_paths = find_paths_both_conventions(
                 input_path, bkg_element, file_type=file_type)
             paths.extend(bkg_element_paths)
     else:
         paths = find_paths_both_conventions(
             input_path, folder_name, file_type=file_type)
+    print(paths)
     return paths
 
 
