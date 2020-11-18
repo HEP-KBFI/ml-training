@@ -53,16 +53,15 @@ def get_ntuple_paths(input_path, folder_name, file_type='hadd*'):
         bkg_elements = background_categories[folder_name]
         for bkg_element in bkg_elements:
             bkg_element_paths = find_paths_both_conventions(
-                input_path, bkg_element, file_type=file_type)
+                input_path, bkg_element, paths, file_type=file_type)
             paths.extend(bkg_element_paths)
     else:
         paths = find_paths_both_conventions(
-            input_path, folder_name, file_type=file_type)
+            input_path, folder_name, paths, file_type=file_type)
     return paths
 
 
-def find_paths_both_conventions(input_path, folder_name, file_type='hadd*'):
-    paths = []
+def find_paths_both_conventions(input_path, folder_name, paths, file_type='hadd*'):
     wild_card_path = os.path.join(
         input_path, folder_name + '*', 'central', file_type + '.root')
     paths = glob.glob(wild_card_path)
