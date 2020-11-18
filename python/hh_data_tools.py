@@ -4,67 +4,60 @@ import numpy as np
 from machineLearning.machineLearning import universal_tools as ut
 
 
-def set_signal_sample_info(bdt_type, folder_name, masses):
+def set_signal_sample_info(folder_name):
     target = 1
-    name_map = {
-        '4t': 'tttt',
-        '2v2t': 'wwtt',
-        '4v': 'wwww',
-        '2b2v': 'bbvv'
-    }
-    for key in name_map:
-        if key in folder_name:
-            sample_name = folder_name.replace(key, name_map[key])
-            if 'node' in sample_name:
-                sample_name = sample_name.replace('_node', '')
-                node_type = sample_name.split('_')[3]
-                sample_name = sample_name.replace(str(node_type) + '_', '')
+    if 'nonresonant' in folder_name:
+        sample_name = 'signal_ggf_nonresonant_hh'
+    else:
+        sample_name = folder_name.replace('_' + folder_name.split('_')[-1], '')
     return sample_name, target
 
 
-def set_background_sample_info(folder_name, samplename_info):
-    sample_name, target = set_background_sample_info_d(
-        folder_name, samplename_info)
-    if 'ttH' in folder_name:
-        target = 0
-        sample_name = 'TTH'
-    return sample_name, target
+def set_background_sample_info(folder_name, path):
+    target = 0
+    background_catfile = os.path.join(
+        os.path.expandvars('$CMSSW_BASE'),
+        'src/machineLearning/machineLearning/info',
+        'HH',
+        'background_categories.json'
+    )
+    background_categories = ut.read_json_cfg(background_catfile)
+    for category in background_categories:
+        possible_samples = background_categories[category]
+        for sample in possible_samples.keys():
+            if sample in path:
+                sample_name = possible_samples[sample]
+                return sample_name, target
 
 
-def set_sample_info(folder_name, samplename_info, masses, bdt_type):
+def set_sample_info(folder_name, path):
     sample_name = None
     target = None
     if 'signal' in folder_name:
-        sample_name, target = set_signal_sample_info(
-            bdt_type, folder_name, masses)
+        sample_name, target = set_signal_sample_info(folder_name)
     else:
-        sample_name, target = set_background_sample_info(
-            folder_name, samplename_info)
+        sample_name, target = set_background_sample_info(folder_name, path)
     return sample_name, target
 
 
-def get_ntuple_paths(input_path, folder_name, bdt_type, file_type='hadd*'):
+def get_ntuple_paths(input_path, folder_name, file_type='hadd*'):
     paths = []
-    if 'signal' not in folder_name:
-        background_catfile = os.path.join(
-            os.path.expandvars('$CMSSW_BASE'),
-            'src/machineLearning/machineLearning/info',
-            'HH',
-            'background_categories.json'
-        )
-        background_categories = ut.read_json_cfg(background_catfile)
+    background_catfile = os.path.join(
+        os.path.expandvars('$CMSSW_BASE'),
+        'src/machineLearning/machineLearning/info',
+        'HH',
+        'background_categories.json'
+    )
+    background_categories = ut.read_json_cfg(background_catfile)
+    if 'signal' not in folder_name and folder_name in background_categories.keys():
         bkg_elements = background_categories[folder_name]
-        print(bkg_elements)
         for bkg_element in bkg_elements:
-            bkg_element = bkg_element.keys()
-            print(bkg_element)
             bkg_element_paths = find_paths_both_conventions(
                 input_path, bkg_element, file_type=file_type)
             paths.extend(bkg_element_paths)
     else:
         paths = find_paths_both_conventions(
             input_path, folder_name, file_type=file_type)
-    print(paths)
     return paths
 
 
@@ -126,28 +119,3 @@ def define_new_variables(
                     chunk_df_node['totalWeight'] *= nodeWeight
             data = data.append(chunk_df_node, ignore_index=True, sort=False)
     return data
-
-
-def set_background_sample_info_d(folder_name, samplename_info):
-    '''Finds which sample corresponds to the given folder name
-
-    Parameters:
-    ----------
-    folder_name : str
-        Name of the folder where data would be loaded
-    samplename_info : dict
-        Info regarding what sample name and target each folder has
-
-    Returns:
-    -------
-    sample_dict : dict
-        Dictionary containing the info of the sample for the folder.
-    '''
-    sample_name = None
-    target = None
-    for sample in samplename_info.keys():
-        if sample in folder_name:
-            sample_dict = samplename_info[sample]
-            sample_name = sample_dict['sampleName']
-            target = sample_dict['target']
-    return sample_name, target
