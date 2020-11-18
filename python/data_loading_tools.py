@@ -369,7 +369,7 @@ def get_all_paths(input_path, folder_name, bdt_type):
     if 'TTH' in bdt_type:
         paths = tthat.get_ntuple_paths(input_path, folder_name)
     elif 'HH' in bdt_type:
-        paths = hhdt.get_ntuple_paths(input_path, folder_name, bdt_type)
+        paths = hhdt.get_ntuple_paths(input_path, folder_name)
     else:
         return ValueError('Unknown bdtType')
     return paths
