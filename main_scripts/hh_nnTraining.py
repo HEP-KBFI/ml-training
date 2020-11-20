@@ -30,8 +30,9 @@ from machineLearning.machineLearning import multiclass_tools as mt
 from machineLearning.machineLearning import hh_visualization_tools as hhvt
 import cmsml
 
-
-def plot_confusion_matrix(cm, class_names, output_dir):
+tf.config.threading.set_intra_op_parallelism_threads(4)
+tf.config.threading.set_inter_op_parallelism_threads(4)
+def plot_confusion_matrix(cm, class_names, output_dir, addition):
     figure = plt.figure(figsize=(4, 4))
     plt.imshow(cm, interpolation='nearest', cmap="summer")
     plt.title("Confusion matrix")
@@ -50,9 +51,9 @@ def plot_confusion_matrix(cm, class_names, output_dir):
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
-    outfile = os.path.join(output_dir, 'confusion_matrix_resolved.png') \
+    outfile = os.path.join(output_dir, 'confusion_matrix_resolved_%s.png' %addition) \
               if output_dir.find("resolved") != -1 \
-                 else os.path.join(output_dir, 'confusion_matrix_boosted.png')
+                 else os.path.join(output_dir, 'confusion_matrix_boosted_%s.png' %addition)
     plt.savefig(outfile, bbox_inches='tight')
     plt.close('all')
 
@@ -88,7 +89,7 @@ def main(output_dir, save_model):
     even_train_info, even_test_info = evaluate_model(
         even_model, data_dict, global_settings, "even_data")
     odd_train_info, odd_test_info = evaluate_model(
-        odd_model, data_dict, global_settings, "odd")
+        odd_model, data_dict, global_settings, "odd_data")
     if global_settings['feature_importance'] == 1:
         if global_settings['ml_method'] != 'lbn':
             trainvars = preferences['trainvars']
@@ -149,11 +150,11 @@ def create_data_dict(preferences, global_settings):
         + data.loc[data["process"] == "Other"]["totalWeight"].sum() \
         + data.loc[data["target"] == 1]["totalWeight"].sum()
     print(
-        "TT:W:DY:HH \t" \
+        "TT:W:DY:ST \t" \
         + str(data.loc[data["process"] == "TT"]["totalWeight"].sum()/sumall) \
         + ":" + str(data.loc[data["process"] == "W"]["totalWeight"].sum()/sumall) \
         + ":" + str(data.loc[data["process"] == "DY"]["totalWeight"].sum()/sumall) \
-        + ":" + str(data.loc[data["target"] == 1]["totalWeight"].sum()/sumall)
+        + ":" + str(data.loc[data["process"] == 'ST']["totalWeight"].sum()/sumall)
     )
     data = mt.multiclass_encoding(data)
     hhvt.plot_correlations(data, preferences["trainvars"], global_settings)
@@ -181,7 +182,6 @@ def create_data_dict(preferences, global_settings):
         }
     return data_dict
 
-
 def create_model(
         preferences,
         global_settings,
@@ -196,20 +196,20 @@ def create_model(
     num_class = max((data_dict['odd_data']['multitarget'])) + 1
     number_samples = len(data_dict[choose_data])
     reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
-        monitor='val_loss', factor=0.1, patience=5, min_lr=0.001
+        monitor='val_loss', factor=0.1, patience=5, min_lr=0.00001
     )
     categorical_vars = ["SM", "BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"]
     if lbn:
         nr_trainvars = len(trainvars) - len(low_level_var)
-        input_var = np.array([data_dict[choose_data][var] for var in list(set(preferences["trainvars"]) - set(low_level_var))])
-        categorical_var_index = [list(set(preferences["trainvars"]) - set(low_level_var)).index(categorical_var) for \
-                          categorical_var in categorical_vars if categorical_var in preferences["trainvars"]]
+        hl_var = [var for var in preferences["trainvars"] if var not in low_level_var]
+        input_var = np.array([data_dict[choose_data][var] for var in hl_var])
+        categorical_var_index = [hl_var.index(categorical_var) for categorical_var in categorical_vars \
+                                 if categorical_var in hl_var]
     else :
         nr_trainvars = len(trainvars)
         input_var = np.array([data_dict[choose_data][var] for var in preferences["trainvars"]])
         categorical_var_index = [preferences["trainvars"].index(categorical_var) for categorical_var in \
                              categorical_vars if categorical_var in preferences["trainvars"]]
-
     if len(categorical_var_index) == 0: categorical_var_index = None
     model_structure = nt.create_nn_model(
         nr_trainvars,
@@ -271,28 +271,29 @@ def create_model(
             callbacks=[reduce_lr]
         )
     if save_model:
-        pb_filename = os.path.join(global_settings["output_dir"], "multiclass_DNN_w%s_for_%s_%s_%s.pb"\
+        if 'nonres' in global_settings["bdtType"]:
+            res_nonres = 'nonres'
+        else :
+            res_nonres = 'res_%s' %global_settings['spinCase']
+        pb_filename = os.path.join(global_settings["output_dir"], "multiclass_DNN_w%s_for_%s_%s_%s_%s.pb"\
                                 %(global_settings["ml_method"], global_settings["channel"], \
-                                  global_settings["mode"], choose_data))
-        log_filename = os.path.join(global_settings["output_dir"], "multiclass_DNN_w%s_for_%s_%s_%s.log"\
+                                  global_settings["mode"], choose_data, res_nonres))
+        log_filename = os.path.join(global_settings["output_dir"], "multiclass_DNN_w%s_for_%s_%s_%s_%s.log"\
                                 %(global_settings["ml_method"], global_settings["channel"], \
-                                  global_settings["mode"], choose_data))
+                                  global_settings["mode"], choose_data, res_nonres))
         cmsml.tensorflow.save_graph(pb_filename, model_structure, variables_to_constants=True)
         file = open(log_filename, "w")
-        file.write(str(trainvars))
+        file.write(str(hl_var))
         file.close()
-    '''fig1, ax = plt.subplots()
-    pd.DataFrame(fitted_model.history).plot(figsize=(8, 5))
-    plt.grid(True)
-    plt.show()
-    plt.yscale('log')'''
+    fig1, ax = plt.subplots()
     epochs = range(1, len(fitted_model.history["loss"])+1)
     plt.figure(figsize=(9, 4))
     plt.subplot(1, 2, 1)
     plt.plot(epochs, fitted_model.history["loss"], "o-", label="Training")
     plt.plot(epochs, fitted_model.history["val_loss"], "o-", label="Validation")
     plt.xlabel("Epochs"), plt.ylabel("Loss")
-    plt.ylim(0.0,1.0)
+    #plt.ylim(0.0,1.0)
+    plt.ylim(0.0, 1.2*max(max(fitted_model.history["loss"]), max(fitted_model.history["val_loss"])))
     plt.grid()
     plt.legend();
 
@@ -342,22 +343,36 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
             [train_var["ll"], train_var["hl"]], batch_size=1024)
         test_predicted_probabilities = model.predict(
             [test_var["ll"], test_var["hl"]], batch_size=1024)
+        #print test_var["ll"][0], 'hl==', test_var["hl"][0]
+        #print 'proba===', test_predicted_probabilities[0]
     else:
         train_predicted_probabilities = model.predict(
             train_data[trainvars].values)
         test_predicted_probabilities = model.predict(
             test_data[trainvars].values)
     cm = confusion_matrix(
-        train_data["multitarget"].astype(int),
-        np.argmax(train_predicted_probabilities, axis=1),
-        sample_weight=train_data["evtWeight"].astype(float)
+        test_data["multitarget"].astype(int),
+        np.argmax(test_predicted_probabilities, axis=1),
+        sample_weight=test_data["totalWeight"].astype(float)
     )
     samples = []
     for i in sorted(set(train_data["multitarget"])):
         samples.append(list(set(train_data.loc[train_data["multitarget"] == i]["process"]))[0])
     samples = ['HH' if x.find('signal') != -1 else x for x in samples]
     plot_confusion_matrix(
-        cm, samples, global_settings['output_dir'])
+        cm, samples, global_settings['output_dir'], 'test')
+
+    cm = confusion_matrix(
+        train_data["multitarget"].astype(int),
+        np.argmax(train_predicted_probabilities, axis=1),
+        sample_weight=train_data["totalWeight"].astype(float)
+    )
+    samples = []
+    for i in sorted(set(train_data["multitarget"])):
+        samples.append(list(set(train_data.loc[train_data["multitarget"] == i]["process"]))[0])
+    samples = ['HH' if x.find('signal') != -1 else x for x in samples]
+    plot_confusion_matrix(
+        cm, samples, global_settings['output_dir'], 'train')
 
     if global_settings['ml_method'] != 'lbn':
         for process in set(train_data["process"]):
@@ -435,7 +450,7 @@ def define_trainvars(global_settings, preferences, info_dir):
     if global_settings["dataCuts"].find("boosted") != -1 :
         trainvars_path = os.path.join(info_dir, 'trainvars_boosted.json')
     if global_settings["dataCuts"].find("boosted") != -1 and global_settings["ml_method"] == "lbn":
-        trainvars_path = os.path.join(info_dir, 'trainvars_boosted_lbn.json')
+        trainvars_path = os.path.join(info_dir, 'trainvars_boosted.json')
     if global_settings["dataCuts"].find("boosted") == -1 and global_settings["ml_method"] == "lbn":
         trainvars_path = os.path.join(info_dir, 'trainvars.json')
     try:
