@@ -70,7 +70,7 @@
         "WZTo3LNu_powheg",
         "WZTo3LNu_mllmin01"
     ],
-    "TTTo": [
+    "TT": [
         "TTTo2L2Nu",
         "TTTo2L2Nu_PSweights",
         "TTToSemiLeptonic",
@@ -91,6 +91,12 @@
         "TTWJets_LO_ext1"],
     "DY": [
         "DYJetsToLL_M-10to50",
+        "DYToLL_0J_backup",
+        "DYToLL_0J_ext1",
+        "DYToLL_1J_backup",
+        "DYToLL_1J_ext1",
+        "DYToLL_2J",
+        "DYToLL_2J_ext1",
         "DYJetsToLL_M-10to50_ext1",
         "DYJetsToLL_M-4to50_HT-100to200",
         "DYJetsToLL_M-4to50_HT-100to200_ext1",
@@ -179,6 +185,19 @@
         "TTJets_amcatnloFXFX",
         "TTJets_madgraphMLM"
     ],
+    "ST": [
+      "ST_s-channel_4f_leptonDecays",
+        "ST_s-channel_4f_leptonDecays_PSweights",
+        "ST_t-channel_antitop_4f_inclusiveDecays",
+        "ST_t-channel_antitop_4f_inclusiveDecays_PSweights",
+        "ST_t-channel_top_4f_inclusiveDecays",
+        "ST_t-channel_top_4f_inclusiveDecays_PSweights",
+        "ST_tW_antitop_5f_inclusiveDecays",
+        "ST_tW_antitop_5f_inclusiveDecays_PSweights",
+        "ST_tW_top_5f_inclusiveDecays",
+        "ST_tW_top_5f_inclusiveDecays_PSweights",
+        "ST_tWll_PSweights_ext1"
+    ],
     "WW_all": [
         "WWTo2L2Nu",
         "WWTo2L2Nu_PSweights_ext1",
@@ -219,6 +238,7 @@
         "DYJetsToLL_M-50_ext1",
         "DYJetsToLL_M-50_amcatnloFXFX",
         "DYJetsToLL_M-50_amcatnloFXFX_ext1",
+        "DYJetsToLL_M-50_amcatnloFXFX_ext2",
         "DY1JetsToLL_M-50_ext1",
         "DY1JetsToLL_M-50",
         "DY2JetsToLL_M-50",
@@ -312,7 +332,7 @@
         "WJetsToLNu_HT1200To2500",
         "WJetsToLNu_HT2500ToInf"
     ],
-    "WJets": [
+    "W": [
         "WJetsToLNu_madgraphMLM",
         "WJetsToLNu_madgraphMLM_ext1",
         "W1JetsToLNu",
