@@ -1,5 +1,5 @@
 {
-    "output_dir": "test_lbn_resolved_onlySM",
+    "output_dir": "lbn_nonres_boosted",
     "ml_method": "lbn",
     "feature_importance" : 0,
     "trainvarOpt" : 0,
@@ -7,13 +7,13 @@
     "optimization_algo": "pso",
     "bdtType": "evtLevelSUM_HH_bb1l_nonres",
     "tauID_training": "deepVSjVVVLoose",
-    "bkg_mass_rand": "oversampling",
+    "bkg_mass_rand": "default",
     "channel": "bb1l",
     "fitness_fn": "d_roc",
     "use_kfold": 1,
     "nthread": 3,
     "kappa": 0.3,
     "spinCase": "spin0",
-    "mode" : "resolved",
-    "dataCuts": "cuts_resolved.json"
+    "mode" : "boosted",
+    "dataCuts": "cuts_boosted.json"
 }
