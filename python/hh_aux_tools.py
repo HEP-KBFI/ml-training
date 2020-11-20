@@ -62,8 +62,20 @@ def normalize_hh_dataframe(
             sample_weights = data.loc[data['process'] == sample_name, [weight]]
             sample_factor = sample_normalizations[sample]/sample_weights.sum()
             data.loc[data['process'] == sample_name, [weight]] *= sample_factor
+        sumall = data.loc[data["process"] == "TT"]["totalWeight"].sum() \
+        + data.loc[data["process"] == "W"]["totalWeight"].sum() \
+        + data.loc[data["process"] == "DY"]["totalWeight"].sum() \
+        + data.loc[data["process"] == "ST"]["totalWeight"].sum() \
+        + data.loc[data["process"] == "Other"]["totalWeight"].sum()
+        print(
+            "TT:W:DY:ST \t" \
+            + str(data.loc[data["process"] == "TT"]["totalWeight"].sum()/sumall) \
+            + ":" + str(data.loc[data["process"] == "W"]["totalWeight"].sum()/sumall) \
+            + ":" + str(data.loc[data["process"] == "DY"]["totalWeight"].sum()/sumall) \
+            + ":" + str(data.loc[data["process"] == 'ST']["totalWeight"].sum()/sumall)
+        )
         if 'nonres' in bdt_type:
-            if global_settings["channel"] == 'bb1l':
+            if global_settings["channel"] in ['bb1l', 'bb2l']:
                 for node in range(len(preferences['nonResScenarios'])):
                     for nodevalue in [0, 1]:
                         for process in set(data["process"]) :
@@ -98,21 +110,34 @@ def normalize_hh_dataframe(
                             condition_bkg & condition_nodevalue,
                             [weight]] *= bkg_node_factor
         else:
-            for mass in range(len(preferences['masses'])):
-                condition_mass = data['gen_mHH'].astype(int) == int(
-                    preferences['masses'][mass])
-                mass_sig_weight = data.loc[
-                    condition_sig & condition_mass, [weight]]
-                sig_mass_factor = 100000./mass_sig_weight.sum()
-                data.loc[
-                    condition_sig & condition_mass,
-                    [weight]] *= sig_mass_factor
-                mass_bkg_weight = data.loc[
-                    condition_bkg & condition_mass, [weight]]
-                bkg_mass_factor = 100000./mass_bkg_weight.sum()
-                data.loc[
-                    condition_bkg & condition_mass,
-                    [weight]] *= bkg_mass_factor
+            if global_settings["channel"] in ['bb1l', 'bb2l']:
+                for mass in range(len(preferences['masses'])):
+                    for process in set(data["process"]) :
+                        condition_sig = data["process"].astype(str) == process
+                        condition_mass = data['gen_mHH'].astype(int) == int(
+                            preferences['masses'][mass])
+                        mass_sig_weight = data.loc[
+                            condition_sig & condition_mass, [weight]]
+                        sig_mass_factor = 100000./mass_sig_weight.sum()
+                        data.loc[
+                            condition_sig & condition_mass,
+                            [weight]] *= sig_mass_factor
+            else :
+                for mass in range(len(preferences['masses'])):
+                    condition_mass = data['gen_mHH'].astype(int) == int(
+                        preferences['masses'][mass])
+                    mass_sig_weight = data.loc[
+                        condition_sig & condition_mass, [weight]]
+                    sig_mass_factor = 100000./mass_sig_weight.sum()
+                    data.loc[
+                        condition_sig & condition_mass,
+                        [weight]] *= sig_mass_factor
+                    mass_bkg_weight = data.loc[
+                            condition_bkg & condition_mass, [weight]]
+                    bkg_mass_factor = 100000./mass_bkg_weight.sum()
+                    data.loc[
+                        condition_bkg & condition_mass,
+                        [weight]] *= bkg_mass_factor
     else:
         sig_factor = 100000./data.loc[condition_sig, [weight]].sum()
         data.loc[condition_sig, [weight]] *= sig_factor
@@ -131,7 +156,7 @@ def load_hh_data(preferences, global_settings):
                 data[trainvar] = data[trainvar].astype(int)
             except:
                 continue
-    if "nonres" not in global_settings['bdtType']:
+    if "nonres" not in global_settings['bdtType'] and 'bb1l' or 'bb2l' not in global_settings['channel']:
         reweigh_dataframe(
             data,
             preferences['weight_dir'],
