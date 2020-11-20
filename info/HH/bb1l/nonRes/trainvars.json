@@ -42,9 +42,20 @@
 {"key": "cosThetaS_WW", "true_int": 0}
 {"key": "cosThetaS_HH", "true_int": 0}
 {"key": "leadFwdJet_pt", "true_int": 0}
-{"key": "selLepton_charge", "true_int": 1}
-{"key": "selLepton_type", "true_int": 1}
+{"key": "vbf_m_jj", "true_int":0}
+{"key":"vbf_dEta_jj", "true_int":0}
 {"key": "bjet1_btagCSV", "true_int": 0}
-{"key": "bjet2_btagCSV", "true_int": 0}
 {"key": "wjet1_btagCSV", "true_int": 0}
-{"key": "wjet2_btagCSV", "true_int": 0}
+{"true_int": 1, "key": "SM"}
+{"true_int": 1, "key": "BM1"}
+{"true_int": 1, "key": "BM2"}
+{"true_int": 1, "key": "BM3"}
+{"true_int": 1, "key": "BM4"}
+{"true_int": 1, "key": "BM5"}
+{"true_int": 1, "key": "BM6"}
+{"true_int": 1, "key": "BM7"}
+{"true_int": 1, "key": "BM8"}
+{"true_int": 1, "key": "BM9"}
+{"true_int": 1, "key": "BM10"}
+{"true_int": 1, "key": "BM11"}
+{"true_int": 1, "key": "BM12"}
