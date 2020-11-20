@@ -25,6 +25,7 @@
 {"key": "Smin_llMEt", "true_int": 0}
 {"key": "vbf_m_jj", "true_int": 0}
 {"key": "vbf_dEta_jj", "true_int": 0}
+{"key": "gen_mHH", "true_int": 0}
 {"key": "BM", "true_int": 1}
 {"key": "nJet", "true_int": 1}
 {"key": "nJet_vbf", "true_int": 1}
