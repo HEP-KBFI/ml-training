@@ -12,21 +12,32 @@
     "nonResScenarios_test": ["SM","BM4","BM7","BM12"],
     "tauID_application": {
         "deepVSjMedium": {
-            "TTdatacard": 1.0,
-            "ZZdatacard": 1.0,
-            "WZdatacard": 1.0,
-            "VHdatacard": 1.0
+            "TTdatacard": 10000,
+            "DYdatacard": 10000,
+            "Wdatacard": 10000,
+            "Otherdatacard": 10000,
+	    "ST": 10000
         }
     },
     "tauID_training": {
         "deepVSjVVVLoose": {
-            "inputPath16": "/hdfs/local/snandan/hhAnalysis/2016/bdt_jpa_all_v4/histograms/hh_bb1l/Tight/"
+            "inputPath16": "/hdfs/local/snandan/hhAnalysis/2016/bdt_jpa_all_v7/histograms/hh_bb1l/Tight/"
         }
     },
     "keys": {
-        "DY": [16],
-        "TTTo": [16],
+	"TT": [16],
         "W": [16],
+        "DY": [16],
+        "ST": [16],
+        "TTWW":[16],
+        "TTZ": [16],
+        "TTW": [16],
+        "WW": [16],
+        "ZZ": [16],
+        "WZ": [16],
+        "Other": [16],
+        "VH":[16],
+        "TH": [16],
         "signal_ggf_spin2_350_hh_2b2v_sl": [16],
         "signal_ggf_spin2_900_hh_2b2v_sl": [16],
         "signal_ggf_spin2_400_hh_2b2v": [16],
