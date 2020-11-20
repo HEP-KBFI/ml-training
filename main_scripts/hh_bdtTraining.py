@@ -51,6 +51,7 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
         global_settings['tauID_training'],
         info_dir
     )
+    preferences = define_trainvars(global_settings, preferences, info_dir)
     if hyperparameter_file == 'None':
         hyperparameter_file = os.path.join(info_dir, 'hyperparameters.json')
     hyperparameters = ut.read_json_cfg(hyperparameter_file)
@@ -60,6 +61,22 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
 def split_data(global_settings, preferences):
     print('============ Starting evaluation ============')
     data = hhat.load_hh_data(preferences, global_settings)
+    sumall = data.loc[data["process"] == "TT"]["totalWeight"].sum() \
+        + data.loc[data["process"] == "W"]["totalWeight"].sum() \
+        + data.loc[data["process"] == "DY"]["totalWeight"].sum() \
+        + data.loc[data["process"] == "ST"]["totalWeight"].sum() \
+        + data.loc[data["process"] == "Other"]["totalWeight"].sum()
+    print(
+        "TT:W:DY:HH \t" \
+        + str(data.loc[data["process"] == "TT"]["totalWeight"].sum()/sumall) \
+        + ":" + str(data.loc[data["process"] == "W"]["totalWeight"].sum()/sumall) \
+        + ":" + str(data.loc[data["process"] == "DY"]["totalWeight"].sum()/sumall) \
+        + ":" + str(data.loc[data["target"] == 1]["totalWeight"].sum()/sumall)
+    )
+    hhvt.plot_trainvar_multi_distributions(
+        data, preferences['trainvars'],
+        global_settings['output_dir']
+    )
     hhvt.plot_correlations(data, preferences['trainvars'], global_settings)
     keysNotToSplit = []
     if ('3l_1tau' in global_settings['channel']):
@@ -121,6 +138,13 @@ def save_xmlFile(global_settings, model, addition):
     else:
         mode = global_settings['spinCase']
     model_name = '_'.join([
+        global_settings['channel'],
+        addition,
+        'model',
+        global_settings['mode'],
+        mode
+    ]) if global_settings['channel'] == in ['bb1l_bdt', 'bb2l_bdt'] else\
+        '_'.join([
         global_settings['channel'],
         addition,
         'model',
@@ -311,7 +335,19 @@ def create_rle_str(data):
     )
     return data
 
-
+def define_trainvars(global_settings, preferences, info_dir):
+     if global_settings["dataCuts"].find("boosted") != -1 :
+        trainvars_path = os.path.join(info_dir, 'trainvars_boosted.json')
+     try:
+        trainvar_info = dlt.read_trainvar_info(trainvars_path)
+        preferences['trainvars'] = []
+        with open(trainvars_path, 'rt') as infile:
+            for line in infile:
+                info = json.loads(line)
+                preferences['trainvars'].append(str(info['key']))
+     except:
+        print("Using trainvars from trainvars.json")
+     return preferences
 
 if __name__ == '__main__':
     try:
