@@ -58,7 +58,14 @@ def roc_curve(labels, pred_vectors, weights):
 def multiclass_encoding(data, label_column='process'):
     classes = set(data[label_column])
     mapping = {}
-    for i, m_class in enumerate(classes):
+    '''for i, m_class in enumerate(classes):
         mapping[m_class] = i
-    data['multitarget'] = data[label_column].map(mapping)
+    data['multitarget'] = data[label_column].map(mapping)'''
+    data.loc[data['target'] == 1, 'multitarget'] = 0
+    data.loc[data['process'] == 'TT', 'multitarget'] = 1
+    data.loc[data['process'] == 'ST', 'multitarget'] = 2
+    data.loc[data['process'] == 'Other', 'multitarget'] = 3
+    data.loc[data['process'] == 'W', 'multitarget'] = 4
+    data.loc[data['process'] == 'DY', 'multitarget'] = 5
+
     return data
