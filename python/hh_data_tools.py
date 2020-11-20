@@ -19,6 +19,9 @@ def set_signal_sample_info(bdt_type, folder_name, masses):
                 sample_name = sample_name.replace('_node', '')
                 node_type = sample_name.split('_')[3]
                 sample_name = sample_name.replace(str(node_type) + '_', '')
+                sample_name = sample_name.replace('_PSWeights', '')
+            if sample_name.find('_dipoleRecoilOff') != -1:
+                sample_name = sample_name.replace('_dipoleRecoilOff', '')
     return sample_name, target
 
 
@@ -55,32 +58,32 @@ def get_ntuple_paths(input_path, folder_name, bdt_type, file_type='hadd*'):
     if (folder_name in sample_categories.keys()):
         for fname in sample_categories[folder_name]:
             wild_card_path = os.path.join(
-                input_path, fname + '*', 'central', file_type + 'hadd*Tight.root')
+                input_path, fname + '*', 'central', file_type + 'Tight.root')
             print '1stwild=', wild_card_path
             addpaths = glob.glob(wild_card_path)
             if len(addpaths) == 0:
                 wild_card_path = os.path.join(
-                    input_path, fname + '*', file_type + 'hadd*Tight.root')
+                    input_path, fname + '*', file_type + 'Tight.root')
                 addpaths = glob.glob(wild_card_path)
             paths.extend(addpaths)
         paths = list(dict.fromkeys(paths))
     if len(paths) == 0:
         if 'signal' in folder_name:
             wild_card_path = os.path.join(
-                input_path, folder_name, 'central', file_type + 'hadd*Tight.root')
+                input_path, folder_name, 'central', file_type + 'Tight.root')
             paths = glob.glob(wild_card_path)
             if len(paths) == 0:
                 wild_card_path = os.path.join(
-                    input_path, folder_name, file_type + 'hadd*Tight.root')
+                    input_path, folder_name, file_type + 'Tight.root')
                 paths = glob.glob(wild_card_path)
         else:
             wild_card_path = os.path.join(
-                input_path, folder_name + '*', 'central', file_type + 'hadd*Tight.root')
+                input_path, folder_name + '*', 'central', file_type + 'Tight.root')
             print 'wild=', wild_card_path
             paths = glob.glob(wild_card_path)
             if len(paths) == 0:
                 wild_card_path = os.path.join(
-                    input_path, folder_name + '*', file_type + 'hadd*Tight.root')
+                    input_path, folder_name + '*', file_type + 'Tight.root')
                 paths = glob.glob(wild_card_path)
     return paths
 
@@ -102,8 +105,8 @@ def define_new_variables(
             data = data.append(chunk_df, ignore_index=True, sort=False)
         elif target == 0:
             if global_settings['bkg_mass_rand'] == "default":
-                chunk_df["gen_mHH"] = float(np.random.choice(
-                    preferences['masses'], size=len(chunk_df)))
+                chunk_df["gen_mHH"] = np.random.choice(
+                    preferences['masses'], size=len(chunk_df))
                 data = data.append(chunk_df, ignore_index=True, sort=False)
             elif global_settings['bkg_mass_rand'] == "oversampling":
                 for mass in preferences['masses']:
@@ -117,7 +120,29 @@ def define_new_variables(
         else:
             raise ValueError('Cannot use ' + str(target) + ' as target')
     else:
-        for i in range(len(preferences['nonResScenarios'])):
+        if target == 1 and 'ggf' in folder_name:
+            for i in range(len(preferences['nonResScenarios'])):
+               chunk_df_node = chunk_df.copy()
+               scenario = preferences['nonResScenarios'][i]
+               chunk_df_node['nodeX'] = i
+               for idx, node in enumerate(preferences['nonResScenarios']):
+                 chunk_df_node[node] = 1 if idx == i else 0
+               chunk_df_node['nodeXname'] = scenario
+               if scenario is not "SM":
+                   nodeWeight = chunk_df_node['Weight_' + scenario]
+                   nodeWeight /= chunk_df_node['Weight_SM']
+                   chunk_df_node['totalWeight'] *= nodeWeight
+               data = data.append(chunk_df_node, ignore_index=True, sort=False)
+        else :
+            chunk_df_node = chunk_df.copy()
+            chunk_df_node['nodeXname'] = np.random.choice(preferences['nonResScenarios'], size=len(chunk_df_node))
+            for idx, node in enumerate(preferences['nonResScenarios']):
+              if len(chunk_df_node.loc[chunk_df_node['nodeXname'] == node]):
+                  chunk_df_node.loc[chunk_df_node['nodeXname'] == node, node] = 1
+                  chunk_df_node.loc[chunk_df_node['nodeXname'] != node, node] = 0
+                  chunk_df_node.loc[chunk_df_node['nodeXname'] == node, 'nodeX'] = idx
+            data = data.append(chunk_df_node, ignore_index=True, sort=False)
+        '''for i in range(len(preferences['nonResScenarios'])):
             chunk_df_node = chunk_df.copy()
             scenario = preferences['nonResScenarios'][i]
             chunk_df_node['nodeX'] = i
@@ -129,7 +154,7 @@ def define_new_variables(
                     nodeWeight = chunk_df_node['Weight_' + scenario]
                     nodeWeight /= chunk_df_node['Weight_SM']
                     chunk_df_node['totalWeight'] *= nodeWeight
-            data = data.append(chunk_df_node, ignore_index=True, sort=False)
+            data = data.append(chunk_df_node, ignore_index=True, sort=False)'''
     return data
 
 
