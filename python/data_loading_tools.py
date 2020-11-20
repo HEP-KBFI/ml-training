@@ -165,18 +165,17 @@ def data_main_loop(
     data : pandas DataFrame
         All the loaded data so far.
     '''
-    sample_name, target = find_sample_info(
-        folder_name, global_settings['bdtType'], preferences['masses']
-    )
-    input_tree = str(os.path.join(
-        preferences['channelInTree'], 'sel/evtntuple', sample_name, 'evtTree'))
-    print(':::::::::::::::::')
-    print('Sample name:\t' + str(folder_name))
-    print('Tree path:\t' + input_tree + '\n')
     paths = get_all_paths(
         preferences['era_inputPath'], folder_name, global_settings['bdtType']
     )
     for path in paths:
+        sample_name, target = find_sample_info(
+            folder_name, global_settings['bdtType'], path)
+        input_tree = str(os.path.join(
+            preferences['channelInTree'], 'sel/evtntuple', sample_name, 'evtTree'))
+        print(':::::::::::::::::')
+        print('Sample name:\t' + str(folder_name))
+        print('Tree path:\t' + input_tree + '\n')
         print('Loading from: ' + path)
         tree, tfile = read_root_tree(path, input_tree)
         data = load_data_from_tfile(
@@ -368,28 +367,19 @@ def get_all_paths(input_path, folder_name, bdt_type):
         included in the dataframe.
     '''
     if 'TTH' in bdt_type:
-        paths = tthat.get_ntuple_paths(input_path, folder_name, bdt_type)
+        paths = tthat.get_ntuple_paths(input_path, folder_name)
     elif 'HH' in bdt_type:
-        paths = hhdt.get_ntuple_paths(input_path, folder_name, bdt_type)
+        paths = hhdt.get_ntuple_paths(input_path, folder_name)
     else:
         return ValueError('Unknown bdtType')
     return paths
 
 
-def find_sample_info(folder_name, bdt_type, masses):
-    samplename_info_path = os.path.join(
-        os.path.expandvars('$CMSSW_BASE'),
-        'src/machineLearning/machineLearning/info/samplename_info.json'
-    )
-    samplename_info = ut.read_json_cfg(samplename_info_path)
+def find_sample_info(folder_name, bdt_type, path):
     if 'HH' in bdt_type:
-        sample_name, target = hhdt.set_sample_info(
-            folder_name, samplename_info, masses, bdt_type
-        )
+        sample_name, target = hhdt.set_sample_info(folder_name, path)
     elif 'TTH' in bdt_type:
-        sample_name, target = tthat.set_sample_info(
-            folder_name, samplename_info, masses, bdt_type
-        )
+        print('Not implemented')
     else:
         raise ValueError("Unknown bdtType")
     return sample_name, target
