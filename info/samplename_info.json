@@ -11,8 +11,12 @@
         "sampleName": "qqH",
         "target": 0
     },
-    "TTTo": {
+    "TT": {
         "sampleName": "TT",
+        "target": 0
+    },
+   "ST": {
+        "sampleName": "ST",
         "target": 0
     },
     "TTZ": {
@@ -23,7 +27,7 @@
         "sampleName": "DY",
         "target": 0
     },
-    "WJets": {
+    "W": {
         "sampleName": "W",
         "target": 0
     },
@@ -79,6 +83,14 @@
     "THW_ctcvcp": {
         "sampleName": "tHW",
         "sampleNameF": "tHW",
+        "target": 0
+    },
+   "Other": {
+        "sampleName": "Other",
+        "target": 0
+    },
+   "TH": {
+        "sampleName": "TH",
         "target": 0
     }
 }
