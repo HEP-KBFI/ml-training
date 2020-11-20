@@ -113,7 +113,7 @@ def create_nn_model(
         normalized_lbn_features = tf.keras.layers.BatchNormalization()(lbn_features)
         normalized_hl_inputs = Normal(ref=input_var, const=categorical_var_index, axis=1)(hl_inputs)
         x = tf.keras.layers.concatenate([normalized_lbn_features, normalized_hl_inputs])
-        for layer in range(0, 6):
+        for layer in range(0, 3):
             x = tf.keras.layers.Dense(256, activation="softplus",
                                       kernel_regularizer=tf.keras.regularizers.l2(0.0003))(x)
             x = tf.keras.layers.BatchNormalization()(x)
@@ -127,8 +127,7 @@ def create_nn_model(
         model.compile(
             optimizer=tf.keras.optimizers.Adam(lr=0.0003),
             loss='sparse_categorical_crossentropy',
-            #metrics=["accuracy"]
-            weighted_metrics = [tf.keras.metrics.CategoricalAccuracy(name="accuracy")]
+            weighted_metrics = ["accuracy"]
         )
     else:
         inputs = tf.keras.Input(shape=(nr_trainvars,), name="input_var")
