@@ -60,7 +60,7 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
 
 def split_data(global_settings, preferences):
     print('============ Starting evaluation ============')
-    data = hhat.load_hh_data(preferences, global_settings)
+    data = hhat.load_hh_data(preferences, global_settings, False)
     sumall = data.loc[data["process"] == "TT"]["totalWeight"].sum() \
         + data.loc[data["process"] == "W"]["totalWeight"].sum() \
         + data.loc[data["process"] == "DY"]["totalWeight"].sum() \
@@ -143,7 +143,7 @@ def save_xmlFile(global_settings, model, addition):
         'model',
         global_settings['mode'],
         mode
-    ]) if global_settings['channel'] == in ['bb1l_bdt', 'bb2l_bdt'] else\
+    ]) if global_settings['channel'] in ['bb1l_bdt', 'bb2l_bdt'] else\
         '_'.join([
         global_settings['channel'],
         addition,
