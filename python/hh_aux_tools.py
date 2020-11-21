@@ -145,7 +145,7 @@ def normalize_hh_dataframe(
         data.loc[condition_bkg, [weight]] *= bkg_factor
 
 
-def load_hh_data(preferences, global_settings):
+def load_hh_data(preferences, global_settings, reweight=True):
     data = dlt.load_data(
         preferences,
         global_settings
@@ -156,7 +156,7 @@ def load_hh_data(preferences, global_settings):
                 data[trainvar] = data[trainvar].astype(int)
             except:
                 continue
-    if "nonres" not in global_settings['bdtType'] and 'bb1l' or 'bb2l' not in global_settings['channel']:
+    if "nonres" not in global_settings['bdtType'] and reweight:
         reweigh_dataframe(
             data,
             preferences['weight_dir'],
