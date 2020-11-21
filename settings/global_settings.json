@@ -1,19 +1,18 @@
 {
-    "output_dir": "lbn_nonres_boosted",
     "ml_method": "lbn",
-    "feature_importance" : 0,
+    "feature_importance" : 1,
     "trainvarOpt" : 0,
     "process": "HH",
     "optimization_algo": "pso",
-    "bdtType": "evtLevelSUM_HH_bb1l_nonres",
+    "bdtType": "evtLevelSUM_HH_bb2l_nonres",
     "tauID_training": "deepVSjVVVLoose",
     "bkg_mass_rand": "default",
-    "channel": "bb1l",
+    "channel": "bb2l",
     "fitness_fn": "d_roc",
     "use_kfold": 1,
     "nthread": 3,
     "kappa": 0.3,
-    "spinCase": "spin0",
+    "spinCase": "spin2",
     "mode" : "boosted",
     "dataCuts": "cuts_boosted.json"
 }
