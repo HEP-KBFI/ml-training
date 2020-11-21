@@ -33,7 +33,7 @@ import cmsml
 tf.config.threading.set_intra_op_parallelism_threads(4)
 tf.config.threading.set_inter_op_parallelism_threads(4)
 
-execfile('python/low_level_variables.py')
+execfile('python/paeticle_list.py')
 particles_list = ll_objects_list()
 def plot_confusion_matrix(cm, class_names, output_dir, addition):
     figure = plt.figure(figsize=(4, 4))
