@@ -39,18 +39,16 @@ def tree_to_array(data, name="Jet"):
     return array
 
 
-def get_low_level(data):
-    b1jets = tree_to_array(data, name="bjet1")
-    b2jets = tree_to_array(data, name="bjet2")
-    w1jets = tree_to_array(data, name="wjet1")
-    w2jets = tree_to_array(data, name="wjet2")
-    leptons = tree_to_array(data, name="lep")
-    events = np.stack([b1jets, b2jets, w1jets, w2jets, leptons], axis=1)
+def get_low_level(data, particles):
+    ll_variables = []
+    for part in particles:
+         ll_variables.append(tree_to_array(data, name=part))
+    events = np.stack([ll_var for ll_var in ll_variables], axis=1)
     return events
 
 
-def get_high_level(tree, variables):
-    low_level_var = ["%s_%s" %(jet, var) for jet in ["bjet1", "bjet2", "wjet1", "wjet2", "lep"]\
+def get_high_level(tree, particles, variables):
+    low_level_var = ["%s_%s" %(part, var) for part in particles
                     for var in ["e", "px", "py", "pz"]]
     output = np.array([np.array(tree[variable].astype(np.float32)) for variable in variables if variable not in low_level_var])
     output = np.moveaxis(output, 0, 1)
@@ -101,12 +99,12 @@ def load_data(
         )
     if global_settings['dataCuts'] != 0:
         total_data = data_cutting(total_data, global_settings)
-    if 'bb1l' in global_settings["channel"]:
-        TT = total_data.loc[total_data["process"] == "TT"].head(200000)
-        ST = total_data.loc[total_data["process"] == "ST"].head(200000)
-        Other = total_data.loc[total_data["process"] == "Other"].head(200000)
-        W = total_data.loc[total_data["process"] == "W"].head(200000)
-        DY = total_data.loc[total_data["process"] == "DY"].head(200000)
+    if 'bb1l' or 'bb2l' in global_settings["channel"]:
+        TT = total_data.loc[total_data["process"] == "TT"].head(100000)
+        ST = total_data.loc[total_data["process"] == "ST"].head(100000)
+        Other = total_data.loc[total_data["process"] == "Other"].head(100000)
+        W = total_data.loc[total_data["process"] == "W"].head(100000)
+        DY = total_data.loc[total_data["process"] == "DY"].head(100000)
         HH = total_data.loc[total_data["target"] == 1]
         alldata = [TT, ST, Other, W, DY, HH]
         total_data = pandas.concat(alldata)
@@ -278,10 +276,10 @@ def load_data_from_tfile(
                 for drop in to_be_dropped:
                     if drop in to_be_loaded:
                         to_be_loaded.remove(drop)
-                stop = None
+                stop = 1000000#None
                 if 'bb1l' or 'bb2l' in global_settings["channel"]:
                     if sample_name == "TT":
-                        stop = 3000000
+                        stop = 1000000#3000000
                 chunk_arr = tree2array(tree, branches=to_be_loaded, stop=stop)
             chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
