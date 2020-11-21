@@ -18,7 +18,7 @@ from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import evaluation_tools as et
 from machineLearning.machineLearning.lbn import LBN, LBNLayer
 from machineLearning.machineLearning import multiclass_tools as mt
-
+from machineLearning.machineLearning import data_loading_tools as dlt
 
 def model_evaluation_main(nn_hyperparameters, data_dict, global_settings):
     ''' Collected functions for CGB model evaluation
@@ -74,6 +74,7 @@ def create_nn_model(
         num_class,
         input_var,
         categorical_var_index,
+        n_particles=0,
         lbn=False
 ):
     ''' Creates the neural network model. The normalization used is
@@ -102,7 +103,7 @@ def create_nn_model(
         Sequential keras neural network model created.
     '''
     if lbn:
-        ll_inputs = tf.keras.Input(shape=(5, 4), name="LL")
+        ll_inputs = tf.keras.Input(shape=(n_particles, 4), name="LL")
         hl_inputs = tf.keras.Input(shape=(nr_trainvars,), name="HL")
         lbn_layer = LBNLayer(
             ll_inputs.shape, 16,
@@ -352,11 +353,18 @@ def create_hidden_net_structure(
 
 def custom_permutation_importance(
         model, data, weights,
-        trainvars, labels, permutations=5
+        trainvars, labels, lbn, particles, permutations=5
 ):
     print('Starting permutation importance')
     score_dict = {}
-    prediction = model.predict(data)
+    low_level_var = ["%s_%s" %(part, var) for part in particles
+                    for var in ["e", "px", "py", "pz"]]
+    if lbn:
+        ll = dlt.get_low_level(data, particles)
+        hl = dlt.get_high_level(data, particles, trainvars)
+        prediction = model.predict([ll, hl])
+    else:
+        prediction = model.predict(data)
     original_score = calculate_acc_with_weights(prediction, labels, weights)
     print('Reference score: ' + str(original_score))
     for trainvar in trainvars:
@@ -366,7 +374,12 @@ def custom_permutation_importance(
         for i in range(permutations):
             print("Permutation nr: " + str(i))
             data_copy[trainvar] = np.random.permutation(data_copy[trainvar])
-            prediction = model.predict(data_copy)
+            if lbn:
+                ll = dlt.get_low_level(data_copy, particles)
+                hl = dlt.get_high_level(data_copy, particles, trainvars)
+                prediction = model.predict([ll, hl])
+            else:
+                prediction = model.predict(data_copy)
             score = calculate_acc_with_weights(prediction, labels, weights)
             print(score)
             t_score += score
