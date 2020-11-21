@@ -32,6 +32,9 @@ import cmsml
 
 tf.config.threading.set_intra_op_parallelism_threads(4)
 tf.config.threading.set_inter_op_parallelism_threads(4)
+
+execfile('python/low_level_variables.py')
+particles_list = ll_objects_list()
 def plot_confusion_matrix(cm, class_names, output_dir, addition):
     figure = plt.figure(figsize=(4, 4))
     plt.imshow(cm, interpolation='nearest', cmap="summer")
@@ -65,7 +68,11 @@ def main(output_dir, save_model):
         )
     global_settings = ut.read_settings(settings_dir, 'global')
     if output_dir == 'None':
-        output_dir = global_settings['output_dir']
+        res_nonres = 'res' if 'nonres' not in global_settings['bdtType']\
+                     else 'nonres'
+        output_dir = global_settings['channel']+'/'+global_settings['ml_method']+'/'+\
+                     res_nonres + '/' + global_settings['mode']
+        global_settings['output_dir'] = output_dir
     else:
         global_settings['output_dir'] = output_dir
     global_settings['output_dir'] = os.path.expandvars(
@@ -80,27 +87,25 @@ def main(output_dir, save_model):
         info_dir,
     )
     preferences = define_trainvars(global_settings, preferences, info_dir)
-    data_dict = create_data_dict(preferences, global_settings)
+    particles = particles_list['bb1l'] if global_settings['channel'] == 'bb1l'\
+                  else particles_list['bb2l']
+    data_dict = create_data_dict(preferences, global_settings, particles)
     even_model = create_model(
-        preferences, global_settings, data_dict, "even_data", save_model)
+        preferences, global_settings, data_dict, "even_data", save_model, particles)
     odd_model = create_model(
-        preferences, global_settings, data_dict, "odd_data", save_model)
+        preferences, global_settings, data_dict, "odd_data", save_model, particles)
     print(odd_model.summary())
     even_train_info, even_test_info = evaluate_model(
         even_model, data_dict, global_settings, "even_data")
     odd_train_info, odd_test_info = evaluate_model(
         odd_model, data_dict, global_settings, "odd_data")
     if global_settings['feature_importance'] == 1:
-        if global_settings['ml_method'] != 'lbn':
-            trainvars = preferences['trainvars']
-            data = data_dict['odd_data']
-            score_dict = nt.custom_permutation_importance(
-                even_model, data[trainvars], data['evtWeight'],
-                trainvars, data['multitarget']
-            )
-        else:
-          score_dict = nt.lbn_feature_importances(
-             even_model, data_dict, preferences['trainvars'])
+        trainvars = preferences['trainvars']
+        data = data_dict['odd_data']
+        score_dict = nt.custom_permutation_importance(
+            even_model, data[trainvars], data['evtWeight'],
+            trainvars, data['multitarget'], global_settings['ml_method'], particles
+        )
         hhvt.plot_feature_importances_from_dict(
          score_dict, global_settings['output_dir'])
     hhvt.plotROC(
@@ -117,7 +122,7 @@ def main(output_dir, save_model):
         ))[0]
         print(str(class_) + '\t' + str(multitarget))
 
-def create_data_dict(preferences, global_settings):
+def create_data_dict(preferences, global_settings, particles):
     data = dlt.load_data(
         preferences,
         global_settings,
@@ -161,10 +166,10 @@ def create_data_dict(preferences, global_settings):
     even_data = data.loc[(data['event'].values % 2 == 0)]
     odd_data = data.loc[~(data['event'].values % 2 == 0)]
     if global_settings['ml_method'] == 'lbn':
-        ll_odd = dlt.get_low_level(odd_data)
-        ll_even = dlt.get_low_level(even_data)
-        hl_odd = dlt.get_high_level(odd_data, preferences["trainvars"])
-        hl_even = dlt.get_high_level(even_data, preferences["trainvars"])
+        ll_odd = dlt.get_low_level(odd_data, particles)
+        ll_even = dlt.get_low_level(even_data, particles)
+        hl_odd = dlt.get_high_level(odd_data, particles, preferences["trainvars"])
+        hl_even = dlt.get_high_level(even_data, particles, preferences["trainvars"])
         data_dict = {
             'trainvars': preferences['trainvars'],
             'odd_data':  odd_data,
@@ -187,14 +192,16 @@ def create_model(
         global_settings,
         data_dict,
         choose_data,
-        save_model
+        save_model,
+        particles
 ):
     lbn = 1 if global_settings['ml_method'] == 'lbn' else 0
-    low_level_var = ["%s_%s" %(jet, var) for jet in ["bjet1", "bjet2", "wjet1", "wjet2", "lep"]\
+    low_level_var = ["%s_%s" %(part, var) for part in particles
                     for var in ["e", "px", "py", "pz"]]
     trainvars = preferences['trainvars']
     num_class = max((data_dict['odd_data']['multitarget'])) + 1
     number_samples = len(data_dict[choose_data])
+    n_particles = len(particles)
     reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
         monitor='val_loss', factor=0.1, patience=5, min_lr=0.00001
     )
@@ -216,6 +223,7 @@ def create_model(
         num_class,
         input_var,
         categorical_var_index,
+        n_particles,
         lbn=lbn
     )
     if global_settings['ml_method'] == 'lbn':
