@@ -22,6 +22,8 @@ def set_signal_sample_info(bdt_type, folder_name, masses):
                 sample_name = sample_name.replace('_PSWeights', '')
             if sample_name.find('_dipoleRecoilOff') != -1:
                 sample_name = sample_name.replace('_dipoleRecoilOff', '')
+            if 'sl' not in folder_name:
+                sample_name = sample_name.replace('hh_bbvv', 'hh')
     return sample_name, target
 
 
