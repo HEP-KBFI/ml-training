@@ -1,32 +1,45 @@
 {
-    "class": "2lss_res",
+    "class": "0l_4tau_nonres",
     "masses": [250, 260, 270, 280, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 1000],
     "masses_test": [300, 500, 800],
     "masses_low": [250,260,270,280,300,350,400],
     "masses_test_low": [300],
     "masses_high": [450,500,550,600,650,700,750,800,850,900,1000],
     "masses_test_high": [500, 800],
-    "channelInTree": "hh_2lss_OS_forBDTtraining",
-    "weight_dir": "/path/to/gen_mHH_profiles",
+    "channelInTree": "hh_0l_4tau_OS_forBDTtraining",
     "default_tauID_application": "deepVSjMedium",
     "included_eras": ["16", "17", "18"],
-    "nonResScenarios": ["SM","BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"],
-    "nonResScenarios_test": ["SM","BM4","BM7","BM12"],
+    "nonResScenarios": ["Base"],
+    "nonResScenarios_test": ["Base"],
     "tauID_training": "deepVSjVVVLoose",
     "tauID_application": {
         "deepVSjMedium": {
-            "TTdatacard": 0.00,
-            "ZZdatacard": 0.00,
-            "WZdatacard": 0.00,
-            "WWdatacard": 0.00,
-            "DYdatacard": 0.00
+            "VHdatacard": 0.6,
+            "TTdatacard": 0.08,
+            "ZZdatacard": 0.62,
+            "WZdatacard": 0.14,
+            "DYdatacard": 0.05
+        },
+        "deepVSjLoose": {
+            "VHdatacard": 1.01,
+            "TTdatacard": 0.4,
+            "ZZdatacard": 1.33,
+            "WZdatacard": 0.22,
+            "DYdatacard": 3.78
+        },
+        "deepVSjVLoose": {
+            "VHdatacard": 1.54,
+            "TTdatacard": 3.03,
+            "ZZdatacard": 1.99,
+            "WZdatacard": 0.51,
+            "DYdatacard": 18.65
         }
     },
     "tauID_training": {
         "deepVSjVVVLoose": {
-            "inputPath16": "/path/to/files",
-            "inputPath17": "/path/to/files",
-            "inputPath18": "/path/to/files"
+            "inputPath16": "/hdfs/local/laurits/hhAnalysis/2016/0l_4tau_BDT_VVVLoose/histograms/hh_0l_4tau/forBDTtraining_OS",
+            "inputPath17": "/hdfs/local/laurits/hhAnalysis/2017/0l_4tau_BDT_VVVLoose/histograms/hh_0l_4tau/forBDTtraining_OS",
+            "inputPath18": "/hdfs/local/laurits/hhAnalysis/2018/0l_4tau_BDT_VVVLoose/histograms/hh_0l_4tau/forBDTtraining_OS"
         }
     },
     "keys": {

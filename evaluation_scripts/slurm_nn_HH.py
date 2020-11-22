@@ -33,7 +33,7 @@ def main(hyperparameter_file, output_dir):
     info_dir = os.path.join(channel_dir, addition)
     preferences = hhat.get_hh_parameters(
         channel_dir,
-        global_settings['tauID_training'],
+        preferences['tauID_training'],
         info_dir
     )
     data = hhat.load_hh_data(preferences, global_settings)
