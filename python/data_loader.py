@@ -143,7 +143,7 @@ class DataLoader:
         print('\t Background: ' + str(nB))
 
     def do_loading(self):
-        print_info(self.global_settings, self.preferences)
+        self.print_info(self.global_settings, self.preferences)
         eras = self.preferences['included_eras']
         self.data = pandas.DataFrame({})
         for era in eras:
@@ -154,7 +154,7 @@ class DataLoader:
             data['era'] = era
             self.data = total_data.append(data)
         if global_settings['dataCuts'] != 0:
-            self.data = data_cutting(total_data, global_settings)
+            self.data = self.data_cutting(total_data, global_settings)
         return self.data
 
     def load_data_from_one_era(self):
@@ -165,7 +165,7 @@ class DataLoader:
         for folder in self.preferences['era_keys']:
             paths = self.get_ntuple_paths(
                 self.preferences['era_inputPath'], folder_name)
-            folder_data = load_from_sample_paths(self, folder_name, path)
+            folder_data = self.load_from_sample_paths(self, folder_name, path)
             data.append(folder_data)
         return data
 
