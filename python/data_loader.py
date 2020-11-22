@@ -218,17 +218,17 @@ class DataLoader:
         '''Prints the data loading preferences info'''
         print('In data_manager')
         print(':::: Loading data ::::')
-        print('inputPath: ' + str(preferences['era_inputPath']))
-        print('channelInTree: ' + str(preferences['channelInTree']))
+        print('inputPath: ' + str(self.preferences['era_inputPath']))
+        print('channelInTree: ' + str(self.preferences['channelInTree']))
         print('-----------------------------------')
         print('variables:')
-        self.print_columns(preferences['trainvars'])
-        print('bdt_type: ' + str(global_settings['bdtType']))
-        print('channel: ' + str(global_settings['channel']))
+        self.print_columns(self.preferences['trainvars'])
+        print('bdt_type: ' + str(self.global_settings['bdtType']))
+        print('channel: ' + str(self.global_settings['channel']))
         print('keys: ')
-        self.print_columns(preferences['era_keys'])
-        print('masses: ' + str(preferences['masses']))
-        print('mass_randomization: ' + str(global_settings['bkg_mass_rand']))
+        self.print_columns(self.preferences['era_keys'])
+        print('masses: ' + str(self.preferences['masses']))
+        print('mass_randomization: ' + str(self.global_settings['bkg_mass_rand']))
 
     def print_columns(self, to_print):
         '''Prints the list into nice two columns'''
