@@ -13,7 +13,8 @@ class DataLoader:
             data_loader_class,
             data_normalizer,
             global_settings,
-            preferences
+            preferences,
+            normalize=True
     ):
         print('In DataLoader')
         self.data = pandas.DataFrame(columns=preferences['trainvars'])
@@ -24,6 +25,7 @@ class DataLoader:
         self.set_variables_to_be_loaded()
         self.remove_neg_weights = True
         self.weight = 'totalWeight'
+        self.normalize = normalize
         self.data = self.load_data()
 
     def set_variables_to_be_loaded(self):
@@ -127,7 +129,8 @@ class DataLoader:
                     data[trainvar] = data[trainvar].astype(int)
                 except:
                     continue
-        data = self.prepare_data(data)
+        if self.normalize:
+            data = self.prepare_data(data)
         if self.remove_neg_weights:
             print('Removing events with negative weights')
             data = data.loc[data[self.weight] >= 0]

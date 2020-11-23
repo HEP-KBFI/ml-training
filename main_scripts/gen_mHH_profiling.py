@@ -554,7 +554,8 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
             data_helper,
             normalizer,
             global_settings,
-            preferences
+            preferences,
+            normalize=False
         )
         data = loader.data
         if not os.path.exists(weight_dir):
@@ -574,14 +575,7 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
                 masses_type, global_settings, label='raw'
             )
             try:
-                hhat.reweigh_dataframe(
-                    data,
-                    weight_dir,
-                    preferences['trainvar_info'],
-                    ['gen_mHH'],
-                    preferences['masses'],
-                    preferences['trainvars']
-                )
+                data = loader.prepare_data(data)
                 create_TProfiles(
                     info_dir, weight_dir, data,
                     masses_type, global_settings, label='reweighed'
