@@ -160,7 +160,7 @@ class DataLoader:
     def load_data_from_one_era(self):
         columns = self.preferences['trainvars']
         columns.extend(['process', 'key', 'target', 'totalWeight'])
-        columns.expand(self.process_loader.extra_df_columns)
+        columns.extend(self.process_loader.extra_df_columns)
         data = pandas.DataFrame(columns=columns)
         for folder in self.preferences['era_keys']:
             paths = self.get_ntuple_paths(
