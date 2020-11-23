@@ -99,7 +99,7 @@ class HHDataHelper:
 
     def set_extra_df_columns(self):
         self.extra_df_columns = []
-        if 'HH_nonres' in self.global_setting['bdtType']:
+        if 'HH_nonres' in self.global_settings['bdtType']:
             self.extra_df_columns.append('nodeX')
 
     def create_to_be_dropped_list(self):
