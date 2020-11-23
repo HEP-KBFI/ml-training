@@ -143,7 +143,6 @@ class DataLoader:
         print('\t Background: ' + str(nB))
 
     def do_loading(self):
-        self.print_info(self.global_settings, self.preferences)
         eras = self.preferences['included_eras']
         self.data = pandas.DataFrame({})
         for era in eras:
@@ -152,6 +151,7 @@ class DataLoader:
             self.preferences['era_keys'] = self.preferences['keys' + str(era)]
             data = self.load_data_from_one_era()
             data['era'] = era
+            self.print_info(self.global_settings, self.preferences)
             self.data = total_data.append(data)
         if global_settings['dataCuts'] != 0:
             self.data = self.data_cutting(total_data, global_settings)
