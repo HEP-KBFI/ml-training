@@ -223,6 +223,7 @@ class HHDataHelper:
                     'Cannot use ' + self.global_settings['bkg_mass_rand'] + \
                     " as mass_randomization"
                 )
+        return data
 
     def nonresonant_data_manipulation(
         self, chunk_df, folder_name, target, data
@@ -242,6 +243,7 @@ class HHDataHelper:
                     nodeWeight /= chunk_df_node['Weight_SM']
                     chunk_df_node['totalWeight'] *= nodeWeight
             data = data.append(chunk_df_node, ignore_index=True, sort=False)
+        return data
 
     def data_reweighing(
             data,

@@ -165,10 +165,10 @@ class DataLoader:
             data.append(era_data)
         if self.global_settings['dataCuts'] != 0:
             data = self.data_cutting(data, self.global_settings)
-        return self.data
+        return data
 
     def load_data_from_one_era(self):
-        columns = self.preferences['trainvars']
+        columns = list(self.preferences['trainvars'])
         columns.extend(['process', 'key', 'target', 'totalWeight'])
         columns.extend(self.process_loader.extra_df_columns)
         data = pandas.DataFrame(columns=columns)
