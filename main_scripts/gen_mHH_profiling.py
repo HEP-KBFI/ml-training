@@ -402,7 +402,6 @@ def find_masses(masses_type):
         global_settings['tauID_training'],
         info_dir
     )
-    global_settings['debug'] = False
     if masses_type == 'all':
         masses = preferences['masses']
     else:
@@ -540,6 +539,10 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
     Nothing
     '''
     channel_dir, info_dir, global_settings = ut.find_settings()
+    if 'nonres' in global_settings['bdtType']:
+        scenario = 'nonres'
+    else:
+        scenario = global_settings['spinCase']
     scenario = 'res/' + scenario if 'nonres' not in scenario else scenario
     reader = hpr.HHParameterReader(channel_dir, scenario)
     normalizer = hht.HHDataNormalizer

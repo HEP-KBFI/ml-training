@@ -54,6 +54,10 @@ def main(to_continue, opt_dir):
     addition = ut.create_infoPath_addition(global_settings)
     channel_dir = os.path.join(output_dir, 'run_info')
     info_dir = os.path.join(channel_dir, addition)
+    if 'nonres' in global_settings['bdtType']:
+        scenario = 'nonres'
+    else:
+        scenario = global_settings['spinCase']
     scenario = 'res/' + scenario if 'nonres' not in scenario else scenario
     reader = hpr.HHParameterReader(channel_dir, scenario)
     preferences = reader.parameters
@@ -66,7 +70,6 @@ def main(to_continue, opt_dir):
             data_helper, normalizer, global_settings, preferences
         )
         data = loader.data
-    global_settings['debug'] = False
     data_path = os.path.join(output_dir, 'data.csv')
     if not os.path.exists(data_path):
         data = hhat.load_hh_data(preferences, global_settings)

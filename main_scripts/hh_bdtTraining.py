@@ -45,8 +45,11 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
         global_settings['output_dir'])
     if not os.path.exists(global_settings['output_dir']):
         os.makedirs(global_settings['output_dir'])
-    global_settings['debug'] = debug
     channel_dir, info_dir, _ = ut.find_settings()
+    if 'nonres' in global_settings['bdtType']:
+        scenario = 'nonres'
+    else:
+        scenario = global_settings['spinCase']
     scenario = 'res/' + scenario if 'nonres' not in scenario else scenario
     reader = hpr.HHParameterReader(channel_dir, scenario)
     preferences = reader.parameters

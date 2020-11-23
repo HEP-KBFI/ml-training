@@ -19,7 +19,6 @@ def main(bdtClass='evtLevelSUM'):
         'src/machineLearning/machineLearning')
     settings_dir = os.path.join(package_dir, 'settings')
     global_settings = ut.read_settings(settings_dir, 'global')
-    global_settings['debug'] = False
     modes = ['nonRes', 'res/spin0', 'res/spin2']
     table_infos = []
     output_file = os.path.join(global_settings['output_dir'], 'EventYield.tex')
@@ -38,6 +37,10 @@ def main(bdtClass='evtLevelSUM'):
             global_settings['channel']
         )
         info_dir = os.path.join(channel_dir, mode)
+        if 'nonres' in global_settings['bdtType']:
+            scenario = 'nonres'
+        else:
+            scenario = global_settings['spinCase']
         scenario = 'res/' + scenario if 'nonres' not in scenario else scenario
         reader = hpr.HHParameterReader(channel_dir, scenario)
         preferences = reader.parameters

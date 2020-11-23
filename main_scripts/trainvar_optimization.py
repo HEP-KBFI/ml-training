@@ -25,10 +25,12 @@ import docopt
 
 def prepare_data():
     channel_dir, info_dir, global_settings = ut.find_settings()
-    global_settings['debug'] = False
-    trainvars_path = os.path.join(info_dir, 'trainvars.json')
     all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
     shutil.copy(all_trainvars_path, trainvars_path)
+    if 'nonres' in global_settings['bdtType']:
+        scenario = 'nonres'
+    else:
+        scenario = global_settings['spinCase']
     scenario = 'res/' + scenario if 'nonres' not in scenario else scenario
     reader = hpr.HHParameterReader(channel_dir, scenario)
     normalizer = hht.HHDataNormalizer
