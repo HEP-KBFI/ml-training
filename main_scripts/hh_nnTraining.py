@@ -75,10 +75,7 @@ def main(output_dir, save_model):
     if not os.path.exists(global_settings['output_dir']):
         os.makedirs(global_settings['output_dir'])
     channel_dir, info_dir, _ = ut.find_settings()
-    if 'nonres' in global_settings['bdtType']:
-        scenario = 'nonres'
-    else:
-        scenario = global_settings['spinCase']
+    scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
     preferences = reader.parameters
     preferences = define_trainvars(global_settings, preferences)

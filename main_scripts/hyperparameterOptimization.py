@@ -55,10 +55,7 @@ def main(to_continue, opt_dir):
     addition = ut.create_infoPath_addition(global_settings)
     channel_dir = os.path.join(output_dir, 'run_info')
     info_dir = os.path.join(channel_dir, addition)
-    if 'nonres' in global_settings['bdtType']:
-        scenario = 'nonres'
-    else:
-        scenario = global_settings['spinCase']
+    scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
     preferences = reader.parameters
     if os.path.exists(preferences['data_csv']):

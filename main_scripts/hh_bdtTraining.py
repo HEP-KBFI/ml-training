@@ -46,10 +46,7 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
     if not os.path.exists(global_settings['output_dir']):
         os.makedirs(global_settings['output_dir'])
     channel_dir, info_dir, _ = ut.find_settings()
-    if 'nonres' in global_settings['bdtType']:
-        scenario = 'nonres'
-    else:
-        scenario = global_settings['spinCase']
+    scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
     preferences = reader.parameters
     if hyperparameter_file == 'None':
@@ -125,10 +122,10 @@ def model_creation(
 
 
 def save_xmlFile(global_settings, model, addition):
-    if 'nonres' in global_settings['bdtType']:
-        mode = 'nonres'
+    if 'nonres' in global_settings['scenario']:
+        mode = global_settings['scenario'].replace('/', '_')
     else:
-        mode = global_settings['spinCase']
+        mode = global_settings['scenario']
     model_name = '_'.join([
         global_settings['channel'],
         addition,
@@ -216,10 +213,10 @@ def nodeWise_modelPredictions(
 
 def save_pklFile(global_settings, model, addition):
     output_dir = global_settings['output_dir']
-    if 'nonres' in global_settings['bdtType']:
-        mode = 'nonres'
+    if 'nonres' in global_settings['scenario']:
+        mode = global_settings['scenario'].replace('/', '_')
     else:
-        mode = global_settings['spinCase']
+        mode = global_settings['scenario']
     model_name = '_'.join([
         global_settings['channel'],
         addition,

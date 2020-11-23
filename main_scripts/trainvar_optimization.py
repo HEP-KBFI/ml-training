@@ -28,10 +28,7 @@ def prepare_data():
     trainvars_path = os.path.join(info_dir, 'trainvars.json')
     all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
     shutil.copy(all_trainvars_path, trainvars_path)
-    if 'nonres' in global_settings['bdtType']:
-        scenario = 'nonres'
-    else:
-        scenario = global_settings['spinCase']
+    scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
     normalizer = hht.HHDataNormalizer
     data_helper = hht.HHDataHelper

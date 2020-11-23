@@ -504,14 +504,14 @@ def create_all_fitFunc_file(weight_dir, global_settings):
     wild_card_path = os.path.join(weight_dir, '*signal_fit_func*')
     all_single_files = glob.glob(wild_card_path)
     all_paths_str = ' '.join(all_single_files)
-    if 'nonres' in global_settings['bdtType']:
-        mode = 'nonres'
+    if 'nonres' in global_settings['scenario']:
+        scenario = 'nonres'
     else:
-        mode = global_settings['spinCase']
+        scenario = global_settings['scenario']
     res_fileName = '_'.join([
         global_settings['channel'],
         'TProfile_signal_fit_func',
-        mode
+        scenario
         ])
     resulting_file = os.path.join(weight_dir, res_fileName + '.root')
     subprocess.call('hadd ' + resulting_file + ' ' + all_paths_str, shell=True)
@@ -539,10 +539,10 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
     Nothing
     '''
     channel_dir, info_dir, global_settings = ut.find_settings()
-    if 'nonres' in global_settings['bdtType']:
+    if 'nonres' in global_settings['scenario']:
         scenario = 'nonres'
     else:
-        scenario = global_settings['spinCase']
+        scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
     normalizer = hht.HHDataNormalizer
     data_helper = hht.HHDataHelper

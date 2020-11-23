@@ -87,18 +87,18 @@ To run the hyperparameter optimization one also needs to set the correct setting
     output_dir:         The directory where the information of the optimization will be outputted. This is also used by gen_mHH_profiling.py, hh_bdtTraining.py and trainvar_optimization.py [default: '$HOME/foobar']
     ml_method:          The ML method to be used for the training. Other possibility was 'nn', which is currently deprecated. [default: 'xgb']
     process:            The process for which the data will be loaded [default: 'HH']
-    bdtType:            Type of the boosted decision tree. Usually either resonant or nonresonant. [default: 'evtLevelSUM_HH_2l_2tau_res']
-    tauID_training:     The name of the working point to be used. [default: 'deepVSjVVVLoose']
-    bkg_mass_rand:      The background randomization method. [default: 'oversampling']
-    channel:            The name of the channel for which the data is loaded. [default: '2l_2tau']
+    bdtType:            Type of the boosted decision tree. [example: 'evtLevelSUM_HH']
+    bkg_mass_rand:      The background randomization method. [Options: 'oversampling', 'default']
+    channel:            The name of the channel for which the data is loaded. [example: '2l_2tau']
     fitness_fn:         Name of the fitness function to be used in the optimization. [default: 'd_roc'] Other possibility is 'd_ams'.
     use_kfold:          Whether to use k-fold cross validation when evaluationg each set of hyperparameters. [default: 1]
     nthread:            Number of threads to be used in the optimization. Please be considerate and don't use more than necessary. [default: 8]
     kappa:              The weight of the poenalty term to avoid overtraining. [default: 2.0]
-    spinCase:           Applies only for the HH resonant case. [default: 'spin0'] Other possibility is 'spin2'
+    scenario:           Scenario for which the data will be loaded [Options: 'spin0', 'spin2', 'nonres/default', 'nonres/base']
+    debug:              Whether to output a RLE .json file
 ````
 
-Usually one only needs to change the 'output_dir', 'bdtType' and 'process' and 'channel'.
+Usually one only needs to change the 'output_dir', 'bdtType' and 'process', 'scenario' and 'channel'.
 
 To perform the hyperparameter optimization, simply run the following:
 

@@ -216,9 +216,9 @@ def find_settings():
 
 
 def create_infoPath_addition(global_settings):
-    if 'nonres' in global_settings['bdtType']:
-        mode = 'nonRes'
+    if 'nonres' in global_settings['scenario']:
+        mode = global_settings['scenario']
     else:
-        spinCase = global_settings['spinCase']
-        mode = '/'.join(['res', spinCase])
+        scenario = global_settings['scenario']
+        mode = '/'.join(['res', scenario])
     return mode

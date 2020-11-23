@@ -188,10 +188,10 @@ class DataLoader:
             os.path.expandvars('$CMSSW_BASE'),
             'src/machineLearning/machineLearning/'
         )
-        if 'nonres' in self.global_settings['bdtType']:
-            addition = 'nonRes'
+        if 'nonres' in self.global_settings['scenario']:
+            addition = self.global_settings['scenario']
         else:
-            addition = 'res/%s' %(self.global_settings['spinCase'])
+            addition = 'res/%s' %(self.global_settings['scenario'])
         if self.global_settings['dataCuts'] == 1:
             cut_file = os.path.join(
                 package_dir, 'info', self.global_settings['process'],
