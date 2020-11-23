@@ -110,7 +110,7 @@ class DataLoader:
 
     def load_data(self):
         data = self.do_loading()
-        for trainvar in preferences['trainvars']:
+        for trainvar in self.preferences['trainvars']:
             if str(data[trainvar].dtype) == 'object':
                 try:
                     data[trainvar] = data[trainvar].astype(int)
@@ -125,7 +125,7 @@ class DataLoader:
     def load_from_sample_paths(self, folder_name, path):
         sample_name, target = self.set_sample_info(folder_name, path)
         input_tree = str(os.path.join(
-            preferences['channelInTree'],
+            self.preferences['channelInTree'],
             'sel/evtntuple', sample_name, 'evtTree'
         ))
         print(':::::::::::::::::')
@@ -138,7 +138,7 @@ class DataLoader:
         n = len(data)
         nS = len(data.ix[data.target.values == 1])
         nB = len(data.ix[data.target.values == 0])
-        print('For ' + preferences['channelInTree'] + ':')
+        print('For ' + self.preferences['channelInTree'] + ':')
         print('\t Signal: ' + str(nS))
         print('\t Background: ' + str(nB))
 
@@ -151,10 +151,10 @@ class DataLoader:
             self.preferences['era_keys'] = self.preferences['keys' + str(era)]
             data = self.load_data_from_one_era()
             data['era'] = era
-            self.print_info(self.global_settings, self.preferences)
-            self.data = total_data.append(data)
-        if global_settings['dataCuts'] != 0:
-            self.data = self.data_cutting(total_data, global_settings)
+            self.print_info()
+            self.data.append(data)
+        if self.global_settings['dataCuts'] != 0:
+            self.data = self.data_cutting(self.data, self.global_settings)
         return self.data
 
     def load_data_from_one_era(self):
@@ -215,7 +215,7 @@ class DataLoader:
             print('Cut file %s does not exist' %(cut_file))
         return data
 
-    def print_info(self, global_settings, preferences):
+    def print_info(self):
         '''Prints the data loading preferences info'''
         print('In data_manager')
         print(':::: Loading data ::::')
