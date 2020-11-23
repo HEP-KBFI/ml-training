@@ -162,7 +162,7 @@ class DataLoader:
             self.print_info()
             era_data = self.load_data_from_one_era()
             era_data['era'] = era
-            data.append(era_data)
+            data = data.append(era_data, ignore_index=True, sort=False)
         if self.global_settings['dataCuts'] != 0:
             data = self.data_cutting(data, self.global_settings)
         return data
