@@ -147,7 +147,7 @@ def nodeWise_modelPredictions(
         weight='totalWeight'
 ):
     output_dir = global_settings['output_dir']
-    if 'nonres' in global_settings['bdtType']:
+    if 'nonres' in global_settings['scenario']:
         nodes = preferences['nonResScenarios_test']
         mode = 'nodeXname'
     else:

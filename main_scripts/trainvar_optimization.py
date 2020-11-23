@@ -80,7 +80,7 @@ def drop_worst_performing_ones(
 ):
     booster = model.get_booster()
     feature_importances = booster.get_fscore()
-    if 'nonres' in global_settings['bdtType']:
+    if 'nonres' in global_settings['scenario']:
         BM_in_trainvars = False
         for nonRes_scenario in preferences['nonResScenarios']:
             if nonRes_scenario in trainvars:
@@ -179,7 +179,7 @@ def main(corr_threshold, min_nr_trainvars, step_size):
 
 
 def update_trainvars(trainvars, preferences, global_settings):
-    if 'nonres' in global_settings['bdtType']:
+    if 'nonres' in global_settings['scenario']:
         for scenario in preferences['nonResScenarios']:
             if scenario not in trainvars:
                 trainvars.append(scenario)
@@ -190,7 +190,7 @@ def update_trainvars(trainvars, preferences, global_settings):
 
 
 def check_trainvars_integrity(trainvars, preferences, global_settings):
-    if 'nonres' in global_settings['bdtType']:
+    if 'nonres' in global_settings['scenario']:
         for nonRes_scenario in preferences['nonResScenarios']:
             if nonRes_scenario not in trainvars:
                 trainvars.append(nonRes_scenario)
