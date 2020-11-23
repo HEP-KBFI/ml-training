@@ -20,7 +20,7 @@ def main(bdtClass='evtLevelSUM'):
         'src/machineLearning/machineLearning')
     settings_dir = os.path.join(package_dir, 'settings')
     global_settings = ut.read_settings(settings_dir, 'global')
-    modes = ['nonres/base', 'spin0', 'spin2']
+    modes = ['nonres/default', 'spin0', 'spin2']
     table_infos = []
     output_file = os.path.expandvars(
         os.path.join(global_settings['output_dir'], 'EventYield.tex'))
