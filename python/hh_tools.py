@@ -290,7 +290,7 @@ class HHDataHelper:
 
     def prepare_data(self, data):
         data = data.copy()
-        if 'nonres' not in global_settings['scenario']:
+        if 'nonres' not in self.global_settings['scenario']:
             self.data_reweighing(data)
         normalizer = self.data_normalizer(
             data, self.preferences, self.global_settings)
