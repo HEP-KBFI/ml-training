@@ -25,13 +25,7 @@ def main(bdtClass='evtLevelSUM'):
     output_file = os.path.expandvars(
         os.path.join(global_settings['output_dir'], 'EventYield.tex'))
     for mode in modes:
-        if mode == 'nonRes':
-            global_settings['bdtType'] = '_'.join(
-                [bdtClass, 'HH', global_settings['channel'], 'nonres']
-            )
-        else:
-            global_settings['bdtType'] = '_'.join(
-                [bdtClass, 'HH', global_settings['channel'], 'res'])
+        global_settings['scenario'] = mode
         channel_dir = os.path.join(
             package_dir,
             'info',
