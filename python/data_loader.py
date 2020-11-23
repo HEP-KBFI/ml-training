@@ -164,8 +164,8 @@ class DataLoader:
         data = pandas.DataFrame(columns=columns)
         for folder in self.preferences['era_keys']:
             paths = self.get_ntuple_paths(
-                self.preferences['era_inputPath'], folder_name)
-            folder_data = self.load_from_sample_paths(self, folder_name, path)
+                self.preferences['era_inputPath'], folder)
+            folder_data = self.load_from_sample_paths(self, folder, path)
             data.append(folder_data)
         return data
 
