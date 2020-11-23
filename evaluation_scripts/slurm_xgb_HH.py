@@ -8,12 +8,11 @@ Options:
     --output_dir=DIR             Directory of the output
 '''
 
-from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning import evaluation_tools as et
 from machineLearning.machineLearning import xgb_tools as xt
+from machineLearning.machineLearning import hh_parameter_reader as hpr
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import slurm_tools as st
-from machineLearning.machineLearning import hh_aux_tools as hhat
 from pathlib import Path
 import os
 import csv
@@ -32,11 +31,9 @@ def main(hyperparameter_file, output_dir):
     addition = ut.create_infoPath_addition(global_settings)
     channel_dir = os.path.join(output_dir, 'run_info')
     info_dir = os.path.join(channel_dir, addition)
-    preferences = hhat.get_hh_parameters(
-        channel_dir,
-        preferences['tauID_training'],
-        info_dir
-    )
+    scenario = global_settings['scenario']
+    reader = hpr.HHParameterReader(channel_dir, scenario)
+    preferences = reader.parameters
     global_settings['debug'] = False
     data_file = os.path.join(output_dir, 'data.csv')
     data = pandas.read_csv(data_file)

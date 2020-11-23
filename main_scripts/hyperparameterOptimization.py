@@ -52,7 +52,6 @@ def main(to_continue, opt_dir):
     hyperparameter_info = ut.read_json_cfg(param_file)
     pso_settings = ut.read_settings(settings_dir, 'pso')
     pso_settings.update(global_settings)
-    print('::::::::: Loading data to be saved to pandas.DataFrame :::::::::')
     addition = ut.create_infoPath_addition(global_settings)
     channel_dir = os.path.join(output_dir, 'run_info')
     info_dir = os.path.join(channel_dir, addition)
@@ -60,14 +59,17 @@ def main(to_continue, opt_dir):
     reader = hpr.HHParameterReader(channel_dir, scenario)
     preferences = reader.parameters
     if os.path.exists(preferences['data_csv']):
+        print(':::::::: Loading data from .csv file ::::::::')
         data = pandas.read_csv(preferences['data_csv'])
     else:
+        print('::::::::: Loading data to be saved to pandas.DataFrame :::::::::')
         normalizer = hht.HHDataNormalizer
         data_helper = hht.HHDataHelper
         loader = dl.DataLoader(
             data_helper, normalizer, global_settings, preferences
         )
         data = loader.data
+        loader.save_to_csv()
     data_path = os.path.join(output_dir, 'data.csv')
     if not os.path.exists(data_path):
         loader = dl.DataLoader(
