@@ -246,6 +246,7 @@ class HHDataHelper:
         return data
 
     def data_reweighing(
+            self,
             data,
             cancelled_trainvars,
             skip_int_vars=True
