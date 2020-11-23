@@ -18,7 +18,7 @@ def plot_sampleWise_bdtOutput(
 ):
     output_dir = global_settings['output_dir']
     data_even = data_even.copy()
-    if 'nonres' in global_settings['bdtType']:
+    if 'nonres' in global_settings['scenario']:
         sig_name = 'HH_nonres_decay'
     else:
         sig_name = 'signal'
@@ -293,7 +293,7 @@ def plot_nn_sampleWise_bdtOutput(
 ):
     output_dir = global_settings['output_dir']
     data_even = data_even.copy()
-    if 'nonres' in global_settings['bdtType']:
+    if 'nonres' in global_settings['scenario']:
         sig_name = 'HH_nonres_decay'
     else:
         sig_name = 'signal'

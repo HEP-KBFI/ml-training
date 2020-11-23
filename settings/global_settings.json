@@ -2,17 +2,16 @@
     "output_dir": "$HOME/BDT_Output/training/spin0",
     "ml_method": "xgb",
     "feature_importance" : 0,
-    "trainvarOpt" : 0,
     "process": "HH",
     "optimization_algo": "pso",
     "bdtType": "evtLevelSUM_HH_2lss_res_spin0",
-    "tauID_training": "deepVSjVVVLoose",
     "bkg_mass_rand": "oversampling",
     "channel": "2lss",
     "fitness_fn": "d_roc",
     "use_kfold": 1,
     "nthread": 8,
     "kappa": 0.3,
-    "spinCase": "spin0",
-    "dataCuts": 0
+    "scenario": "spin0",
+    "dataCuts": 0,
+    "debug": 0
 }

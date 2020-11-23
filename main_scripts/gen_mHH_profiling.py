@@ -13,8 +13,11 @@ Options:
     -m --masses_type=STR              'low', 'high' or 'all' [default: all]
 '''
 from machineLearning.machineLearning import universal_tools as ut
+from machineLearning.machineLearning import hh_parameter_reader as hpr
+from machineLearning.machineLearning import hh_tools as hht
+from machineLearning.machineLearning import data_loader as dl
+from machineLearning.machineLearning import hh_parameter_reader as hpr
 from machineLearning.machineLearning import data_loading_tools as dlt
-from machineLearning.machineLearning import hh_aux_tools as hhat
 from ROOT import TCanvas, TProfile, TF1
 from ROOT import TFitResultPtr
 import os
@@ -396,12 +399,9 @@ def find_masses(masses_type):
         List of masses to be used.
     '''
     channel_dir, info_dir, global_settings = ut.find_settings()
-    preferences = hhat.get_hh_parameters(
-        channel_dir,
-        global_settings['tauID_training'],
-        info_dir
-    )
-    global_settings['debug'] = False
+    scenario = global_settings['scenario']
+    reader = hpr.HHParameterReader(channel_dir, scenario)
+    preferences = reader.parameters
     if masses_type == 'all':
         masses = preferences['masses']
     else:
@@ -504,14 +504,14 @@ def create_all_fitFunc_file(weight_dir, global_settings):
     wild_card_path = os.path.join(weight_dir, '*signal_fit_func*')
     all_single_files = glob.glob(wild_card_path)
     all_paths_str = ' '.join(all_single_files)
-    if 'nonres' in global_settings['bdtType']:
-        mode = 'nonres'
+    if 'nonres' in global_settings['scenario']:
+        scenario = 'nonres'
     else:
-        mode = global_settings['spinCase']
+        scenario = global_settings['scenario']
     res_fileName = '_'.join([
         global_settings['channel'],
         'TProfile_signal_fit_func',
-        mode
+        scenario
         ])
     resulting_file = os.path.join(weight_dir, res_fileName + '.root')
     subprocess.call('hadd ' + resulting_file + ' ' + all_paths_str, shell=True)
@@ -539,16 +539,25 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
     Nothing
     '''
     channel_dir, info_dir, global_settings = ut.find_settings()
-    global_settings['debug'] = False
-    preferences = hhat.get_hh_parameters(
-        channel_dir,
-        global_settings['tauID_training'],
-        info_dir
-    )
+    if 'nonres' in global_settings['scenario']:
+        scenario = 'nonres'
+    else:
+        scenario = global_settings['scenario']
+    reader = hpr.HHParameterReader(channel_dir, scenario)
+    normalizer = hht.HHDataNormalizer
+    data_helper = hht.HHDataHelper
+    preferences = reader.parameters
     if create_info:
         create_histo_dict(info_dir)
     if create_profile or fit:
-        data = dlt.load_data(preferences, global_settings)
+        loader = dl.DataLoader(
+            data_helper,
+            normalizer,
+            global_settings,
+            preferences,
+            normalize=False
+        )
+        data = loader.data
         if not os.path.exists(weight_dir):
             os.makedirs(weight_dir)
         if fit:
@@ -566,14 +575,7 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
                 masses_type, global_settings, label='raw'
             )
             try:
-                hhat.reweigh_dataframe(
-                    data,
-                    weight_dir,
-                    preferences['trainvar_info'],
-                    ['gen_mHH'],
-                    preferences['masses'],
-                    preferences['trainvars']
-                )
+                data = loader.prepare_data(data)
                 create_TProfiles(
                     info_dir, weight_dir, data,
                     masses_type, global_settings, label='reweighed'

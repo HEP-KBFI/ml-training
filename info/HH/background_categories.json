@@ -64,6 +64,7 @@
     },
     "WZ": {
         "WZTo3LNu_powheg": "WZ",
+        "WZTo3LNu_powheg_ext1": "WZ",
         "WZTo3LNu_mllmin01": "WZ"
     },
     "TTTo": {

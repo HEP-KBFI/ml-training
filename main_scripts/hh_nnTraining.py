@@ -24,8 +24,10 @@ from matplotlib import pyplot as plt
 from sklearn.utils.multiclass import type_of_target
 from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning import universal_tools as ut
-from machineLearning.machineLearning import hh_aux_tools as hhat
 from machineLearning.machineLearning import nn_tools as nt
+from machineLearning.machineLearning import hh_visualization_tools as hhvt
+from machineLearning.machineLearning import hh_parameter_reader as hpr
+from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import multiclass_tools as mt
 from machineLearning.machineLearning import hh_visualization_tools as hhvt
 import cmsml
@@ -70,15 +72,12 @@ def main(output_dir, save_model):
         global_settings['output_dir'] = output_dir
     global_settings['output_dir'] = os.path.expandvars(
         global_settings['output_dir'])
-    global_settings['debug'] = False
     if not os.path.exists(global_settings['output_dir']):
         os.makedirs(global_settings['output_dir'])
     channel_dir, info_dir, _ = ut.find_settings()
-    preferences = hhat.get_hh_parameters(
-        channel_dir,
-        global_settings['tauID_training'],
-        info_dir,
-    )
+    scenario = global_settings['scenario']
+    reader = hpr.HHParameterReader(channel_dir, scenario)
+    preferences = reader.parameters
     preferences = define_trainvars(global_settings, preferences)
     data_dict = create_data_dict(preferences, global_settings)
     even_model = create_model(
@@ -122,23 +121,21 @@ def main(output_dir, save_model):
 
 
 def create_data_dict(preferences, global_settings):
-    data = dlt.load_data(
-        preferences,
-        global_settings,
-        remove_neg_weights=True
-    )
+    if os.path.exists(preferences['data_csv']):
+        data = pandas.read_csv(preferences['data_csv'])
+    else:
+        normalizer = hht.HHDataNormalizer
+        data_helper = hht.HHDataHelper
+        loader = dl.DataLoader(
+            data_helper, normalizer, global_settings, preferences
+        )
+        data = loader.data
     for trainvar in preferences['trainvars']:
         if str(data[trainvar].dtype) == 'object':
             try:
                 data[trainvar] = data[trainvar].astype(int)
             except:
                 continue
-
-    hhat.normalize_hh_dataframe(
-        data,
-        preferences,
-        global_settings
-    )
     hhvt.plot_single_mode_correlation(
         data, preferences['trainvars'],
         global_settings['output_dir'], 'trainvar'
