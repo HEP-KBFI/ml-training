@@ -6,6 +6,7 @@ Usage: save_eventYields.py
 import os
 import docopt
 from machineLearning.machineLearning import hh_visualization_tools as hhvt
+from machineLearning.machineLearning import data_loader as dl
 from machineLearning.machineLearning import hh_parameter_reader as hpr
 from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import eventYield_creator as eyc
@@ -19,9 +20,10 @@ def main(bdtClass='evtLevelSUM'):
         'src/machineLearning/machineLearning')
     settings_dir = os.path.join(package_dir, 'settings')
     global_settings = ut.read_settings(settings_dir, 'global')
-    modes = ['nonRes', 'res/spin0', 'res/spin2']
+    modes = ['nonres/base', 'res/spin0', 'res/spin2']
     table_infos = []
-    output_file = os.path.join(global_settings['output_dir'], 'EventYield.tex')
+    output_file = os.path.expandvars(
+        os.path.join(global_settings['output_dir'], 'EventYield.tex'))
     for mode in modes:
         if mode == 'nonRes':
             global_settings['bdtType'] = '_'.join(
@@ -51,10 +53,11 @@ def main(bdtClass='evtLevelSUM'):
         mode_data = loader.data
         for era in set(mode_data['era']):
             era_data = mode_data.loc[mode_data['era'] == era]
-            table_creator = EventYieldTable(era_data, channel, era, scenario)
+            channel = global_settings['channel']
+            table_creator = eyc.EventYieldTable(era_data, channel, era, scenario)
             table_info = table_creator.create_table()
             table_infos.append(table_info)
-    table_writer = EventYieldsFile(table_infos, output_file)
+    table_writer = eyc.EventYieldsFile(table_infos, output_file)
     table_writer.fill_document_file()
     print('File saved to %s' %output_file)
 

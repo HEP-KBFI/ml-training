@@ -90,10 +90,13 @@ class HHParameterReader:
     def load_trainvars(self):
         trainvars_path = os.path.join(self.info_dir, 'trainvars.json')
         trainvars = []
+        trainvars_info = {}
         with open(trainvars_path, 'rt') as in_file:
             for line in in_file:
-                trainvars.append(str(json.loads(line)['key']))
-        return trainvars
+                trainvar_dict = json.loads(line)
+                trainvars.append(str(trainvar_dict['key']))
+                trainvars_info[str(trainvar_dict['key'])] = trainvar_dict['true_int']
+        return trainvars, trainvars_info
 
     def interpret_info_file(self):
         info_path = os.path.join(self.info_dir, 'info.json')
@@ -105,7 +108,8 @@ class HHParameterReader:
         self.parameters['tauID_application'] = tau_id_application[default_tauID]
         self.parameters.update(self.find_input_paths(info_dict, tau_id_training))
         self.parameters.update(self.load_era_keys(info_dict.pop('keys')))
-        self.parameters['trainvars'] = self.load_trainvars()
+        self.parameters['trainvars'], trainvars_info = self.load_trainvars()
+        self.parameters['trainvars_info'] = trainvars_info
         self.parameters['all_trainvar_info'] = self.read_trainvar_info(
             self.all_trainvars_path)
         self.parameters.update(info_dict)
