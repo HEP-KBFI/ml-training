@@ -109,7 +109,7 @@ class HHParameterReader:
         self.parameters.update(self.find_input_paths(info_dict, tau_id_training))
         self.parameters.update(self.load_era_keys(info_dict.pop('keys')))
         self.parameters['trainvars'], trainvars_info = self.load_trainvars()
-        self.parameters['trainvars_info'] = trainvars_info
+        self.parameters['trainvar_info'] = trainvars_info
         self.parameters['all_trainvar_info'] = self.read_trainvar_info(
             self.all_trainvars_path)
         self.parameters.update(info_dict)
