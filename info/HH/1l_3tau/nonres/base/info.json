@@ -11,7 +11,7 @@
     "included_eras": ["16", "17", "18"],
     "nonResScenarios": ["Base"],
     "nonResScenarios_test": ["Base"],
-    "tauID_training": "deepVSjVVVLoose",
+    "tauID_training_key": "deepVSjVVVLoose",
     "tauID_application": {
         "deepVSjMedium": {
             "TTdatacard": 0.38,

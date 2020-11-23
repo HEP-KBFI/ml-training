@@ -7,7 +7,7 @@
     "masses_test_high": [600, 800, 900],
     "channelInTree": "hh_bb2l_OS_Tight",
     "default_tauID_application": "dR03mvaMedium",
-    "tauID_training": "deepVSjVVVLoose",
+    "tauID_training_key": "deepVSjVVVLoose",
     "tauID_application": {
         "dR03mvaMedium": {
             "TTdatacard": 415075,
