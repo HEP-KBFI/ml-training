@@ -154,17 +154,17 @@ class DataLoader:
 
     def do_loading(self):
         eras = self.preferences['included_eras']
-        self.data = pandas.DataFrame({})
+        data = pandas.DataFrame({})
         for era in eras:
             input_path_key = 'inputPath' + str(era)
             self.preferences['era_inputPath'] = self.preferences[input_path_key]
             self.preferences['era_keys'] = self.preferences['keys' + str(era)]
-            data = self.load_data_from_one_era()
-            data['era'] = era
             self.print_info()
-            self.data.append(data)
+            era_data = self.load_data_from_one_era()
+            era_data['era'] = era
+            data.append(era_data)
         if self.global_settings['dataCuts'] != 0:
-            self.data = self.data_cutting(self.data, self.global_settings)
+            data = self.data_cutting(data, self.global_settings)
         return self.data
 
     def load_data_from_one_era(self):
