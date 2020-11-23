@@ -32,6 +32,9 @@ class DataLoader:
             self.to_be_loaded.extend(['luminosityBlock', 'run'])
         self.to_be_loaded.extend(self.process_loader.to_be_loaded)
         self.to_be_dropped.extend(self.process_loader.to_be_dropped)
+        for drop in self.to_be_dropped:
+            if drop in self.to_be_loaded:
+                self.to_be_loaded.remove(drop)
 
     def set_sample_info(self, folder_name, path):
         return self.process_loader.set_sample_info(
@@ -63,7 +66,10 @@ class DataLoader:
             input_tree
     ):
         tfile = ROOT.TFile(path)
-        tree = tfile.Get(input_tree)
+        try:
+            tree = tfile.Get(input_tree)
+        except TypeError:
+            print('Incorrect input_tree: ' + str(input_tree))
         chunk_arr = tree2array(
             tree, branches=self.to_be_loaded,
             stop=self.process_loader.nr_events_per_file
