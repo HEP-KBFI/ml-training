@@ -39,3 +39,32 @@ def get_high_level(tree, variables):
     output = np.array([np.array(tree[variable].astype(np.float32)) for variable in variables])
     output = np.moveaxis(output, 0, 1)
     return output
+
+
+def find_correct_dict(key, value, list_of_dicts):
+    '''Finds the correct dictionary based on the requested key
+    Parameters:
+    ----------
+    key : str
+        Name of the key to find
+    value: str
+        Value the requested key should have
+    list_of_dicts : list
+        Contains dictionaries to be parsed
+    Returns:
+    -------
+    requested_dict : dict
+    '''
+    new_dictionary = {}
+    for dictionary in list_of_dicts:
+        if dictionary[key] == value:
+            new_dictionary = dictionary.copy()
+            new_dictionary.pop(key)
+    if new_dictionary == {}:
+        print(
+            'Given parameter for ' + str(key) + ' missing. Using the defaults')
+        for dictionary in list_of_dicts:
+            if dictionary[key] == 'default':
+                new_dictionary = dictionary.copy()
+                new_dictionary.pop(key)
+    return new_dictionary
