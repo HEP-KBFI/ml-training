@@ -90,7 +90,6 @@ class HHDataHelper:
         print("Using HHDataHelper")
         self.preferences = preferences
         self.global_settings = global_settings
-        self.create_to_be_dropped_list()
         self.weight = 'totalWeight'
         self.nr_events_per_file = -1
         self.data_normalizer = data_normalizer
@@ -102,10 +101,10 @@ class HHDataHelper:
         if 'nonres' in self.global_settings['scenario']:
             self.extra_df_columns.append('nodeX')
 
-    def create_to_be_dropped_list(self):
+    def create_to_be_dropped_list(self, sample_name):
         self.to_be_dropped = []
         self.to_be_loaded = []
-        if 'nonres' in self.global_settings['scenario']:
+        if 'nonres' in sample_name:
             self.nonres_weights = [
                 str('Weight_') + scenario for scenario in self.preferences['nonResScenarios']
             ]

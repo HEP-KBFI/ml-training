@@ -22,18 +22,18 @@ class DataLoader:
             data_normalizer, preferences, global_settings)
         self.global_settings = global_settings
         self.preferences = preferences
-        self.set_variables_to_be_loaded()
         self.remove_neg_weights = True
         self.weight = 'totalWeight'
         self.normalize = normalize
         self.data = self.load_data()
 
-    def set_variables_to_be_loaded(self):
+    def set_variables_to_be_loaded(self, process):
         self.to_be_loaded = list(self.preferences['trainvars'])
         self.to_be_loaded.extend(['evtWeight', 'event'])
         self.to_be_dropped = []
         if self.global_settings['debug']:
             self.to_be_loaded.extend(['luminosityBlock', 'run'])
+        self.create_to_be_dropped_list(process)
         self.to_be_loaded.extend(self.process_loader.to_be_loaded)
         self.to_be_dropped.extend(self.process_loader.to_be_dropped)
         for drop in self.to_be_dropped:
@@ -75,6 +75,7 @@ class DataLoader:
             tree = tfile.Get(input_tree)
         except TypeError:
             print('Incorrect input_tree: ' + str(input_tree))
+        self.set_variables_to_be_loaded(process)
         chunk_arr = tree2array(
             tree, branches=self.to_be_loaded,
             stop=self.process_loader.nr_events_per_file
