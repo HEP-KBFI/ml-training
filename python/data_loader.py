@@ -59,6 +59,8 @@ class DataLoader:
             self,
             folder_name,
             target,
+            path,
+            input_tree
     ):
         tfile = ROOT.TFile(path)
         tree = tfile.Get(input_tree)
@@ -132,7 +134,7 @@ class DataLoader:
         print('Sample name:\t' + str(folder_name))
         print('Tree path:\t' + input_tree + '\n')
         print('Loading from: ' + path)
-        return self.load_data_from_tfile(folder_name, target)
+        return self.load_data_from_tfile(folder_name, target, path, input_tree)
 
     def print_nr_signal_bkg(self, data):
         n = len(data)
