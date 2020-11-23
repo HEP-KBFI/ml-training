@@ -104,15 +104,16 @@ class HHDataHelper:
     def create_to_be_dropped_list(self, sample_name):
         self.to_be_dropped = []
         self.to_be_loaded = []
-        if 'nonres' in sample_name:
+        if 'nonres' in self.global_settings['scenario']:
             self.nonres_weights = [
                 str('Weight_') + scenario for scenario in self.preferences['nonResScenarios']
             ]
-            self.to_be_loaded.extend(self.nonres_weights)
             if 'Base' in self.preferences['nonResScenarios']:
                 self.to_be_dropped.append('Weight_Base')
-            if 'SM' not in self.preferences['nonResScenarios']:
-                self.to_be_loaded.append('Weight_SM')
+            if 'nonres' in sample_name:
+                self.to_be_loaded.extend(self.nonres_weights)
+                if 'SM' not in self.preferences['nonResScenarios']:
+                    self.to_be_loaded.append('Weight_SM')
             self.to_be_dropped.extend(list(self.preferences['nonResScenarios']))
             self.to_be_dropped.extend(['nodeX'])
         else:
