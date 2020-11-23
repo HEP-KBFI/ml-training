@@ -29,6 +29,7 @@
             "inputPath18": "/path/to/files"
         }
     },
+    "data_csv": "/path/to/data",
     "keys": {
         "DY": [16, 17, 18],
         "TTTo": [16, 17, 18],

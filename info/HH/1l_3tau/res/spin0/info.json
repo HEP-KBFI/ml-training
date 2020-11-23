@@ -34,6 +34,7 @@
             "inputPath18": "/hdfs/local/veelken/hhAnalysis/2018/2020Sep29_deepVsjVVVLoose/histograms/hh_1l_3tau/forBDTtraining_OS/"
         }
     },
+    "data_csv": "/path/to/data",
     "keys": {
         "TTTo": [16,17,18],
         "TTTJ": [16,17,18],

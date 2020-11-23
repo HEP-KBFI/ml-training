@@ -13,10 +13,11 @@ Options:
 '''
 import os
 import docopt
-from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_visualization_tools as hhvt
-from machineLearning.machineLearning import hh_aux_tools as hhat
+from machineLearning.machineLearning import hh_parameter_reader as hpr
+from machineLearning.machineLearning import hh_tools as hht
+from machineLearning.machineLearning import data_loader as dl
 from machineLearning.machineLearning import xgb_tools as xt
 from machineLearning.machineLearning import converter_tools as ct
 from sklearn.metrics import roc_curve
@@ -46,11 +47,9 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
         os.makedirs(global_settings['output_dir'])
     global_settings['debug'] = debug
     channel_dir, info_dir, _ = ut.find_settings()
-    preferences = hhat.get_hh_parameters(
-        channel_dir,
-        global_settings['tauID_training'],
-        info_dir
-    )
+    scenario = 'res/' + scenario if 'nonres' not in scenario else scenario
+    reader = hpr.HHParameterReader(channel_dir, scenario)
+    preferences = reader.parameters
     if hyperparameter_file == 'None':
         hyperparameter_file = os.path.join(info_dir, 'hyperparameters.json')
     hyperparameters = ut.read_json_cfg(hyperparameter_file)
@@ -59,7 +58,15 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
 
 def split_data(global_settings, preferences):
     print('============ Starting evaluation ============')
-    data = hhat.load_hh_data(preferences, global_settings)
+    if os.path.exists(preferences['data_csv']):
+        data = pandas.read_csv(preferences['data_csv'])
+    else:
+        normalizer = hht.HHDataNormalizer
+        data_helper = hht.HHDataHelper
+        loader = dl.DataLoader(
+            data_helper, normalizer, global_settings, preferences
+        )
+        data = loader.data
     hhvt.plot_correlations(data, preferences['trainvars'], global_settings)
     keysNotToSplit = []
     if ('3l_1tau' in global_settings['channel']):

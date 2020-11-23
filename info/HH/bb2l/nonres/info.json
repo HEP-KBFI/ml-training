@@ -22,6 +22,7 @@
             "inputPath18": "/hdfs/local/snandan/hhAnalysis/2017/bb2l_bdt20April2017/histograms/hh_bb2l/Tight_OS/"
         }
     },
+    "data_csv": "/path/to/data",
     "keys": {
         "TTToSemiLeptonic_PSweights": [16,17,18],
         "TTToHadronic_PSweights": [16,17,18],

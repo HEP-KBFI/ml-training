@@ -32,6 +32,7 @@
             "inputPath18": "/hdfs/local/sbhowmik/hhAnalysis/2018/2020Octo20/histograms/hh_2lss/forBDTtraining_SS/"
         }
     },
+    "data_csv": "/path/to/data",
     "keys": {
         "TT": [16, 17, 18],
         "WZ": [16, 17, 18],

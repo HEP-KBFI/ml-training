@@ -30,6 +30,7 @@
             "inputPath": "/hdfs/local/ssawant/hhAnalysis/2017/20190712_wAK8woLS_forBDTtraining/histograms/hh_3l/forBDTtraining_OS"
         }
     },
+    "data_csv": "/path/to/data",
     "keys": {
         "TTTo2L2Nu": [16,17,18],
         "TTToSemiLeptonic": [16,17,18],

@@ -42,6 +42,7 @@
             "inputPath18": "/hdfs/local/laurits/hhAnalysis/2018/0l_4tau_BDT_VVVLoose/histograms/hh_0l_4tau/forBDTtraining_OS"
         }
     },
+    "data_csv": "/home/laurits/0l_4tau_nonres_hyperopt/data.csv",
     "keys": {
         "DY": [16, 17, 18],
         "TTTo": [16, 17, 18],

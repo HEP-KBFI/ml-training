@@ -1,9 +1,9 @@
-import ROOT
-from root_numpy import tree2array
-import pandas
-import glob
-import numpy as np
 import os
+import glob
+import pandas
+import ROOT
+import numpy as np
+from root_numpy import tree2array
 from machineLearning.machineLearning import universal_tools as ut
 
 
@@ -22,6 +22,8 @@ class DataLoader:
         self.global_settings = global_settings
         self.preferences = preferences
         self.set_variables_to_be_loaded()
+        self.remove_neg_weights = True
+        self.weight = 'totalWeight'
         self.data = self.load_data()
 
     def set_variables_to_be_loaded(self):
@@ -126,7 +128,7 @@ class DataLoader:
                 except:
                     continue
         data = self.prepare_data(data)
-        if remove_neg_weights:
+        if self.remove_neg_weights:
             print('Removing events with negative weights')
             data = data.loc[data[self.weight] >= 0]
         return data

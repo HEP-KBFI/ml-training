@@ -24,6 +24,7 @@
             "inputPath16": "/hdfs/local/snandan/hhAnalysis/2016/bdt_jpa_all_v4/histograms/hh_bb1l/Tight/"
         }
     },
+    "data_csv": "/path/to/data",
     "keys": {
         "DY": [16],
         "TTTo": [16],

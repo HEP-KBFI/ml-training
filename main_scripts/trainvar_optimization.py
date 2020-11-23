@@ -14,9 +14,10 @@ Options:
 import shutil
 import os
 import json
-from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning import universal_tools as ut
-from machineLearning.machineLearning import hh_aux_tools as hhat
+from machineLearning.machineLearning import hh_parameter_reader as hpr
+from machineLearning.machineLearning import hh_tools as hht
+from machineLearning.machineLearning import data_loader as dl
 from machineLearning.machineLearning import xgb_tools as xt
 import numpy as np
 import docopt
@@ -28,12 +29,18 @@ def prepare_data():
     trainvars_path = os.path.join(info_dir, 'trainvars.json')
     all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
     shutil.copy(all_trainvars_path, trainvars_path)
-    preferences = hhat.get_hh_parameters(
-        channel_dir,
-        global_settings['tauID_training'],
-        info_dir
+    scenario = 'res/' + scenario if 'nonres' not in scenario else scenario
+    reader = hpr.HHParameterReader(channel_dir, scenario)
+    normalizer = hht.HHDataNormalizer
+    data_helper = hht.HHDataHelper
+    preferences = reader.parameters
+    loader = dl.DataLoader(
+        data_helper,
+        normalizer,
+        global_settings,
+        preferences
     )
-    data = hhat.load_hh_data(preferences, global_settings)
+    data = loader.data
     return data, preferences, global_settings, trainvars_path
 
 

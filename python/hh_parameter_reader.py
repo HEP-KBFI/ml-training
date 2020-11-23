@@ -97,7 +97,6 @@ class HHParameterReader:
 
     def interpret_info_file(self):
         info_path = os.path.join(self.info_dir, 'info.json')
-        print(info_path)
         info_dict = ut.read_json_cfg(info_path)
         self.parameters = {}
         tau_id_application = info_dict.pop('tauID_application')

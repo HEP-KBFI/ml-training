@@ -5,7 +5,9 @@ Usage: save_eventYields.py
 '''
 import os
 import docopt
-from machineLearning.machineLearning import hh_aux_tools as hhat
+from machineLearning.machineLearning import hh_visualization_tools as hhvt
+from machineLearning.machineLearning import hh_parameter_reader as hpr
+from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import eventYield_creator as eyc
 from machineLearning.machineLearning import universal_tools as ut
 
@@ -36,12 +38,15 @@ def main(bdtClass='evtLevelSUM'):
             global_settings['channel']
         )
         info_dir = os.path.join(channel_dir, mode)
-        preferences = hhat.get_hh_parameters(
-            channel_dir,
-            global_settings['tauID_training'],
-            info_dir
+        scenario = 'res/' + scenario if 'nonres' not in scenario else scenario
+        reader = hpr.HHParameterReader(channel_dir, scenario)
+        preferences = reader.parameters
+        normalizer = hht.HHDataNormalizer
+        data_helper = hht.HHDataHelper
+        loader = dl.DataLoader(
+            data_helper, normalizer, global_settings, preferences
         )
-        mode_data = hhat.load_hh_data(preferences, global_settings)
+        mode_data = loader.data
         for era in set(mode_data['era']):
             era_data = mode_data.loc[mode_data['era'] == era]
             table_creator = EventYieldTable(era_data, channel, era, scenario)

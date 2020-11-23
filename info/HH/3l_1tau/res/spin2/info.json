@@ -32,6 +32,7 @@
             "inputPath18": "/hdfs/local/tolange/hhAnalysis/2018/2020_Oct_11_forBDTtraining_final/histograms/hh_3l_1tau/forBDTtraining_OS/"
         }
     },
+    "data_csv": "/path/to/data",
     "keys": {
         "ZZ": [16,17,18],
         "WZ": [16,17,18],
