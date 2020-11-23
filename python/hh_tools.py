@@ -20,7 +20,7 @@ class HHDataNormalizer:
         self.condition_bkg = data['target'] == 0
 
     def normalization_step1(self):
-        if 'nonres' in self.global_settings['bdtType']:
+        if 'nonres' in self.global_settings['scenario']:
             self.data.loc[(self.data['target'] == 1), [self.weight]] *= 1./float(
                len(self.preferences['nonResScenarios']))
             self.data.loc[(self.data['target'] == 0), [self.weight]] *= 1./float(
@@ -33,7 +33,7 @@ class HHDataNormalizer:
 
     def flatten_distributions(self):
         if 'SUM_HH' in self.global_settings['bdtType']:
-            if 'nonres' in self.global_settings['bdtType']:
+            if 'nonres' in self.global_settings['scenario']:
                 self.flatten_nonres_distributions()
             else:
                 self.flatten_resonant_distributions()
@@ -99,13 +99,13 @@ class HHDataHelper:
 
     def set_extra_df_columns(self):
         self.extra_df_columns = []
-        if 'HH_nonres' in self.global_settings['bdtType']:
+        if 'nonres' in self.global_settings['scenario']:
             self.extra_df_columns.append('nodeX')
 
     def create_to_be_dropped_list(self):
         self.to_be_dropped = []
         self.to_be_loaded = []
-        if 'nonres' in self.global_settings['bdtType']:
+        if 'nonres' in self.global_settings['scenario']:
             self.nonres_weights = [
                 str('Weight_') + scenario for scenario in preferences['nonResScenarios']
             ]
@@ -193,7 +193,7 @@ class HHDataHelper:
     def data_imputer(
         self, chunk_df, folder_name, target, data
     ):
-        if 'nonres' not in self.global_settings['bdtType']:
+        if 'nonres' not in self.global_settings['scenario']:
             data = self.resonant_data_manipulation(
                 chunk_df, folder_name, target, data)
         else:
