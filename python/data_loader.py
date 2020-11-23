@@ -158,8 +158,8 @@ class DataLoader:
         return self.data
 
     def load_data_from_one_era(self):
-        columns = preferences['trainvars'].expand(
-            ['process', 'key', 'target', 'totalWeight'])
+        columns = self.preferences['trainvars']
+        columns.extend(['process', 'key', 'target', 'totalWeight'])
         columns.expand(self.process_loader.extra_df_columns)
         data = pandas.DataFrame(columns=columns)
         for folder in self.preferences['era_keys']:
