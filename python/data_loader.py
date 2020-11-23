@@ -22,7 +22,7 @@ class DataLoader:
         self.global_settings = global_settings
         self.preferences = preferences
         self.set_variables_to_be_loaded()
-        self.do_loading()
+        self.data = self.load_data()
 
     def set_variables_to_be_loaded(self):
         self.to_be_loaded = list(self.preferences['trainvars'])
@@ -49,7 +49,7 @@ class DataLoader:
     def prepare_data(self, data):
         return self.process_loader.prepare_data(data)
 
-    def data_imputer(self, process, chunk_df, folder_name, target):
+    def data_imputer(self, chunk_df, process, folder_name, target):
         chunk_df['process'] = process
         chunk_df['key'] = folder_name
         chunk_df['target'] = int(target)
