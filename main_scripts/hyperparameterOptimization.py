@@ -19,6 +19,7 @@ from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_visualization_tools as hhvt
 from machineLearning.machineLearning import hh_parameter_reader as hpr
 from machineLearning.machineLearning import hh_tools as hht
+from machineLearning.machineLearning import data_loader as dl
 np.random.seed(1)
 
 
@@ -71,7 +72,13 @@ def main(to_continue, opt_dir):
         data = loader.data
     data_path = os.path.join(output_dir, 'data.csv')
     if not os.path.exists(data_path):
-        data = hhat.load_hh_data(preferences, global_settings)
+        loader = dl.DataLoader(
+            data_helper,
+            normalizer,
+            global_settings,
+            preferences
+        )
+        data = loader.data
         data.to_csv(data_path, index=False)
     print("\n============ Starting hyperparameter optimization ==========\n")
     swarm = pt.ParticleSwarm(
