@@ -41,7 +41,6 @@ def main(bdtClass='evtLevelSUM'):
             scenario = 'nonres'
         else:
             scenario = global_settings['spinCase']
-        scenario = 'res/' + scenario if 'nonres' not in scenario else scenario
         reader = hpr.HHParameterReader(channel_dir, scenario)
         preferences = reader.parameters
         normalizer = hht.HHDataNormalizer
