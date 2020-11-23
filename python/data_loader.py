@@ -166,7 +166,7 @@ class DataLoader:
             paths = self.get_ntuple_paths(
                 self.preferences['era_inputPath'], folder)
             for path in paths:
-                folder_data = self.load_from_sample_paths(self, folder, path)
+                folder_data = self.load_from_sample_paths(folder, path)
                 data.append(folder_data)
         return data
 
