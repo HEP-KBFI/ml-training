@@ -43,7 +43,7 @@ def main(bdtClass='evtLevelSUM'):
         for era in set(mode_data['era']):
             era_data = mode_data.loc[mode_data['era'] == era]
             channel = global_settings['channel']
-            table_creator = eyc.EventYieldTable(era_data, channel, era, scenario)
+            table_creator = eyc.EventYieldTable(era_data, channel, era, mode)
             table_info = table_creator.create_table()
             table_infos.append(table_info)
     table_writer = eyc.EventYieldsFile(table_infos, output_file)
