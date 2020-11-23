@@ -22,6 +22,7 @@ from machineLearning.machineLearning import xgb_tools as xt
 from machineLearning.machineLearning import converter_tools as ct
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
+import pandas
 import numpy as np
 import json
 try:
