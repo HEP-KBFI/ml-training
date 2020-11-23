@@ -60,6 +60,7 @@ class DataLoader:
 
     def load_data_from_tfile(
             self,
+            process,
             folder_name,
             target,
             path,
@@ -76,7 +77,7 @@ class DataLoader:
         )
         chunk_df = pandas.DataFrame(chunk_arr)
         tfile.Close()
-        data = data_imputer(
+        data = self.data_imputer(
             chunk_df, process, folder_name, target)
         return data
 
@@ -131,16 +132,17 @@ class DataLoader:
         return data
 
     def load_from_sample_paths(self, folder_name, path):
-        sample_name, target = self.set_sample_info(folder_name, path)
+        process, target = self.set_sample_info(folder_name, path)
         input_tree = str(os.path.join(
             self.preferences['channelInTree'],
-            'sel/evtntuple', sample_name, 'evtTree'
+            'sel/evtntuple', process, 'evtTree'
         ))
         print(':::::::::::::::::')
         print('Sample name:\t' + str(folder_name))
         print('Tree path:\t' + input_tree + '\n')
         print('Loading from: ' + path)
-        return self.load_data_from_tfile(folder_name, target, path, input_tree)
+        return self.load_data_from_tfile(
+            process, folder_name, target, path, input_tree)
 
     def print_nr_signal_bkg(self, data):
         n = len(data)
