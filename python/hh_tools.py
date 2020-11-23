@@ -64,7 +64,6 @@ class HHDataNormalizer:
                 [self.weight]] *= bkg_node_factor
 
     def flatten_resonant_distributions(self):
-        print(len(set(self.data['gen_mHH'])))
         for mass in set(self.data['gen_mHH']):
             condition_mass = self.data['gen_mHH'].astype(int) == int(mass)
             mass_sig_weight = self.data.loc[

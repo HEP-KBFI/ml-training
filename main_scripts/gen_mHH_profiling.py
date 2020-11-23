@@ -16,6 +16,7 @@ from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_parameter_reader as hpr
 from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import data_loader as dl
+from machineLearning.machineLearning import hh_parameter_reader as hpr
 from ROOT import TCanvas, TProfile, TF1
 from ROOT import TFitResultPtr
 import os
@@ -397,11 +398,9 @@ def find_masses(masses_type):
         List of masses to be used.
     '''
     channel_dir, info_dir, global_settings = ut.find_settings()
-    preferences = hhat.get_hh_parameters(
-        channel_dir,
-        global_settings['tauID_training'],
-        info_dir
-    )
+    scenario = global_settings['scenario']
+    reader = hpr.HHParameterReader(channel_dir, scenario)
+    preferences = reader.parameters
     if masses_type == 'all':
         masses = preferences['masses']
     else:
