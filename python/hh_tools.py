@@ -18,7 +18,6 @@ class HHDataNormalizer:
         self.weight = 'totalWeight'
         self.condition_sig = data['target'] == 1
         self.condition_bkg = data['target'] == 0
-        self.cancelled_trainvars = ['gen_mHH']
 
     def normalization_step1(self):
         if 'nonres' in self.global_settings['bdtType']:
@@ -97,6 +96,7 @@ class HHDataHelper:
         self.nr_events_per_file = -1
         self.data_normalizer = data_normalizer
         self.set_extra_df_columns()
+        self.cancelled_trainvars = ['gen_mHH']
 
     def set_extra_df_columns(self):
         self.extra_df_columns = []

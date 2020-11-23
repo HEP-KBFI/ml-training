@@ -12,5 +12,6 @@
     "nthread": 8,
     "kappa": 0.3,
     "spinCase": "spin0",
-    "dataCuts": 0
+    "dataCuts": 0,
+    "debug": 0
 }
