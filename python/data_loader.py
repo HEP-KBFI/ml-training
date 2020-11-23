@@ -165,8 +165,9 @@ class DataLoader:
         for folder in self.preferences['era_keys']:
             paths = self.get_ntuple_paths(
                 self.preferences['era_inputPath'], folder)
-            folder_data = self.load_from_sample_paths(self, folder, path)
-            data.append(folder_data)
+            for path in paths:
+                folder_data = self.load_from_sample_paths(self, folder, path)
+                data.append(folder_data)
         return data
 
     def data_cutting(self):
