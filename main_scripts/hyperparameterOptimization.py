@@ -13,6 +13,7 @@ import os
 import numpy as np
 import docopt
 import subprocess
+import pandas
 from machineLearning.machineLearning import slurm_tools as st
 from machineLearning.machineLearning import pso_tools as pt
 from machineLearning.machineLearning import universal_tools as ut
