@@ -33,7 +33,7 @@ class DataLoader:
         self.to_be_dropped = []
         if self.global_settings['debug']:
             self.to_be_loaded.extend(['luminosityBlock', 'run'])
-        self.create_to_be_dropped_list(process)
+        self.process_loader.create_to_be_dropped_list(process)
         self.to_be_loaded.extend(self.process_loader.to_be_loaded)
         self.to_be_dropped.extend(self.process_loader.to_be_dropped)
         for drop in self.to_be_dropped:
