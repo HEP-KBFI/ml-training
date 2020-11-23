@@ -177,7 +177,7 @@ class DataLoader:
                 self.preferences['era_inputPath'], folder)
             for path in paths:
                 folder_data = self.load_from_sample_paths(folder, path)
-                data.append(folder_data)
+                data = data.append(folder_data, ignore_index=True, sort=False)
         return data
 
     def data_cutting(self):
