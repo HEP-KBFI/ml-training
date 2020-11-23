@@ -18,6 +18,7 @@ class HHDataNormalizer:
         self.weight = 'totalWeight'
         self.condition_sig = data['target'] == 1
         self.condition_bkg = data['target'] == 0
+        self.cancelled_trainvars = ['gen_mHH']
 
     def normalization_step1(self):
         if 'nonres' in self.global_settings['bdtType']:
@@ -248,7 +249,6 @@ class HHDataHelper:
     def data_reweighing(
             self,
             data,
-            cancelled_trainvars,
             skip_int_vars=True
     ):
         '''Reweighs the dataframe in order to reduce the importance of gen_mHH
@@ -272,7 +272,7 @@ class HHDataHelper:
         Nothing
         '''
         for trainvar in self.preferences['trainvars']:
-            if trainvar in cancelled_trainvars:
+            if trainvar in self.cancelled_trainvars:
                 continue
             filename = '_'.join(['TProfile_signal_fit_func', trainvar]) + '.root'
             file_path = str(os.path.join(
