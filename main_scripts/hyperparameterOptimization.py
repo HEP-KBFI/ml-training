@@ -63,7 +63,7 @@ def main(to_continue, opt_dir):
         print(':::::::: Loading data from .csv file ::::::::')
         data = pandas.read_csv(preferences['data_csv'])
     else:
-        print('::::::::: Loading data to be saved to pandas.DataFrame :::::::::')
+        print('::::::: Loading data to be saved to pandas.DataFrame :::::::')
         loader = dl.DataLoader(
             data_helper, normalizer, global_settings, preferences
         )
