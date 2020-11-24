@@ -1,11 +1,11 @@
-import numpy as np
-import matplotlib
-matplotlib.use('agg')
-from machineLearning.machineLearning import evaluation_tools as et
 import glob
 import os
 import json
 import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib
+matplotlib.use('agg')
+from machineLearning.machineLearning import evaluation_tools as et
 
 
 class Particle():
@@ -26,7 +26,7 @@ class Particle():
 
     def set_inertial_weight_step(self, iterations):
         range_size = (
-            self.confidence_coefficients['w'] - \
+            self.confidence_coefficients['w'] -
             self.confidence_coefficients['w2']
         )
         self.weight_step = range_size / iterations
@@ -34,10 +34,10 @@ class Particle():
     def initialize_speeds(self):
         self.speed = {}
         for key in self.keys:
-            v_max = (
-                self.hyperparameter_info[key]['max'] - \
-                self.hyperparameter_info[key]['min'] / 4
-            )
+            v_max = ((
+                self.hyperparameter_info[key]['max'] -
+                self.hyperparameter_info[key]['min']
+            )) / 4
             self.speed[key] = np.random.uniform() * v_max
 
     def set_fitness(self, fitness):

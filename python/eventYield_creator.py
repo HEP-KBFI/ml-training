@@ -2,10 +2,10 @@ import os
 
 
 class EventYieldTable:
-    '''Creates Event yield table for a given data'''
+    """Creates Event yield table for a given data"""
 
     def __init__(self, data, channel, era, scenario, file_format='beamer'):
-        '''
+        """
 
         Parameters:
         ----------
@@ -21,7 +21,7 @@ class EventYieldTable:
             Format oif the ouput file. Options:
                 1) 'beamer' [Default]
                 2) 'document'
-        '''
+        """
         self.data = data
         self.channel = channel
         self.file_format = file_format
@@ -31,7 +31,7 @@ class EventYieldTable:
         self.categorize_events()
 
     def initialize_table(self):
-        ''' Initializes the table with a header'''
+        """ Initializes the table with a header"""
         self.table = [
             '\\begin{table}',
             '\\centering',
@@ -42,7 +42,7 @@ class EventYieldTable:
         ]
 
     def set_table_size(self, file_format):
-        '''Sets the font size in the table based on the file_format'''
+        """Sets the font size in the table based on the file_format"""
         if file_format == 'beamer':
             self.font_size = '\\tiny'
         elif file_format == 'document':
@@ -52,14 +52,14 @@ class EventYieldTable:
             self.font_size = '\\tiny'
 
     def save_current_table(self, output_dir='$PWD'):
-        ''' Saves the LaTeX file to a file without any LaTeX file preamble.
+        """ Saves the LaTeX file to a file without any LaTeX file preamble.
 
         Parameters:
         -----------
         output_dir : str
             Directory of the output LaTeX file. If value not provided, table
             will be saved to the $PWD [Default: None]
-        '''
+        """
         output_dir = os.path.expandvars(output_dir)
         output_path = os.path.join(output_dir, self.era + '_eventYields.tex')
         with open(output_path, 'wt') as out_file:
@@ -67,7 +67,7 @@ class EventYieldTable:
                 out_file.write(row + '\n')
 
     def finalize_table(self, split_end):
-        ''' Finalizes the table
+        """ Finalizes the table
 
         Parameters:
         -----------
@@ -75,7 +75,7 @@ class EventYieldTable:
             In case of beamer, not the whole table always fits on one slide.
             This is to split the table and not add the row for the total
             yields
-        '''
+        """
         if not split_end:
             self.table.append('\n\\hline')
             self.table.append(self.total_row)
@@ -86,7 +86,7 @@ class EventYieldTable:
         ])
 
     def categorize_events(self):
-        '''Categorizes events to signal and background classes'''
+        """Categorizes events to signal and background classes"""
         keys = set(self.data['process'])
         self.process_infos = {}
         for key in keys:
@@ -162,7 +162,7 @@ class EventYieldTable:
 
 class EventYieldsFile:
     def __init__(self, table_infos, output_file, file_format='beamer'):
-        ''' Creates a LaTeX file with the provided event yield tables
+        """ Creates a LaTeX file with the provided event yield tables
 
         Parameters:
         ----------
@@ -173,7 +173,7 @@ class EventYieldsFile:
             Format oif the ouput file. Options:
                 1) 'beamer' [Default]
                 2) 'document'
-        '''
+        """
         self.table_infos = table_infos
         self.output_file = output_file
         self.file_format = file_format
@@ -181,9 +181,9 @@ class EventYieldsFile:
         self.create_preamble()
 
     def create_preamble(self):
-        ''' Creates the preamble for the LaTeX document depending on the
+        """ Creates the preamble for the LaTeX document depending on the
         file_format
-        '''
+        """
         if self.file_format == 'beamer':
             self.preamble = [
                 '\\documentclass{beamer}',
@@ -218,7 +218,7 @@ class EventYieldsFile:
             print('Warning: Incorrect file_format.')
 
     def fill_document_file(self):
-        ''' Fill the file with the tables given by the table_infos'''
+        """ Fill the file with the tables given by the table_infos"""
         with open(self.output_file, 'wt') as out_file:
             for row in self.preamble:
                 out_file.write(row + '\n')
@@ -233,7 +233,7 @@ class EventYieldsFile:
             out_file.write('\\end{document}')
 
     def beamer_table_wrapping(self, table_info):
-        ''' Wraps the table into a frame '''
+        """ Wraps the table into a frame """
         table_to_write = []
         for table in table_info['tables']:
             table_to_write.extend([
@@ -247,7 +247,7 @@ class EventYieldsFile:
         return table_to_write
 
     def document_table_wrapping(self, table_info):
-        ''' Wraps the table with subsections '''
+        """ Wraps the table with subsections """
         table_to_write = []
         table_to_write.extend([
             '\\subsection{Channel: %s, Era: %s, Scenario: %s}' %(
@@ -262,7 +262,7 @@ class EventYieldsFile:
 
 
 def create_event_yields(data, channel, scenario, output_dir):
-    ''' Creates the event yield file for a given data and outputs it to a
+    """ Creates the event yield file for a given data and outputs it to a
     given directory
 
     Parameters:
@@ -274,7 +274,7 @@ def create_event_yields(data, channel, scenario, output_dir):
     scenario : str
         spin0, spin2, nonRes.
     output_dir : directory where the event yields are saved
-    '''
+    """
     table_infos = []
     output_file = os.path.join(output_dir, 'EventYield.tex')
     for era in set(data['era']):

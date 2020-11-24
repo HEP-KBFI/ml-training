@@ -1,5 +1,5 @@
-''' Auxiliary tools for ttH analysis
-'''
+""" Auxiliary tools for ttH analysis
+"""
 
 
 def normalize_tth_dataframe(
@@ -9,7 +9,7 @@ def normalize_tth_dataframe(
         weight='totalWeight',
         target='target'
 ):
-    '''Normalizes the weights for the HH data dataframe
+    """Normalizes the weights for the HH data dataframe
 
     Parameters:
     ----------
@@ -25,7 +25,7 @@ def normalize_tth_dataframe(
     Returns:
     -------
     Nothing
-    '''
+    """
     bdt_type = global_settings['bdtType']
     if 'evtLevelSUM_TTH' in bdt_type:
         bkg_weight_factor = 100000 / data.loc[data[target] == 0][weights].sum()
@@ -40,7 +40,7 @@ def normalize_tth_dataframe(
 
 
 def get_tth_parameters(channel, bdt_type, channel_dir):
-    '''Reads the parameters for the tth channel
+    """Reads the parameters for the tth channel
 
     Parameters:
     ----------
@@ -55,7 +55,7 @@ def get_tth_parameters(channel, bdt_type, channel_dir):
     -------
     parameters : dict
         Necessary info for loading and weighing the data
-    '''
+    """
     parameters = {}
     keys_path = os.path.join(channel_dir, 'keys.txt')
     info_path = os.path.join(channel_dir, 'info.json')
@@ -71,8 +71,8 @@ def get_tth_parameters(channel, bdt_type, channel_dir):
                     multidict = dictionary
                 else:
                     print(
-                        '''Warning: Multiple choices with the
-                        given bdtType. Using %s as bdtType'''
+                        """Warning: Multiple choices with the
+                        given bdtType. Using %s as bdtType"""
                         % (multidict['bdtType']))
         parameters.update(multidict)
     parameters['HTT_var'] = read_list(htt_var_path)
@@ -140,10 +140,8 @@ def get_ntuple_paths(input_path, folder_name, bdt_type):
             paths = glob.glob(wild_card_path)
     return paths
 
-
-
 def set_background_sample_info_d(folder_name, samplename_info):
-    '''Finds which sample corresponds to the given folder name
+    """Finds which sample corresponds to the given folder name
 
     Parameters:
     ----------
@@ -156,7 +154,7 @@ def set_background_sample_info_d(folder_name, samplename_info):
     -------
     sample_dict : dict
         Dictionary containing the info of the sample for the folder.
-    '''
+    """
     sample_name = None
     target = None
     for sample in samplename_info.keys():

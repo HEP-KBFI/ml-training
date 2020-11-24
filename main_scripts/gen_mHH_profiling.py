@@ -1,4 +1,4 @@
-'''
+"""
 Call with 'python'
 
 Usage:
@@ -11,9 +11,8 @@ Options:
     -p --create_profile=BOOL          Creates the TProfile without the fit. [default: 0]
     -w --weight_dir=DIR               Directory where the weights will be saved [default: $HOME/gen_mHH_weight_dir]
     -m --masses_type=STR              'low', 'high' or 'all' [default: all]
-'''
+"""
 from machineLearning.machineLearning import universal_tools as ut
-from machineLearning.machineLearning import hh_parameter_reader as hpr
 from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import data_loader as dl
 from machineLearning.machineLearning import hh_parameter_reader as hpr
@@ -30,7 +29,7 @@ import subprocess
 
 
 def get_all_trainvars(info_dir):
-    ''' Reads the trainvars from the provided info dir
+    """ Reads the trainvars from the provided info dir
 
     Parameters:
     ----------
@@ -42,7 +41,7 @@ def get_all_trainvars(info_dir):
     trainvars : list
         List of the training variables that will be used to create the
         TProfiles.
-    '''
+    """
     trainvar_path = os.path.join(info_dir, 'trainvars.json')
     trainvar_dicts = ut.read_parameters(trainvar_path)
     trainvars = [trainvar_dict['key'] for trainvar_dict in trainvar_dicts]
@@ -50,7 +49,7 @@ def get_all_trainvars(info_dir):
 
 
 def create_histo_info(trainvars):
-    '''Creates the histogram info for each trainvar
+    """Creates the histogram info for each trainvar
 
     Parameters:
     ----------
@@ -63,7 +62,7 @@ def create_histo_info(trainvars):
     histo_infos : list of dicts
         List of dictionaries containing the info for each trainvar TProfile
         creation
-    '''
+    """
     template = {
         'Variable': '',
         'nbins': 55,
@@ -82,7 +81,7 @@ def create_histo_info(trainvars):
 
 
 def create_histo_dict(info_dir):
-    ''' Creates the histo_dict.json. WARNING: Will overwrite the existing one
+    """ Creates the histo_dict.json. WARNING: Will overwrite the existing one
     in the info_dir
 
     Parameters:
@@ -93,7 +92,7 @@ def create_histo_dict(info_dir):
     Returns:
     -------
     Nothing
-    '''
+    """
     histo_dict_path = os.path.join(info_dir, 'histo_dict.json')
     trainvars = get_all_trainvars(info_dir)
     if os.path.exists(histo_dict_path):
@@ -107,7 +106,7 @@ def create_histo_dict(info_dir):
 
 
 def update_histo_dict(trainvars, histo_dict_path):
-    '''Updates the current histo_dict.json according to the new trainvars
+    """Updates the current histo_dict.json according to the new trainvars
 
     Parameters:
     ----------
@@ -120,7 +119,7 @@ def update_histo_dict(trainvars, histo_dict_path):
     -------
     histo_infos : list of dicts
         Updates info about each trainvar to be saved into histo_dict.json
-    '''
+    """
     old_trainvars = read_trainvars_from_histo_dict(histo_dict_path)
     missing_trainvars = list(set(trainvars) - set(old_trainvars))
     redundant_trainvars = list(set(old_trainvars) - set(trainvars))
@@ -135,7 +134,7 @@ def create_renewed_histo_dict(
         redundant_trainvars,
         histo_dict_path
 ):
-    ''' Creates renewed list of histogram infos.
+    """ Creates renewed list of histogram infos.
 
     Parameters:
     -----------
@@ -151,7 +150,7 @@ def create_renewed_histo_dict(
     -------
     new_histo_infos : list of dicts
         List of histo_infos to be saved into the renewed histo_dict.json
-    '''
+    """
     old_histo_dicts = ut.read_parameters(histo_dict_path)
     new_histo_infos = []
     template = {
@@ -177,7 +176,7 @@ def create_renewed_histo_dict(
 
 
 def read_trainvars_from_histo_dict(histo_dict_path):
-    '''Reads the trainvars for which there is histogram info set previously
+    """Reads the trainvars for which there is histogram info set previously
 
     Parameters:
     -----------
@@ -188,7 +187,7 @@ def read_trainvars_from_histo_dict(histo_dict_path):
     -------
     old_trainvars : list
         List of trainvars read from the histo_dict.json file
-    '''
+    """
     histo_dicts = ut.read_parameters(histo_dict_path)
     old_trainvars = [histo_dict['Variable'] for histo_dict in histo_dicts]
     return old_trainvars
@@ -201,7 +200,7 @@ def create_TProfiles(
         info_dir, weight_dir, data,
         masses_type, global_settings, label
 ):
-    ''' Creates the TProfiles (without the fit) for all the trainvars vs
+    """ Creates the TProfiles (without the fit) for all the trainvars vs
     gen_mHH
 
     Parameters:
@@ -223,7 +222,7 @@ def create_TProfiles(
     Returns:
     --------
     Nothing
-    '''
+    """
     trainvars = list(get_all_trainvars(info_dir))
     if 'gen_mHH' in trainvars:
         trainvars.remove('gen_mHH')
@@ -239,7 +238,7 @@ def single_dtype_TProfile(
         label, info_dir, global_settings,
         weight_dir
 ):
-    '''
+    """
 
     Parameters:
     -----------
@@ -264,7 +263,7 @@ def single_dtype_TProfile(
     Returns:
     --------
     Nothing
-    '''
+    """
     for trainvar in trainvars:
         print('Variable Name: ' + str(trainvar))
         filename = choose_file_name(weight_dir, dtype, label, trainvar)
@@ -275,7 +274,7 @@ def single_dtype_TProfile(
 
 
 def choose_file_name(weight_dir, dtype, label, trainvar):
-    '''
+    """
 
     Parameters:
     -----------
@@ -294,7 +293,7 @@ def choose_file_name(weight_dir, dtype, label, trainvar):
     --------
     out_file : str
         Path of the file to where TProfile will be saved.
-    '''
+    """
     if dtype == 1:
         pre_str = 'TProfile_signal'
     else:
@@ -308,7 +307,7 @@ def choose_file_name(weight_dir, dtype, label, trainvar):
 
 
 def do_fit(weight_dir, info_dir, data, masses_type):
-    ''' Fits the Data with a given order of polynomial
+    """ Fits the Data with a given order of polynomial
 
     Parameters:
     -----------
@@ -324,7 +323,7 @@ def do_fit(weight_dir, info_dir, data, masses_type):
     Returns:
     --------
     Nothing
-    '''
+    """
     trainvars = list(get_all_trainvars(info_dir))
     if 'gen_mHH' in trainvars:
         trainvars.remove('gen_mHH')
@@ -360,7 +359,7 @@ def do_fit(weight_dir, info_dir, data, masses_type):
 
 
 def get_fit_function(histo_dict, masses_type):
-    ''' Reads the polynomial order to be used for the fit for a given trainvar
+    """ Reads the polynomial order to be used for the fit for a given trainvar
     histo_dict
 
     Parameters:
@@ -375,14 +374,14 @@ def get_fit_function(histo_dict, masses_type):
     --------
     poly_order : int
         Order of the polynomial to be used in the fit
-    '''
+    """
     key = 'fitFunc_' + masses_type.capitalize() + 'MassTraining'
     poly_order = histo_dict[key]
     return poly_order
 
 
 def find_masses(masses_type):
-    ''' Finds the masses to be used in the fit
+    """ Finds the masses to be used in the fit
 
     Parameters:
     -----------
@@ -397,7 +396,7 @@ def find_masses(masses_type):
     --------
     masses : list
         List of masses to be used.
-    '''
+    """
     channel_dir, info_dir, global_settings = ut.find_settings()
     scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
@@ -410,7 +409,7 @@ def find_masses(masses_type):
 
 
 def plotting_init(data, trainvar, histo_dict, masses, weights='totalWeight'):
-    ''' Initializes the plotting
+    """ Initializes the plotting
 
     Parameters:
     -----------
@@ -431,7 +430,7 @@ def plotting_init(data, trainvar, histo_dict, masses, weights='totalWeight'):
         canvas to be plotted on
     profile : ROOT.TProfile instance
         profile for the fitting
-    '''
+    """
     canvas = TCanvas('canvas', 'TProfile plot', 200, 10, 700, 500)
     canvas.GetFrame().SetBorderSize(6)
     canvas.GetFrame().SetBorderMode(-1)
@@ -470,7 +469,7 @@ def plotting_main(
         info_dir,
         global_settings
 ):
-    ''' Main function for plotting.
+    """ Main function for plotting.
 
     Parameters:
     -----------
@@ -490,7 +489,7 @@ def plotting_main(
     Returns:
     --------
     Nothing
-    '''
+    """
     masses = find_masses(masses_type)
     histo_dicts_json = os.path.join(info_dir, 'histo_dict.json')
     histo_dicts = ut.read_parameters(histo_dicts_json)
@@ -518,7 +517,7 @@ def create_all_fitFunc_file(weight_dir, global_settings):
 
 
 def main(fit, create_info, weight_dir, masses_type, create_profile):
-    ''' Main function for operating the fitting, plotting and creation of
+    """ Main function for operating the fitting, plotting and creation of
     histo_dict
 
     Parameters:
@@ -526,7 +525,7 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
     fit : bool
         Whether to do a fit
     create_info : bool
-        Wheter to create histo_dict from scratch
+        Whether to create histo_dict from scratch
     weight_dir : str
         Path to the directory where the TProfile files will be saved
     masses_type : str
@@ -537,7 +536,7 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
     Returns:
     --------
     Nothing
-    '''
+    """
     channel_dir, info_dir, global_settings = ut.find_settings()
     if 'nonres' in global_settings['scenario']:
         scenario = 'nonres'
@@ -589,7 +588,7 @@ if __name__ == '__main__':
     try:
         arguments = docopt.docopt(__doc__)
         fit = bool(int(arguments['--fit']))
-        create_info =  bool(int(arguments['--create_info']))
+        create_info = bool(int(arguments['--create_info']))
         weight_dir = os.path.expandvars(arguments['--weight_dir'])
         masses_type = arguments['--masses_type']
         create_profile = bool(int(arguments['--create_profile']))

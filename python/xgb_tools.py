@@ -1,6 +1,6 @@
-'''XGBoost tools for initializing the hyperparameters, creating the model and
+"""XGBoost tools for initializing the hyperparameters, creating the model and
 other relevant ones.
-'''
+"""
 import numpy as np
 import xgboost as xgb
 import os
@@ -8,7 +8,7 @@ from machineLearning.machineLearning import evaluation_tools as et
 
 
 def initialize_values(value_dicts):
-    '''Initializes the parameters according to the value dict specifications
+    """Initializes the parameters according to the value dict specifications
 
     Parameters:
     ----------
@@ -19,7 +19,7 @@ def initialize_values(value_dicts):
     -------
     sample : list of dicts
         Hyperparameters of each particle
-    '''
+    """
     sample = {}
     for xgb_params in value_dicts:
         if bool(xgb_params['true_int']):
@@ -39,7 +39,7 @@ def initialize_values(value_dicts):
 
 
 def prepare_run_params(value_dicts, sample_size):
-    ''' Creates parameter-sets for all particles (sample_size)
+    """ Creates parameter-sets for all particles (sample_size)
 
     Parameters:
     ----------
@@ -52,7 +52,7 @@ def prepare_run_params(value_dicts, sample_size):
     -------
     run_params : list of dicts
         List of parameter-sets for all particles
-    '''
+    """
     run_params = []
     for i in range(sample_size):
         run_param = initialize_values(value_dicts)
@@ -86,7 +86,7 @@ def create_model(
 
 
 def evaluate_model(data_dict, global_settings, model):
-    '''Evaluates the model for the XGBoost method
+    """Evaluates the model for the XGBoost method
 
     Parameters:
     ----------
@@ -101,7 +101,7 @@ def evaluate_model(data_dict, global_settings, model):
     -------
     score : float
         The score calculated according to the fitness_fn
-    '''
+    """
     trainvars = data_dict['trainvars']
     pred_train = model.predict_proba(data_dict['train'][trainvars])[:,1]
     pred_test = model.predict_proba(data_dict['test'][trainvars])[:,1]
@@ -113,8 +113,9 @@ def evaluate_model(data_dict, global_settings, model):
         score = et.calculate_d_ams(
             pred_train, pred_test, data_dict, kappa=kappa)
     else:
-        print('The' + str(global_settings['fitness_fn']) + \
-            ' fitness_fn is not implemented'
+        print(
+            'The' + str(global_settings['fitness_fn'])
+            + ' fitness_fn is not implemented'
         )
     return score, train, test
 
@@ -126,7 +127,7 @@ def model_evaluation_main(
         objective='auc',
         weight='totalWeight'
 ):
-    ''' Collected functions for CGB model evaluation
+    """ Collected functions for CGB model evaluation
 
     Parameters:
     ----------
@@ -141,7 +142,7 @@ def model_evaluation_main(
     -------
     score : float
         The score calculated according to the fitness_fn
-    '''
+    """
     model = create_model(
         hyperparameters, data_dict, global_settings['nthread'], objective,
         weight

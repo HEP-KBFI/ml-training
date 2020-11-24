@@ -1,8 +1,13 @@
 pathlib
-timeout-decorator
-pluggy==0.6.0
-attrs==19.1.0
-py==1.8.0
+pluggy
+attrs
+py
 uproot-methods
 eli5
 cmsml
+scikit-learn
+numpy
+docopt
+tensorflow
+pandas
+matplotlib

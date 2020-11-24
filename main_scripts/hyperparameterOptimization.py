@@ -17,7 +17,6 @@ import pandas
 from machineLearning.machineLearning import slurm_tools as st
 from machineLearning.machineLearning import pso_tools as pt
 from machineLearning.machineLearning import universal_tools as ut
-from machineLearning.machineLearning import hh_visualization_tools as hhvt
 from machineLearning.machineLearning import hh_parameter_reader as hpr
 from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import data_loader as dl
@@ -58,13 +57,13 @@ def main(to_continue, opt_dir):
     scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
     preferences = reader.parameters
+    normalizer = hht.HHDataNormalizer
+    data_helper = hht.HHDataHelper
     if os.path.exists(preferences['data_csv']):
         print(':::::::: Loading data from .csv file ::::::::')
         data = pandas.read_csv(preferences['data_csv'])
     else:
         print('::::::::: Loading data to be saved to pandas.DataFrame :::::::::')
-        normalizer = hht.HHDataNormalizer
-        data_helper = hht.HHDataHelper
         loader = dl.DataLoader(
             data_helper, normalizer, global_settings, preferences
         )

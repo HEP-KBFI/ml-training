@@ -1,4 +1,4 @@
-'''Tools to be used for evaluation of the model'''
+"""Tools to be used for evaluation of the model"""
 import numpy as np
 import pandas
 from sklearn.model_selection import KFold
@@ -15,7 +15,7 @@ def kfold_cv(
         weight='totalWeight',
         n_folds=2
 ):
-    ''' Splits the dataset into 5 parts that are to be used in all combinations
+    """ Splits the dataset into 5 parts that are to be used in all combinations
     as training and testing sets
 
     Parameters:
@@ -37,7 +37,7 @@ def kfold_cv(
     -------
     final_score : float
         Calculated as the average minus stdev of all the cv scores
-    '''
+    """
 
     kfold = KFold(n_splits=n_folds, shuffle=True, random_state=1)
     scores = []
@@ -73,7 +73,7 @@ def get_evaluation(
         hyperparameters,
         weight='totalWeight'
 ):
-    ''' Splits the data to test (20%) and train (80%) respectively
+    """ Splits the data to test (20%) and train (80%) respectively
 
     Parameters:
     ----------
@@ -98,7 +98,7 @@ def get_evaluation(
         Predicted labels of the training dataset
     pred_test : list of lists
         Predicted labels of the testing dataset
-    '''
+    """
     train, test = train_test_split(
         prepared_data, test_size=0.2, random_state=1)
     data_dict = {
@@ -112,7 +112,7 @@ def get_evaluation(
 
 
 def calculate_d_score(train_score, test_score, kappa=1.5):
-    ''' Calculates the d_score with the given kappa, train_score and
+    """ Calculates the d_score with the given kappa, train_score and
     test_score. Can be used to get d_auc, d_ams or other similar.
 
     Parameters:
@@ -128,7 +128,7 @@ def calculate_d_score(train_score, test_score, kappa=1.5):
     -------
     d_roc : float
         Score based on D-score and AUC
-    '''
+    """
     difference = max(0, train_score - test_score)
     fr_difference = difference / (1 - test_score)
     d_score = test_score - kappa * fr_difference
@@ -136,7 +136,7 @@ def calculate_d_score(train_score, test_score, kappa=1.5):
 
 
 def calculate_auc(data_dict, prediction, data_class, weights):
-    ''' Calculates the ROC curve AUC using sklearn.metrics package.
+    """ Calculates the ROC curve AUC using sklearn.metrics package.
 
     Parameters:
     ----------
@@ -148,7 +148,7 @@ def calculate_auc(data_dict, prediction, data_class, weights):
         Type of the data. ('train' or 'test')
     [weights] : str
         [Default: 'totalWeight'] data label to be used as the weight.
-    '''
+    """
     labels = np.array(data_dict[data_class]['target']).astype(int)
     weights = np.array(data_dict[data_class]['totalWeight']).astype(float)
     fpr, tpr, thresholds_train = skm.roc_curve(
@@ -167,7 +167,7 @@ def calculate_d_roc(
         weights='totalWeight',
         kappa=1.5
 ):
-    '''Calculates the d_roc score
+    """Calculates the d_roc score
 
     Parameters:
     ----------
@@ -183,7 +183,7 @@ def calculate_d_roc(
     -------
     d_roc : float
         the AUC calculated using the d_score function
-    '''
+    """
     test_auc = calculate_auc(data_dict, pred_test, 'test', weights)
     train_auc = calculate_auc(data_dict, pred_train, 'train', weights)
     d_roc = calculate_d_score(train_auc, test_auc, kappa)
@@ -191,12 +191,12 @@ def calculate_d_roc(
 
 
 def ams(s, b):
-    ''' Approximate Median Significance defined as:
+    """ Approximate Median Significance defined as:
         AMS = sqrt(
                 2 { (s + b + b_r) log[1 + (s/(b+b_r))] - s}
               )
     where b_r = 10, b = background, s = signal, log is natural logarithm
-    '''
+    """
     br = 10.0
     radicand = 2 * ((s + b + br) * np.log(1.0 + s / (b + br)) - s)
     if radicand < 0:
@@ -213,7 +213,7 @@ def try_different_thresholds(
         weights,
         threshold=None
 ):
-    '''Tries different thresholds if no threshold given to find out the maximum
+    """Tries different thresholds if no threshold given to find out the maximum
     AMS score.
 
     Parameters:
@@ -237,7 +237,7 @@ def try_different_thresholds(
     [best_threshold] : float
         If no threshold is give, it will return what was the threshold used
         for finding the biggest ams_score
-    '''
+    """
     label_key = label_type + 'ing_labels'
     weights = data_dict[label_type][weights]
     thresholds = np.arange(0, 1, 0.001)
@@ -267,7 +267,7 @@ def try_different_thresholds(
 
 
 def calculate_s_and_b(prediction, labels, weights, weighed=True):
-    '''Calculates amount of signal and background. When given weights, possible
+    """Calculates amount of signal and background. When given weights, possible
     to have weighed signal and background
 
     Parameters:
@@ -287,7 +287,7 @@ def calculate_s_and_b(prediction, labels, weights, weighed=True):
         Number of (weighed) signal events in the ones classified as signal
     background : int
         Number of (weighed) background events in the ones classified as signal
-    '''
+    """
     signal = 0
     background = 0
     prediction = np.array(prediction)
@@ -315,7 +315,7 @@ def calculate_d_ams(
         weights='totalWeight',
         kappa=1.5
 ):
-    '''Calculates the d_ams score
+    """Calculates the d_ams score
 
     Parameters:
     ----------
@@ -331,7 +331,7 @@ def calculate_d_ams(
     -------
     d_ams : float
         the ams score calculated using the d_score function
-    '''
+    """
     train_ams, best_threshold = try_different_thresholds(
         pred_train, data_dict, 'train', weights)
     print(train_ams)
@@ -343,7 +343,7 @@ def calculate_d_ams(
 
 
 def calculate_compactness(parameter_dicts):
-    '''Calculates the improvement based on how similar are different sets of
+    """Calculates the improvement based on how similar are different sets of
     parameters
 
     Parameters:
@@ -355,7 +355,7 @@ def calculate_compactness(parameter_dicts):
     -------
     mean_cov : float
         Coefficient of variation of different sets of parameters.
-    '''
+    """
     keys = parameter_dicts[0].keys()
     list_dict = values_to_list_dict(keys, parameter_dicts)
     mean_cov = calculate_dict_mean_coeff_of_variation(list_dict)
@@ -363,7 +363,7 @@ def calculate_compactness(parameter_dicts):
 
 
 def values_to_list_dict(keys, parameter_dicts):
-    '''Adds same key values from different dictionaries into a list w
+    """Adds same key values from different dictionaries into a list w
 
     Parameters:
     ----------
@@ -376,7 +376,7 @@ def values_to_list_dict(keys, parameter_dicts):
     -------
     list_dict: dict
         Dictionary containing lists as valus.
-    '''
+    """
     list_dict = {}
     for key in keys:
         key = str(key)
@@ -387,7 +387,7 @@ def values_to_list_dict(keys, parameter_dicts):
 
 
 def calculate_dict_mean_coeff_of_variation(list_dict):
-    '''Calculate the mean coefficient of variation for a given dict filled
+    """Calculate the mean coefficient of variation for a given dict filled
     with lists as values
 
     Parameters:
@@ -400,7 +400,7 @@ def calculate_dict_mean_coeff_of_variation(list_dict):
     mean_coeff_of_variation : float
         Mean coefficient of variation for a given dictionary having lists as
         values
-    '''
+    """
     coeff_of_variations = []
     for key in list_dict:
         values = list_dict[key]
@@ -413,7 +413,7 @@ def calculate_dict_mean_coeff_of_variation(list_dict):
 
 
 def calculate_improvement(avg_scores, improvements, threshold):
-    '''Calculates the improvement based on the average scores. Purpose:
+    """Calculates the improvement based on the average scores. Purpose:
     stopping criteria. Currently used only in GA algorithm.
 
     Parameters:
@@ -435,7 +435,7 @@ def calculate_improvement(avg_scores, improvements, threshold):
     Comments:
     ---------
     Elif clause used in order to have last 2 iterations less than the threshold
-    '''
+    """
     if len(avg_scores) > 1:
         improvements.append(
             (float(avg_scores[-1]-avg_scores[-2])) / avg_scores[-2])

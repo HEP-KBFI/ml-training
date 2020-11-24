@@ -4,7 +4,7 @@ from machineLearning.machineLearning import universal_tools as ut
 
 class HHParameterReader:
     def __init__(self, channel_dir, scenario):
-        ''' Reads the HH parameters from the info directory
+        """ Reads the HH parameters from the info directory
 
         Parameters:
         ----------
@@ -18,7 +18,7 @@ class HHParameterReader:
         preferences : dict
             Dictionary containing the necessary info for loading the data
             and normalizing / weighing it
-        '''
+        """
         self.scenario = 'res/' + scenario if 'nonres' not in scenario else scenario
         self.info_dir = os.path.join(channel_dir, self.scenario)
         self.trainvars_path = os.path.join(channel_dir, self.scenario, 'trainvars.json')
@@ -26,7 +26,7 @@ class HHParameterReader:
         self.interpret_info_file()
 
     def read_trainvar_info(self, path):
-        '''Reads the trainvar info
+        """Reads the trainvar info
 
         Parameters:
         -----------
@@ -38,7 +38,7 @@ class HHParameterReader:
         trainvar_info : dict
             Dictionary containing trainvar info (e.g is the trainvar supposed to
             be an integer or not)
-        '''
+        """
         trainvar_info = {}
         info_dicts = ut.read_parameters(path)
         for single_dict in info_dicts:
@@ -50,7 +50,7 @@ class HHParameterReader:
             info_dict,
             tau_id_training,
     ):
-        '''Finds era-wise inputPaths
+        """Finds era-wise inputPaths
 
         Parameters:
         ----------
@@ -65,7 +65,7 @@ class HHParameterReader:
         -------
         input_paths_dict : dict
             Dict conaining the inputPaths for all eras
-        '''
+        """
         eras = info_dict['included_eras']
         input_paths_dict = {}
         tauID_training = info_dict['tauID_training'][tau_id_training]

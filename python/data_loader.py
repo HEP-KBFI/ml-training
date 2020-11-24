@@ -87,39 +87,35 @@ class DataLoader:
         return data
 
     def signal_background_calc(self, folder_name):
-        '''Calculates the signal and background
+        """Calculates the signal and background
 
         Parameters:
         ----------
-        data : pandas DataFrame
-            data that is loaded
-        bdt_type: str
-            Type of the boosted decision tree (?)
         folder_name : str
             Name of the folder in the keys currently loading the data from
 
         Returns:
         -------
         Nothing
-        '''
+        """
         try:
-            key_condition = data.key.values == folder_name
-            nS = len(
-                data.loc[(data.target.values == 1) & key_condition])
-            nB = len(
-                data.loc[(data.target.values == 0) & key_condition])
-            nNW = len(
-                data.loc[(data['totalWeight'].values < 0) & key_condition])
-            print('Signal: ' + str(nS))
-            print('Background: ' + str(nB))
-            print('Event weight: ' + str(data.loc[
-                    (data.key.values == folder_name)]['evtWeight'].sum()))
-            print('Total data weight: ' + str(data.loc[
-                    (data.key.values == folder_name)]['totalWeight'].sum()))
-            print('Events with negative weights: ' + str(nNW))
+            key_condition = self.data.key.values == folder_name
+            n_signal = len(
+                self.data.loc[(self.data.target.values == 1) & key_condition])
+            n_background = len(
+                self.data.loc[(self.data.target.values == 0) & key_condition])
+            n_neg_weights = len(
+                self.data.loc[(self.data['totalWeight'].values < 0) & key_condition])
+            print('Signal: ' + str(n_signal))
+            print('Background: ' + str(n_background))
+            print('Event weight: ' + str(self.data.loc[
+                    (self.data.key.values == folder_name)]['evtWeight'].sum()))
+            print('Total self.data weight: ' + str(self.data.loc[
+                    (self.data.key.values == folder_name)]['totalWeight'].sum()))
+            print('Events with negative weights: ' + str(n_neg_weights))
             print(':::::::::::::::::')
         except:
-            if len(data) == 0:
+            if len(self.data) == 0:
                 print('Error: No data (!!!)')
 
     def load_data(self):
@@ -151,12 +147,11 @@ class DataLoader:
             process, folder_name, target, path, input_tree)
 
     def print_nr_signal_bkg(self, data):
-        n = len(data)
-        nS = len(data.ix[data.target.values == 1])
-        nB = len(data.ix[data.target.values == 0])
+        n_signal = len(data.ix[data.target.values == 1])
+        n_background = len(data.ix[data.target.values == 0])
         print('For ' + self.preferences['channelInTree'] + ':')
-        print('\t Signal: ' + str(nS))
-        print('\t Background: ' + str(nB))
+        print('\t Signal: ' + str(n_signal))
+        print('\t Background: ' + str(n_background))
 
     def do_loading(self):
         eras = self.preferences['included_eras']
@@ -170,7 +165,8 @@ class DataLoader:
             era_data['era'] = era
             data = data.append(era_data, ignore_index=True, sort=False)
         if self.global_settings['dataCuts'] != 0:
-            data = self.data_cutting(data, self.global_settings)
+            data = self.data_cutting()
+        self.print_nr_signal_bkg(data)
         return data
 
     def load_data_from_one_era(self):
@@ -187,7 +183,7 @@ class DataLoader:
         return data
 
     def data_cutting(self):
-        ''' TO DO '''
+        """ TO DO """
         package_dir = os.path.join(
             os.path.expandvars('$CMSSW_BASE'),
             'src/machineLearning/machineLearning/'
@@ -219,46 +215,33 @@ class DataLoader:
                 for key in cut_keys:
                     try:
                         min_value = cut_dict[key]['min']
-                        data = data.loc[(data[key] >= min_value)]
+                        data = self.data.loc[(self.data[key] >= min_value)]
                     except KeyError:
                         print('Minimum condition for %s not implemented' %(key))
                     try:
                         max_value = cut_dict[key]['max']
-                        data = data.loc[(data[key] <= max_value)]
+                        data = self.data.loc[(self.data[key] <= max_value)]
                     except KeyError:
                         print('Maximum condition for %s not implemented' %(key))
         else:
             print('Cut file %s does not exist' %(cut_file))
-        return data
+        return self.data
 
     def print_info(self):
-        '''Prints the data loading preferences info'''
+        """Prints the data loading preferences info"""
         print('In data_manager')
         print(':::: Loading data ::::')
         print('inputPath: ' + str(self.preferences['era_inputPath']))
         print('channelInTree: ' + str(self.preferences['channelInTree']))
         print('-----------------------------------')
         print('variables:')
-        self.print_columns(self.preferences['trainvars'])
+        ut.print_columns(self.preferences['trainvars'])
         print('bdt_type: ' + str(self.global_settings['bdtType']))
         print('channel: ' + str(self.global_settings['channel']))
         print('keys: ')
-        self.print_columns(self.preferences['era_keys'])
+        ut.print_columns(self.preferences['era_keys'])
         print('masses: ' + str(self.preferences['masses']))
         print('mass_randomization: ' + str(self.global_settings['bkg_mass_rand']))
-
-    def print_columns(self, to_print):
-        '''Prints the list into nice two columns'''
-        to_print = sorted(to_print)
-        if len(to_print) % 2 != 0:
-            to_print.append(' ')
-        split = int(len(to_print)/2)
-        l1 = to_print[0:split]
-        l2 = to_print[split:]
-        print('-----------------------------------')
-        for one, two in zip(l1, l2):
-            print('{0:<45s} {1}'.format(one, two))
-        print('-----------------------------------')
 
     def save_to_csv(self):
         file_path = os.path.join(
