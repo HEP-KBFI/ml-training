@@ -13,7 +13,6 @@ Options:
     -m --masses_type=STR              'low', 'high' or 'all' [default: all]
 """
 from machineLearning.machineLearning import universal_tools as ut
-from machineLearning.machineLearning import hh_parameter_reader as hpr
 from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import data_loader as dl
 from machineLearning.machineLearning import hh_parameter_reader as hpr
@@ -526,7 +525,7 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
     fit : bool
         Whether to do a fit
     create_info : bool
-        Wheter to create histo_dict from scratch
+        Whether to create histo_dict from scratch
     weight_dir : str
         Path to the directory where the TProfile files will be saved
     masses_type : str
@@ -589,7 +588,7 @@ if __name__ == '__main__':
     try:
         arguments = docopt.docopt(__doc__)
         fit = bool(int(arguments['--fit']))
-        create_info =  bool(int(arguments['--create_info']))
+        create_info = bool(int(arguments['--create_info']))
         weight_dir = os.path.expandvars(arguments['--weight_dir'])
         masses_type = arguments['--masses_type']
         create_profile = bool(int(arguments['--create_profile']))
