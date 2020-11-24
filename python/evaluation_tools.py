@@ -334,12 +334,10 @@ def calculate_d_ams(
     """
     train_ams, best_threshold = try_different_thresholds(
         pred_train, data_dict, 'train', weights)
-    print(train_ams)
     test_ams = try_different_thresholds(
         pred_test, data_dict, 'test', weights, threshold=best_threshold)
-    print(test_ams)
     d_ams = calculate_d_score(train_ams, test_ams, kappa)
-    return d_ams
+    return d_ams, test_ams, train_ams
 
 
 def calculate_compactness(parameter_dicts):

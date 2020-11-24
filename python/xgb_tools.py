@@ -3,7 +3,6 @@ other relevant ones.
 """
 import numpy as np
 import xgboost as xgb
-import os
 from machineLearning.machineLearning import evaluation_tools as et
 
 
@@ -103,21 +102,20 @@ def evaluate_model(data_dict, global_settings, model):
         The score calculated according to the fitness_fn
     """
     trainvars = data_dict['trainvars']
-    pred_train = model.predict_proba(data_dict['train'][trainvars])[:,1]
-    pred_test = model.predict_proba(data_dict['test'][trainvars])[:,1]
+    pred_train = model.predict_proba(data_dict['train'][trainvars])[:, 1]
+    pred_test = model.predict_proba(data_dict['test'][trainvars])[:, 1]
     kappa = global_settings['kappa']
     if global_settings['fitness_fn'] == 'd_roc':
-        score, test, train = et.calculate_d_roc(
+        return et.calculate_d_roc(
             data_dict, pred_train, pred_test, kappa=kappa)
     elif global_settings['fitness_fn'] == 'd_ams':
-        score = et.calculate_d_ams(
+        return et.calculate_d_ams(
             pred_train, pred_test, data_dict, kappa=kappa)
     else:
-        print(
+        raise ValueError(
             'The' + str(global_settings['fitness_fn'])
             + ' fitness_fn is not implemented'
         )
-    return score, train, test
 
 
 def model_evaluation_main(

@@ -1,6 +1,4 @@
 import ROOT
-from root_numpy import tree2array
-import pandas
 import glob
 import numpy as np
 import os
@@ -158,13 +156,10 @@ class HHDataHelper:
         return paths
 
     def set_sample_info(self, folder_name, path):
-        process = None
-        target = None
         if 'signal' in folder_name:
-            process, target = self.set_signal_sample_info(folder_name)
+            return self.set_signal_sample_info(folder_name)
         else:
-            process, target = self.set_background_sample_info(folder_name, path)
-        return process, target
+            return self.set_background_sample_info(folder_name, path)
 
     def set_signal_sample_info(self, folder_name):
         target = 1

@@ -1,12 +1,12 @@
 """ Some helpful tools for plotting and data visualization
 """
-import matplotlib
-matplotlib.use('agg')
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 import xgboost as xgb
 from collections import OrderedDict
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
 
 
 def plot_sampleWise_bdtOutput(
@@ -271,7 +271,6 @@ def plot_trainvar_multi_distributions(data, trainvars, output_dir):
 
 def plot_single_distrib(trainvar_distribs, output_dir, trainvar, bins):
     keys = trainvar_distribs.keys()
-    alpha = 1. / len(keys)
     for key in keys:
         plt.hist(trainvar_distribs[key], label=key, bins=bins)
     plt.legend()
@@ -288,7 +287,7 @@ def plot_nn_sampleWise_bdtOutput(
         global_settings,
         target=1,
         class_="",
-        data_dict = {},
+        data_dict={},
         weight='totalWeight',
 ):
     output_dir = global_settings['output_dir']
@@ -298,7 +297,7 @@ def plot_nn_sampleWise_bdtOutput(
     else:
         sig_name = 'signal'
     data_even.loc[
-        data_even['process'].str.contains('signal'), ['process']] = sig_name#'signal'
+        data_even['process'].str.contains('signal'), ['process']] = sig_name  # 'signal'
     bkg_predictions = []
     bkg_labels = []
     bkg_weights = []
@@ -327,7 +326,7 @@ def plot_nn_sampleWise_bdtOutput(
         process_data[preferences['trainvars']]
     )[:, target]) if not global_settings["ml_method"] == 'lbn' else np.array(model_odd.predict(
         [data_dict["ll_even"][idx], data_dict["hl_even"][idx]], batch_size=1024
-    )[:,target])
+    )[:, target])
     weights = np.array(process_data['totalWeight'])
     plt.hist(
         process_prediction, histtype='step', label=sig_name,
@@ -336,7 +335,7 @@ def plot_nn_sampleWise_bdtOutput(
     plt.legend()
     output_path = os.path.join(
         output_dir,
-        'sampleWise_bdtOutput_node_%s.png' %(class_)
+        'sampleWise_bdtOutput_node_%s.png' % class_
     )
     plt.tight_layout()
     plt.savefig(output_path, bbox_inches='tight')

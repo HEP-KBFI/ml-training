@@ -245,7 +245,7 @@ class DataLoader:
 
     def save_to_csv(self):
         file_path = os.path.join(
-            self.global_settings['output_dir'],
+            os.path.expandvars(self.global_settings['output_dir']),
             'data.csv'
         )
         self.data.to_csv(file_path, index=False)

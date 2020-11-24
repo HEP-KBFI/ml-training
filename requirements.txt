@@ -11,3 +11,4 @@ docopt
 tensorflow
 pandas
 matplotlib
+xgboost
