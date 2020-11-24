@@ -1,11 +1,9 @@
-'''
+"""
 Call with 'python'
 
 Usage: save_eventYields.py
-'''
+"""
 import os
-import docopt
-from machineLearning.machineLearning import hh_visualization_tools as hhvt
 from machineLearning.machineLearning import data_loader as dl
 from machineLearning.machineLearning import hh_parameter_reader as hpr
 from machineLearning.machineLearning import hh_tools as hht
@@ -13,7 +11,7 @@ from machineLearning.machineLearning import eventYield_creator as eyc
 from machineLearning.machineLearning import universal_tools as ut
 
 
-def main(bdtClass='evtLevelSUM'):
+def main():
     cmssw_path = os.path.expandvars('$CMSSW_BASE')
     package_dir = os.path.join(
         cmssw_path,
@@ -48,7 +46,8 @@ def main(bdtClass='evtLevelSUM'):
             table_infos.append(table_info)
     table_writer = eyc.EventYieldsFile(table_infos, output_file)
     table_writer.fill_document_file()
-    print('File saved to %s' %output_file)
+    print('File saved to %s' % output_file)
+
 
 if __name__ == '__main__':
     main()

@@ -17,18 +17,18 @@ except:
 
 
 def main(pklFile):
-    xmlFile = pklFile.replace('.pkl', '.xml')
+    xml_file = pklFile.replace('.pkl', '.xml')
     try:
         with open(pklFile, 'rb') as pklOpen:
-            pklData = pickle.load(pklOpen)
+            pkl_data = pickle.load(pklOpen)
             print('pklData loaded')
     except IOError:
         print('IOError when loading pklData from the file')
-    bst = pklData.get_booster()
+    bst = pkl_data.get_booster()
     features = bst.feature_names
-    bdtModel = ct.BDTxgboost(pklData, features, ['Background', 'Signal'])
-    bdtModel.to_tmva(xmlFile)
-    print('.xml BDT model saved to ' + str(xmlFile))
+    bdt_model = ct.BDTxgboost(pkl_data, features, ['Background', 'Signal'])
+    bdt_model.to_tmva(xml_file)
+    print('.xml BDT model saved to ' + str(xml_file))
 
 
 if __name__ == '__main__':

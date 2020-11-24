@@ -145,9 +145,9 @@ class HHDataHelper:
     def find_paths_both_conventions(
             self, input_path, folder_name, paths, file_type
     ):
-        ''' Finds the paths for both the old and the new convention given
+        """ Finds the paths for both the old and the new convention given
         the main directory of the ntuples and the sample name to search for.
-        '''
+        """
         wild_card_path = os.path.join(
             input_path, folder_name, 'central', file_type + '.root')
         paths = glob.glob(wild_card_path)
@@ -250,7 +250,7 @@ class HHDataHelper:
             data,
             skip_int_vars=True
     ):
-        '''Reweighs the dataframe in order to reduce the importance of gen_mHH
+        """Reweighs the dataframe in order to reduce the importance of gen_mHH
 
         Parameters:
         ----------
@@ -269,7 +269,7 @@ class HHDataHelper:
         Returns:
         -------
         Nothing
-        '''
+        """
         for trainvar in self.preferences['trainvars']:
             if trainvar in self.cancelled_trainvars:
                 continue

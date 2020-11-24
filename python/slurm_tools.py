@@ -1,5 +1,5 @@
-''' Toolset for computation with slurm
-'''
+""" Toolset for computation with slurm
+"""
 import time
 from pathlib import Path
 import os
@@ -18,7 +18,7 @@ def get_fitness_score(
         global_settings,
         sample_size=0
 ):
-    '''The main function call that is the slurm equivalent of ensemble_fitness
+    """The main function call that is the slurm equivalent of ensemble_fitness
     in xgb_tools
 
     Parameters:
@@ -35,7 +35,7 @@ def get_fitness_score(
     -------
     scores : list of floats
         Fitnesses for each hyperparameter-set
-    '''
+    """
     output_dir = os.path.expandvars(global_settings['output_dir'])
     previous_files_dir = os.path.join(output_dir, 'previous_files')
     if not os.path.exists(previous_files_dir):
@@ -66,7 +66,7 @@ def get_fitness_score(
 
 
 def parameters_to_file(output_dir, hyperparameter_sets):
-    '''Saves the parameters to the subdirectory (name=sample number) of the
+    """Saves the parameters to the subdirectory (name=sample number) of the
     output_dir into a parameters.json file
 
     Parameters:
@@ -79,7 +79,7 @@ def parameters_to_file(output_dir, hyperparameter_sets):
     Returns:
     -------
     Nothing
-    '''
+    """
     samples = os.path.join(output_dir, 'samples')
     if not os.path.exists(samples):
         os.makedirs(samples)
@@ -97,7 +97,7 @@ def prepare_job_file(
         sample_nr,
         global_settings
 ):
-    '''Writes the job file that will be executed by slurm
+    """Writes the job file that will be executed by slurm
 
     Parameters:
     ----------
@@ -112,7 +112,7 @@ def prepare_job_file(
     -------
     job_file : str
         Path to the script to be executed by slurm
-    '''
+    """
     main_dir = os.path.join(
         os.path.expandvars('$CMSSW_BASE'),
         'src/machineLearning/machineLearning')
@@ -128,19 +128,19 @@ def prepare_job_file(
     run_script = os.path.join(main_dir, 'evaluation_scripts', batch_job_file)
     copyfile(template_file, job_file)
     with open(job_file, 'a') as filehandle:
-        filehandle.writelines('''
+        filehandle.writelines("""
 #SBATCH -e %s
 #SBATCH -o %s
 env
 date
 python %s --parameter_file %s --output_dir %s
-        ''' % (error_file, output_file, run_script,
+        """ % (error_file, output_file, run_script,
                parameter_file, output_dir))
     return job_file
 
 
 def check_parameter_file_sizes(wild_card_path):
-    '''Checks all files in the wild_card_path for their size. Returns the
+    """Checks all files in the wild_card_path for their size. Returns the
     number of files with zero size
 
     Paramters:
@@ -152,7 +152,7 @@ def check_parameter_file_sizes(wild_card_path):
     -------
     zero_sized : int
         Number of zero sized parameter files
-    '''
+    """
     zero_sized = 0
     for parameter_file in glob.glob(wild_card_path):
         size = os.stat(parameter_file).st_size
@@ -162,7 +162,7 @@ def check_parameter_file_sizes(wild_card_path):
 
 
 def read_fitness(output_dir, fitness_key='d_roc'):
-    '''Creates the list of score dictionaries of each sample. List is ordered
+    """Creates the list of score dictionaries of each sample. List is ordered
     according to the number of the sample
 
     Parameters:
@@ -174,7 +174,7 @@ def read_fitness(output_dir, fitness_key='d_roc'):
     -------
     scores : list of floats
         List of fitnesses
-    '''
+    """
     samples = os.path.join(output_dir, 'samples')
     wild_card_path = os.path.join(samples, '*', 'score.json')
     number_samples = len(glob.glob(wild_card_path))
@@ -188,7 +188,7 @@ def read_fitness(output_dir, fitness_key='d_roc'):
 
 
 def get_sample_nr(path):
-    '''Extracts the sample number from a given path
+    """Extracts the sample number from a given path
 
     Parameters:
     ----------
@@ -197,7 +197,7 @@ def get_sample_nr(path):
 
     Returns : int
         Number of the sample
-    '''
+    """
     path1 = Path(path)
     parent_path = str(path1.parent)
     sample_nr = int(parent_path.split('/')[-1])
@@ -205,7 +205,7 @@ def get_sample_nr(path):
 
 
 def wait_iteration(output_dir, sample_size):
-    '''Waits until all batch jobs are finised and in case of and warning
+    """Waits until all batch jobs are finised and in case of and warning
     or error that appears in the error file, stops running the optimization
 
     Parameters:
@@ -218,7 +218,7 @@ def wait_iteration(output_dir, sample_size):
     Returns:
     -------
     Nothing
-    '''
+    """
     wild_card_path = os.path.join(output_dir, 'samples', '*', 'score.json')
     while len(glob.glob(wild_card_path)) != sample_size:
         check_error(output_dir)
@@ -226,7 +226,7 @@ def wait_iteration(output_dir, sample_size):
 
 
 def move_previous_files(output_dir, previous_files_dir):
-    '''Deletes the files from previous iteration
+    """Deletes the files from previous iteration
 
     Parameters:
     -------
@@ -236,7 +236,7 @@ def move_previous_files(output_dir, previous_files_dir):
     Returns:
     -------
     Nothing
-    '''
+    """
     iter_nr = find_iter_number(previous_files_dir)
     samples_dir = os.path.join(output_dir, 'samples')
     iter_dir = os.path.join(previous_files_dir, 'iteration_' + str(iter_nr))
@@ -248,7 +248,7 @@ def move_previous_files(output_dir, previous_files_dir):
 
 
 def find_iter_number(previous_files_dir):
-    '''Finds the number iterations done
+    """Finds the number iterations done
 
     Parameters:
     ----------
@@ -259,14 +259,14 @@ def find_iter_number(previous_files_dir):
     -------
     iter_number : int
         Number of the current iteration
-    '''
+    """
     wild_card_path = os.path.join(previous_files_dir, 'iteration_*')
     iter_number = len(glob.glob(wild_card_path))
     return iter_number
 
 
 def check_error(output_dir):
-    '''In case of warnings or errors during batch job that is written to the
+    """In case of warnings or errors during batch job that is written to the
     error file, raises SystemExit(0)
 
     Parameters:
@@ -277,7 +277,7 @@ def check_error(output_dir):
     Returns:
     -------
     Nothing
-    '''
+    """
     number_errors = 0
     error_list = ['FAILED', 'CANCELLED', 'ERROR', 'Error']
     output_error_list = ['Usage']
@@ -306,7 +306,7 @@ def check_error(output_dir):
 
 
 def save_prediction_files(pred_train, pred_test, save_dir):
-    '''Saves the prediction files to a .lst file
+    """Saves the prediction files to a .lst file
 
     Parameters:
     ----------
@@ -320,7 +320,7 @@ def save_prediction_files(pred_train, pred_test, save_dir):
     Returns:
     -------
     Nothing
-    '''
+    """
     train_path = os.path.join(save_dir, 'pred_train.lst')
     test_path = os.path.join(save_dir, 'pred_test.lst')
     with open(train_path, 'w') as pred_file:

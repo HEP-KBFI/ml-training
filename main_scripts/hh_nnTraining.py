@@ -25,7 +25,6 @@ from sklearn.utils.multiclass import type_of_target
 from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import nn_tools as nt
-from machineLearning.machineLearning import hh_visualization_tools as hhvt
 from machineLearning.machineLearning import hh_parameter_reader as hpr
 from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import multiclass_tools as mt

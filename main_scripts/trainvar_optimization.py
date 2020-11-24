@@ -1,4 +1,4 @@
-'''
+"""
 Call with 'python'
 
 Usage:
@@ -10,7 +10,7 @@ Options:
     -n --min_nr_trainvars=INT       Number trainvars to end up with [default: 10]
     -s --step_size=INT              Number of trainvars dropped per iteration [default: 5]
 
-'''
+"""
 import shutil
 import os
 import json
@@ -144,15 +144,10 @@ def drop_highly_currelated_variables(data, trainvars_initial, corr_threshold):
             corr_value = abs(correlations[trainvar][item])
             if corr_value > corr_threshold:
                 trainvars.remove(item)
-                print("Removing " + str(item) + ". Correlation with " \
+                print(
+                    "Removing " + str(item) + ". Correlation with "
                     + str(trainvar) + " is " + str(corr_value)
                 )
-    return trainvars
-
-
-def load_trainvars(all_trainvars_path):
-    trainvar_info = dlt.read_trainvar_info(all_trainvars_path)
-    trainvars = list(trainvar_info.keys())
     return trainvars
 
 

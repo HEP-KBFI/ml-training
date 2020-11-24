@@ -42,7 +42,7 @@ def get_high_level(tree, variables):
 
 
 def find_correct_dict(key, value, list_of_dicts):
-    '''Finds the correct dictionary based on the requested key
+    """Finds the correct dictionary based on the requested key
     Parameters:
     ----------
     key : str
@@ -54,7 +54,7 @@ def find_correct_dict(key, value, list_of_dicts):
     Returns:
     -------
     requested_dict : dict
-    '''
+    """
     new_dictionary = {}
     for dictionary in list_of_dicts:
         if dictionary[key] == value:

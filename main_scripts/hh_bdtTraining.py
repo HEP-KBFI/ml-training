@@ -1,4 +1,4 @@
-'''
+"""
 Call with 'python'
 
 Usage: 
@@ -10,7 +10,7 @@ Options:
     -s --settings_dir=DIR           Directory of the settings [default: None]
     -h --hyperparameter_file=PTH    Path to the hyperparameters file [default: None]
     -d --debug=BOOL                 Whether to debug the event classification [default: 0]
-'''
+"""
 import os
 import docopt
 from machineLearning.machineLearning import universal_tools as ut
@@ -27,7 +27,7 @@ import numpy as np
 import json
 try:
     import cPickle as pickle
-except:
+except ModuleNotFoundError:
     import pickle
 
 

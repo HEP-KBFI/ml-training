@@ -2,7 +2,7 @@ import numpy as np
 
 
 def roc_curve(labels, pred_vectors, weights):
-    '''Calculate the ROC values using the method used in Dianas thesis.
+    """Calculate the ROC values using the method used in Dianas thesis.
 
     Parameters:
     ----------
@@ -20,7 +20,7 @@ def roc_curve(labels, pred_vectors, weights):
         List of false positives for given thresholds
     true_positive_rates : list
         List of true positives for given thresholds
-    '''
+    """
     thresholds = np.linspace(0, 1, num=50)
     number_bkg = len(pred_vectors[0]) - 1
     unique_labels = range(len(pred_vectors[0]))
