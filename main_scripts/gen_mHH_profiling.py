@@ -174,7 +174,6 @@ def create_renewed_histo_dict(
     return new_histo_infos
 
 
-
 def read_trainvars_from_histo_dict(histo_dict_path):
     """Reads the trainvars for which there is histogram info set previously
 
@@ -196,10 +195,7 @@ def read_trainvars_from_histo_dict(histo_dict_path):
 ####################################################################
 
 
-def create_TProfiles(
-        info_dir, weight_dir, data,
-        masses_type, global_settings, label
-):
+def create_TProfiles(info_dir, data, label):
     """ Creates the TProfiles (without the fit) for all the trainvars vs
     gen_mHH
 
@@ -229,15 +225,11 @@ def create_TProfiles(
     for dtype in [0, 1]:
         type_data = data.loc[data['target'] == dtype]
         single_dtype_TProfile(
-            type_data, trainvars, dtype, label, info_dir, global_settings,
-            weight_dir)
+            type_data, trainvars, dtype, label, info_dir
+        )
 
 
-def single_dtype_TProfile(
-        type_data, trainvars, dtype,
-        label, info_dir, global_settings,
-        weight_dir
-):
+def single_dtype_TProfile(type_data, trainvars, dtype, label, info_dir):
     """
 
     Parameters:
@@ -257,8 +249,6 @@ def single_dtype_TProfile(
         Path to the info_directory of the required channel
     global_settings : dict
         Global settings (channel, bdtType etc.)
-    weight_dir : str
-        Path to the directory where the TProfiles will be saved
 
     Returns:
     --------
@@ -266,20 +256,17 @@ def single_dtype_TProfile(
     """
     for trainvar in trainvars:
         print('Variable Name: ' + str(trainvar))
-        filename = choose_file_name(weight_dir, dtype, label, trainvar)
+        filename = choose_file_name(dtype, label, trainvar)
         plotting_main(
-            type_data, trainvar, filename,
-            masses_type, info_dir, global_settings
+            type_data, trainvar, filename, info_dir
         )
 
 
-def choose_file_name(weight_dir, dtype, label, trainvar):
+def choose_file_name(dtype, label, trainvar):
     """
 
     Parameters:
     -----------
-    weight_dir : str
-        Path to the directory where the TProfiles will be saved
     dtype : str
         Either 0 or 1. Will be added used to create the
         filename.
@@ -306,19 +293,15 @@ def choose_file_name(weight_dir, dtype, label, trainvar):
 ##################################################################
 
 
-def do_fit(weight_dir, info_dir, data, masses_type):
+def do_fit(info_dir, data):
     """ Fits the Data with a given order of polynomial
 
     Parameters:
     -----------
-    weight_dir : str
-        Path to the directory where the TProfiles will be saved
     info_dir : str
         Path to the info_directory of the required channel
     data : pandas DataFrame
         Data to be used for creating the TProfiles & fits
-    masses_type : str
-        Which masses type to use. 'low', 'high' or 'all'
 
     Returns:
     --------
@@ -327,19 +310,19 @@ def do_fit(weight_dir, info_dir, data, masses_type):
     trainvars = list(get_all_trainvars(info_dir))
     if 'gen_mHH' in trainvars:
         trainvars.remove('gen_mHH')
-    masses = find_masses(masses_type)
+    masses = find_masses()
     histo_dicts_json = os.path.join(info_dir, 'histo_dict.json')
     histo_dicts = ut.read_parameters(histo_dicts_json)
     for trainvar in trainvars:
         histo_dict = dlt.find_correct_dict(
             'Variable', str(trainvar), histo_dicts)
-        fit_poly_order = get_fit_function(histo_dict, masses_type)
+        fit_poly_order = get_fit_function(histo_dict)
         canvas, profile = plotting_init(data, trainvar, histo_dict, masses)
         print('Variable Name: ' + str(trainvar))
         filename = '_'.join(['TProfile_signal_fit_func', str(trainvar)])
         out_file = os.path.join(weight_dir, filename + '.root')
         fit_function = 'fitFunction_' + str(trainvar)
-        masses = find_masses(masses_type)
+        masses = find_masses()
         mass_min = min(masses)
         mass_max = max(masses)
         print('Fitfunction: ' + fit_function)
@@ -348,7 +331,7 @@ def do_fit(weight_dir, info_dir, data, masses_type):
             fit_function, fit_poly_order, float(mass_min), float(mass_max)
         )
         result_ptr = TFitResultPtr()
-        result_ptr = profile.Fit(function_TF1, 'SF') # Fit with Minuit
+        result_ptr = profile.Fit(function_TF1, 'SF')  # Fit with Minuit
         function_TF1.Draw('same')
         canvas.Modified()
         canvas.Update()
@@ -358,7 +341,7 @@ def do_fit(weight_dir, info_dir, data, masses_type):
         tfile.Close()
 
 
-def get_fit_function(histo_dict, masses_type):
+def get_fit_function(histo_dict):
     """ Reads the polynomial order to be used for the fit for a given trainvar
     histo_dict
 
@@ -380,7 +363,7 @@ def get_fit_function(histo_dict, masses_type):
     return poly_order
 
 
-def find_masses(masses_type):
+def find_masses():
     """ Finds the masses to be used in the fit
 
     Parameters:
@@ -434,12 +417,13 @@ def plotting_init(data, trainvar, histo_dict, masses, weights='totalWeight'):
     canvas = TCanvas('canvas', 'TProfile plot', 200, 10, 700, 500)
     canvas.GetFrame().SetBorderSize(6)
     canvas.GetFrame().SetBorderMode(-1)
-    gen_mHH_values = np.array(data['gen_mHH'].values, dtype=np.float)
-    trainvar_values = np.array(data[trainvar].values, dtype=np.float)
-    weights = np.array(data[weights].values, dtype=np.float)
+    signal_data = data.loc[data['target'] == 1]
+    gen_mHH_values = np.array(signal_data['gen_mHH'].values, dtype=np.float)
+    trainvar_values = np.array(signal_data[trainvar].values, dtype=np.float)
+    weights = np.array(signal_data[weights].values, dtype=np.float)
     sanity_check = len(gen_mHH_values) == len(trainvar_values) == len(weights)
     assert sanity_check
-    title = 'Profile of '+ str(trainvar) +' vs gen_mHH'
+    title = 'Profile of ' + str(trainvar) + ' vs gen_mHH'
     num_bins = (len(masses) - 1)
     xlow = masses[0]
     xhigh = (masses[(len(masses) - 1)] + 100.0)
@@ -465,9 +449,7 @@ def plotting_main(
         data,
         trainvar,
         filename,
-        masses_type,
-        info_dir,
-        global_settings
+        info_dir
 ):
     """ Main function for plotting.
 
@@ -490,7 +472,7 @@ def plotting_main(
     --------
     Nothing
     """
-    masses = find_masses(masses_type)
+    masses = find_masses()
     histo_dicts_json = os.path.join(info_dir, 'histo_dict.json')
     histo_dicts = ut.read_parameters(histo_dicts_json)
     histo_dict = dlt.find_correct_dict(
@@ -499,7 +481,7 @@ def plotting_main(
     canvas.SaveAs(filename)
 
 
-def create_all_fitFunc_file(weight_dir, global_settings):
+def create_all_fitFunc_file(global_settings):
     wild_card_path = os.path.join(weight_dir, '*signal_fit_func*')
     all_single_files = glob.glob(wild_card_path)
     all_paths_str = ' '.join(all_single_files)
@@ -516,7 +498,7 @@ def create_all_fitFunc_file(weight_dir, global_settings):
     subprocess.call('hadd ' + resulting_file + ' ' + all_paths_str, shell=True)
 
 
-def main(fit, create_info, weight_dir, masses_type, create_profile):
+def main():
     """ Main function for operating the fitting, plotting and creation of
     histo_dict
 
@@ -560,25 +542,19 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
         if not os.path.exists(weight_dir):
             os.makedirs(weight_dir)
         if fit:
-            do_fit(weight_dir, info_dir, data, masses_type)
+            do_fit(info_dir, data)
             resulting_hadd_file = os.path.join(weight_dir, 'all_fitFunc.root')
             print(
                 'Creating a single fit file with "hadd" to: ' + str(
                     resulting_hadd_file
                 )
             )
-            create_all_fitFunc_file(weight_dir, global_settings)
+            create_all_fitFunc_file(global_settings)
         if create_profile:
-            create_TProfiles(
-                info_dir, weight_dir, data,
-                masses_type, global_settings, label='raw'
-            )
+            create_TProfiles(info_dir, data, label='raw')
             try:
                 data = loader.prepare_data(data)
-                create_TProfiles(
-                    info_dir, weight_dir, data,
-                    masses_type, global_settings, label='reweighed'
-                )
+                create_TProfiles(info_dir, data, label='reweighed')
             except ReferenceError:
                 print('No fit for variables found')
                 print('Please fit the variables for plots after reweighing')
@@ -592,6 +568,6 @@ if __name__ == '__main__':
         weight_dir = os.path.expandvars(arguments['--weight_dir'])
         masses_type = arguments['--masses_type']
         create_profile = bool(int(arguments['--create_profile']))
-        main(fit, create_info, weight_dir, masses_type, create_profile)
+        main()
     except docopt.DocoptExit as e:
         print(e)

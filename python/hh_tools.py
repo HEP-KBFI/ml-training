@@ -178,12 +178,16 @@ class HHDataHelper:
             'background_categories.json'
         )
         background_categories = ut.read_json_cfg(background_catfile)
+        possible_processes = []
+        sample_dict = {}
         for category in background_categories:
             possible_samples = background_categories[category]
+            sample_dict.update(possible_samples)
             for sample in possible_samples.keys():
                 if sample in path:
-                    process = possible_samples[sample]
-                    return process, target
+                    possible_processes.append(sample)
+        process = sample_dict[max(possible_processes, key=len)]
+        return process, target
 
     def data_imputer(
         self, chunk_df, folder_name, target, data

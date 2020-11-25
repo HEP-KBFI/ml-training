@@ -71,18 +71,18 @@ class DataLoader:
         tfile = ROOT.TFile(path)
         try:
             tree = tfile.Get(input_tree)
+            self.set_variables_to_be_loaded(process)
+            chunk_arr = tree2array(
+                tree, branches=self.to_be_loaded,
+                stop=self.process_loader.nr_events_per_file
+            )
+            chunk_df = pandas.DataFrame(chunk_arr)
+            tfile.Close()
+            data = self.data_imputer(
+                chunk_df, process, folder_name, target)
+            return data
         except TypeError:
             print('Incorrect input_tree: ' + str(input_tree))
-        self.set_variables_to_be_loaded(process)
-        chunk_arr = tree2array(
-            tree, branches=self.to_be_loaded,
-            stop=self.process_loader.nr_events_per_file
-        )
-        chunk_df = pandas.DataFrame(chunk_arr)
-        tfile.Close()
-        data = self.data_imputer(
-            chunk_df, process, folder_name, target)
-        return data
 
     def signal_background_calc(self, folder_name):
         """Calculates the signal and background
