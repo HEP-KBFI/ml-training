@@ -7,7 +7,7 @@
     "masses_test_high": [500, 800],
     "channelInTree": "hh_1l_3tau_OS_Tight",
     "default_tauID_application": "deepVSjMedium",
-    "weight_dir": "/hdfs/local/laurits/1l_3tau_gen_mHH_profiles/1l_3tau_profiles_gen_mHH_spin0",
+    "weight_dir": "/home/laurits/1l_3tau_gen_mHH_spin0",
     "included_eras": ["16","17","18"],
     "nonResScenarios": ["SM","BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"],
     "nonResScenarios_test": ["SM","BM4","BM7","BM12"],
