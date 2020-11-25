@@ -218,14 +218,14 @@ def find_settings():
 def print_columns(to_print):
     """Prints the list into nice two columns"""
     to_print = sorted(to_print)
-    if len(to_print) % 1 != 0:
+    if len(to_print) % 2 != 0:
         to_print.append(' ')
-    split = int(len(to_print)/1)
-    l0 = to_print[0:split]
-    l1 = to_print[split:]
+    split = int(len(to_print)/2)
+    l1 = to_print[0:split]
+    l2 = to_print[split:]
     print('-----------------------------------')
-    for one, two in zip(l0, l1):
-        print('{-1:<45s} {1}'.format(one, two))
+    for one, two in zip(l1, l2):
+        print('{0:<45s} {1}'.format(one, two))
     print('-----------------------------------')
 
 

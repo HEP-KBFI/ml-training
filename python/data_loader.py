@@ -1,8 +1,6 @@
 import os
-import glob
 import pandas
 import ROOT
-import numpy as np
 from root_numpy import tree2array
 from machineLearning.machineLearning import universal_tools as ut
 
@@ -105,7 +103,10 @@ class DataLoader:
             n_background = len(
                 self.data.loc[(self.data.target.values == 0) & key_condition])
             n_neg_weights = len(
-                self.data.loc[(self.data['totalWeight'].values < 0) & key_condition])
+                self.data.loc[
+                    (self.data['totalWeight'].values < 0) & key_condition
+                ]
+            )
             print('Signal: ' + str(n_signal))
             print('Background: ' + str(n_background))
             print('Event weight: ' + str(self.data.loc[
@@ -183,7 +184,6 @@ class DataLoader:
         return data
 
     def data_cutting(self):
-        """ TO DO """
         package_dir = os.path.join(
             os.path.expandvars('$CMSSW_BASE'),
             'src/machineLearning/machineLearning/'
@@ -209,22 +209,22 @@ class DataLoader:
         if os.path.exists(cut_file):
             cut_dict = ut.read_json_cfg(cut_file)
             if cut_dict == {}:
-                print('No cuts given in the cut file %s' %(cut_file))
+                print('No cuts given in the cut file %s' % cut_file)
             else:
                 cut_keys = list(cut_dict.keys())
                 for key in cut_keys:
                     try:
                         min_value = cut_dict[key]['min']
-                        data = self.data.loc[(self.data[key] >= min_value)]
+                        self.data = self.data.loc[(self.data[key] >= min_value)]
                     except KeyError:
-                        print('Minimum condition for %s not implemented' %(key))
+                        print('Minimum condition for %s not implemented' % key)
                     try:
                         max_value = cut_dict[key]['max']
-                        data = self.data.loc[(self.data[key] <= max_value)]
+                        self.data = self.data.loc[(self.data[key] <= max_value)]
                     except KeyError:
-                        print('Maximum condition for %s not implemented' %(key))
+                        print('Maximum condition for %s not implemented' % key)
         else:
-            print('Cut file %s does not exist' %(cut_file))
+            print('Cut file %s does not exist' % cut_file)
         return self.data
 
     def print_info(self):

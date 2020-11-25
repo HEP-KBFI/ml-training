@@ -269,9 +269,9 @@ class HHDataHelper:
             if trainvar in self.cancelled_trainvars:
                 continue
             filename = '_'.join(['TProfile_signal_fit_func', trainvar]) + '.root'
-            file_path = str(os.path.join(
+            file_path = str(os.path.expandvars(os.path.join(
                 self.preferences['weight_dir'], filename
-            ))
+            )))
             tfile = ROOT.TFile.Open(file_path)
             fit_function_name = str('_'.join(['fitFunction', trainvar]))
             function = tfile.Get(fit_function_name)

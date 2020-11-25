@@ -539,7 +539,7 @@ def main(fit, create_info, weight_dir, masses_type, create_profile):
     """
     channel_dir, info_dir, global_settings = ut.find_settings()
     if 'nonres' in global_settings['scenario']:
-        scenario = 'nonres'
+        raise TypeError("gen_mHH profiling is done only for resonant cases")
     else:
         scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
