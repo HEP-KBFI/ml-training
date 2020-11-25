@@ -29,9 +29,9 @@
     },
     "tauID_training": {
         "deepVSjVVVLoose": {
-            "inputPath16": "/hdfs/local/veelken/hhAnalysis/2016/2020Sep29_deepVsjVVVLoose/histograms/hh_1l_3tau/forBDTtraining_OS/",
-            "inputPath17": "/hdfs/local/veelken/hhAnalysis/2017/2020Sep29_deepVsjVVVLoose/histograms/hh_1l_3tau/forBDTtraining_OS/",
-            "inputPath18": "/hdfs/local/veelken/hhAnalysis/2018/2020Sep29_deepVsjVVVLoose/histograms/hh_1l_3tau/forBDTtraining_OS/"
+            "inputPath16": "/hdfs/local/laurits/hhAnalysis/2016/VVVLoose_BDT_1l_3tau/histograms/hh_1l_3tau/forBDTtraining_OS/",
+            "inputPath17": "/hdfs/local/laurits/hhAnalysis/2017/VVVLoose_BDT_1l_3tau/histograms/hh_1l_3tau/forBDTtraining_OS/",
+            "inputPath18": "/hdfs/local/laurits/hhAnalysis/2018/VVVLoose_BDT_1l_3tau/histograms/hh_1l_3tau/forBDTtraining_OS/"
         }
     },
     "data_csv": "/path/to/csvFile",
