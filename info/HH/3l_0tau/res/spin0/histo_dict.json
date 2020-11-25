@@ -1,0 +1,4 @@
+{"nbins": 55, "fitFunc_HighMassTraining": "pol1", "min": 0.0, "max": 1100.0, "fitFunc_LowMassTraining": "pol1", "fitFunc_AllMassTraining": "pol1", "Variable": "nSFOS_3l"}
+{"nbins": 55, "fitFunc_HighMassTraining": "pol1", "min": 0.0, "max": 1100.0, "fitFunc_LowMassTraining": "pol1", "fitFunc_AllMassTraining": "pol1", "Variable": "mSFOS2l_closestToZ"}
+{"nbins": 55, "fitFunc_HighMassTraining": "pol1", "min": 0.0, "max": 1100.0, "fitFunc_LowMassTraining": "pol1", "fitFunc_AllMassTraining": "pol1", "Variable": "nElectron"}
+{"nbins": 55, "fitFunc_HighMassTraining": "pol1", "min": 0.0, "max": 1100.0, "fitFunc_LowMassTraining": "pol1", "fitFunc_AllMassTraining": "pol1", "Variable": "dPhi_LeptonIdx3_Met_Approach3"}
