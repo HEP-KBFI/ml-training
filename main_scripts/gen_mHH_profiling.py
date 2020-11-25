@@ -417,7 +417,7 @@ def plotting_init(data, trainvar, histo_dict, masses, weights='totalWeight'):
     canvas = TCanvas('canvas', 'TProfile plot', 200, 10, 700, 500)
     canvas.GetFrame().SetBorderSize(6)
     canvas.GetFrame().SetBorderMode(-1)
-    signal_data = data.loc[data['traget'] == 1]
+    signal_data = data.loc[data['target'] == 1]
     gen_mHH_values = np.array(signal_data['gen_mHH'].values, dtype=np.float)
     trainvar_values = np.array(signal_data[trainvar].values, dtype=np.float)
     weights = np.array(signal_data[weights].values, dtype=np.float)
