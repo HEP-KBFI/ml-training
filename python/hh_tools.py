@@ -219,8 +219,8 @@ class HHDataHelper:
                     data = data.append(chunk_df, ignore_index=True, sort=False)
             else:
                 raise ValueError(
-                    'Cannot use ' + self.global_settings['bkg_mass_rand'] + \
-                    " as mass_randomization"
+                    'Cannot use ' + self.global_settings['bkg_mass_rand'] +
+                    ' as mass_randomization'
                 )
         return data
 
