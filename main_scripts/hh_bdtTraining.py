@@ -3,13 +3,18 @@ Call with 'python'
 
 Usage: 
     bdtTraining.py
-    bdtTraining.py [--output_dir=DIR --settings_dir=DIR --hyperparameter_file=PTH --debug=BOOL]
+    bdtTraining.py [--output_dir=DIR --settings_dir=DIR --hyperparameter_file=PTH --debug=BOOL --save_model=INT --mode=INT --bdtType=INT --ml_method=INT --spinCase=INT --era=INT]
 
 Options:
     -o --output_dir=DIR             Directory of the output [default: None]
     -s --settings_dir=DIR           Directory of the settings [default: None]
     -h --hyperparameter_file=PTH    Path to the hyperparameters file [default: None]
     -d --debug=BOOL                 Whether to debug the event classification [default: 0]
+    -m --mode=INT                   whhether resolved or boosted catgory to be considered [default: resolved]
+    -bdt --bdtType=INT              type of bdt [default: evtLevelSUM_HH_bb1l_nonres]
+    -ml_method    --ml_method       name of ml_method  [default: lbn]
+    -spinCase   --spinCase=INT      which spin to be considered [default: 0]
+    -era --era=INT                  era to be processed [defaule: 2016]
 '''
 import os
 import docopt
@@ -28,6 +33,18 @@ try:
 except:
     import pickle
 
+def update_global_settings(global_settings, bdtType, spinCase, mode, ml_method, era):
+    global_settings['bdtType'] = bdtType
+    channel = 'bb2l' if 'bb2l' in bdtType else 'bb1l'
+    channel = channel+'_bdt' if 'xgb' in ml_method else channel
+    global_settings['channel'] = channel
+    global_settings['spinCase'] = spinCase
+    global_settings['dataCuts'] = 'cuts_%s.json' %mode
+    global_settings['ml_method'] = ml_method
+    global_settings['mode'] = mode
+    era = era.replace('20', '')
+    global_settings['era'] = era
+    return global_settings
 
 def main(output_dir, settings_dir, hyperparameter_file, debug):
     if settings_dir == 'None':
@@ -36,8 +53,15 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
             'src/machineLearning/machineLearning/settings'
         )
     global_settings = ut.read_settings(settings_dir, 'global')
+    global_settings = update_global_settings(global_settings, bdtType, spinCase, mode, ml_method, era)
     if output_dir == 'None':
-        output_dir = global_settings['output_dir']
+        res_nonres = 'res' if 'nonres' not in global_settings['bdtType']\
+                     else 'nonres'
+        res_nonres = res_nonres+"_"+global_settings['spinCase'] if 'nonres' not in global_settings['bdtType']\
+                     else res_nonres
+        output_dir = global_settings['channel']+'/'+global_settings['ml_method']+'/'+\
+                     res_nonres + '/' + global_settings['mode'] +'/' + era
+        global_settings['output_dir'] = output_dir
     else:
         global_settings['output_dir'] = output_dir
     global_settings['output_dir'] = os.path.expandvars(
@@ -45,7 +69,7 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
     if not os.path.exists(global_settings['output_dir']):
         os.makedirs(global_settings['output_dir'])
     global_settings['debug'] = debug
-    channel_dir, info_dir, _ = ut.find_settings()
+    channel_dir, info_dir, _ = ut.find_settings(global_settings)
     preferences = hhat.get_hh_parameters(
         channel_dir,
         global_settings['tauID_training'],
@@ -60,7 +84,7 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
 
 def split_data(global_settings, preferences):
     print('============ Starting evaluation ============')
-    data = hhat.load_hh_data(preferences, global_settings, False)
+    data = hhat.load_hh_data(preferences, global_settings, global_settings['era'], False)
     sumall = data.loc[data["process"] == "TT"]["totalWeight"].sum() \
         + data.loc[data["process"] == "W"]["totalWeight"].sum() \
         + data.loc[data["process"] == "DY"]["totalWeight"].sum() \
@@ -356,6 +380,11 @@ if __name__ == '__main__':
         settings_dir = arguments['--settings_dir']
         hyperparameter_file = arguments['--hyperparameter_file']
         debug = bool(int(arguments['--debug']))
+        bdtType = arguments['--bdtType']
+        spinCase = arguments['--spinCase']
+        mode = arguments['--mode']
+        ml_method = arguments['--ml_method']
+        era = arguments['--era']
         main(output_dir, settings_dir, hyperparameter_file, debug)
     except docopt.DocoptExit as e:
         print(e)

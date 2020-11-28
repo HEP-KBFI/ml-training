@@ -3,10 +3,15 @@ Call with 'python'
 
 Usage: 
     hh_nnTraining.py
-    hh_nnTraining.py [--save_model=INT]
+    hh_nnTraining.py [--save_model=INT --mode=INT --bdtType=INT --ml_method=INT --spinCase=INT --era=INT]
 
 Options:
     -s --save_model=INT             Whether or not to save the model [default: 0]
+    -m --mode=INT                   whhether resolved or boosted catgory to be considered [default: resolved]
+    -bdt --bdtType=INT              type of bdt  [default: evtLevelSUM_HH_bb2l_nonres]
+    -ml_method --ml_method=INT      name of ml_method  [default: lbn]
+    -spinCase --spinCase=INT        which spin to be considered [default: 0]
+    -era   --era=INT                era to be processed [default: 2016]
 '''
 import os
 import docopt
@@ -33,7 +38,7 @@ import cmsml
 tf.config.threading.set_intra_op_parallelism_threads(4)
 tf.config.threading.set_inter_op_parallelism_threads(4)
 
-execfile('python/paeticle_list.py')
+execfile('python/particle_list.py')
 particles_list = ll_objects_list()
 def plot_confusion_matrix(cm, class_names, output_dir, addition):
     figure = plt.figure(figsize=(4, 4))
@@ -60,18 +65,34 @@ def plot_confusion_matrix(cm, class_names, output_dir, addition):
     plt.savefig(outfile, bbox_inches='tight')
     plt.close('all')
 
-def main(output_dir, save_model):
-    if output_dir == 'None':
-        settings_dir = os.path.join(
-            os.path.expandvars('$CMSSW_BASE'),
-            'src/machineLearning/machineLearning/settings'
-        )
+def update_global_settings(global_settings, bdtType, spinCase, mode, ml_method, era):
+    global_settings['bdtType'] = bdtType
+    channel = 'bb2l' if 'bb2l' in bdtType else 'bb1l'
+    channel = channel+'_bdt' if 'xgb' in ml_method else channel
+    global_settings['channel'] = channel
+    global_settings['spinCase'] = spinCase
+    global_settings['dataCuts'] = 'cuts_%s.json' %mode
+    global_settings['ml_method'] = ml_method
+    global_settings['mode'] = mode
+    era = era.replace('20', '')
+    global_settings['era'] = era
+    return global_settings
+
+def main(output_dir, save_model, bdtType, spinCase, mode, ml_method, era):
+    #if output_dir == 'None':
+    settings_dir = os.path.join(
+        os.path.expandvars('$CMSSW_BASE'),
+        'src/machineLearning/machineLearning/settings'
+    )
     global_settings = ut.read_settings(settings_dir, 'global')
+    global_settings = update_global_settings(global_settings, bdtType, spinCase, mode, ml_method, era)
     if output_dir == 'None':
         res_nonres = 'res' if 'nonres' not in global_settings['bdtType']\
                      else 'nonres'
+        res_nonres = res_nonres+"_"+global_settings['spinCase'] if 'nonres' not in global_settings['bdtType']\
+                     else res_nonres
         output_dir = global_settings['channel']+'/'+global_settings['ml_method']+'/'+\
-                     res_nonres + '/' + global_settings['mode']
+                     res_nonres + '/' + global_settings['mode'] +'/' + era
         global_settings['output_dir'] = output_dir
     else:
         global_settings['output_dir'] = output_dir
@@ -80,7 +101,7 @@ def main(output_dir, save_model):
     global_settings['debug'] = False
     if not os.path.exists(global_settings['output_dir']):
         os.makedirs(global_settings['output_dir'])
-    channel_dir, info_dir, _ = ut.find_settings()
+    channel_dir, info_dir, _ = ut.find_settings(global_settings)
     preferences = hhat.get_hh_parameters(
         channel_dir,
         global_settings['tauID_training'],
@@ -90,15 +111,19 @@ def main(output_dir, save_model):
     particles = particles_list['bb1l'] if global_settings['channel'] == 'bb1l'\
                   else particles_list['bb2l']
     data_dict = create_data_dict(preferences, global_settings, particles)
+    classes = set(data_dict["even_data"]["process"])
+    for class_ in classes:
+        multitarget = list(set(
+            data_dict["even_data"].loc[
+                data_dict["even_data"]["process"] == class_, "multitarget"
+            ]
+        ))[0]
+        print(str(class_) + '\t' + str(multitarget))
     even_model = create_model(
         preferences, global_settings, data_dict, "even_data", save_model, particles)
     odd_model = create_model(
         preferences, global_settings, data_dict, "odd_data", save_model, particles)
     print(odd_model.summary())
-    even_train_info, even_test_info = evaluate_model(
-        even_model, data_dict, global_settings, "even_data")
-    odd_train_info, odd_test_info = evaluate_model(
-        odd_model, data_dict, global_settings, "odd_data")
     if global_settings['feature_importance'] == 1:
         trainvars = preferences['trainvars']
         data = data_dict['odd_data']
@@ -108,24 +133,21 @@ def main(output_dir, save_model):
         )
         hhvt.plot_feature_importances_from_dict(
          score_dict, global_settings['output_dir'])
+    even_train_info, even_test_info = evaluate_model(
+        even_model, data_dict, global_settings, "even_data")
+    odd_train_info, odd_test_info = evaluate_model(
+        odd_model, data_dict, global_settings, "odd_data")
     hhvt.plotROC(
         [odd_train_info, odd_test_info],
         [even_train_info, even_test_info],
         global_settings
     )
-    classes = set(data_dict["even_data"]["process"])
-    for class_ in classes:
-        multitarget = list(set(
-            data_dict["even_data"].loc[
-                data_dict["even_data"]["process"] == class_, "multitarget"
-            ]
-        ))[0]
-        print(str(class_) + '\t' + str(multitarget))
 
 def create_data_dict(preferences, global_settings, particles):
     data = dlt.load_data(
         preferences,
         global_settings,
+        eras=global_settings['era'],
         remove_neg_weights=True
     )
     for trainvar in preferences['trainvars']:
@@ -203,8 +225,12 @@ def create_model(
     number_samples = len(data_dict[choose_data])
     n_particles = len(particles)
     reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
-        monitor='val_loss', factor=0.1, patience=5, min_lr=0.00001
+        monitor='val_loss', factor=0.1, patience=3, min_lr=0.00001
     )
+    early_stopping = tf.keras.callbacks.EarlyStopping(
+        monitor='val_loss', patience=5, min_delta=0.001,
+        restore_best_weights=True)
+
     categorical_vars = ["SM", "BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"]
     if lbn:
         nr_trainvars = len(trainvars) - len(low_level_var)
@@ -260,7 +286,7 @@ def create_model(
                 val_data["val_data"]["multitarget"].values,
                 val_data["val_data"]["totalWeight"].values
             ),
-            callbacks=[reduce_lr]
+            callbacks=[reduce_lr, early_stopping]
         )
     else:
         train_data = data_dict['odd_data'] if choose_data == "odd_data" else data_dict['even_data']
@@ -276,7 +302,7 @@ def create_model(
                 val_data['multitarget'].astype(np.int),
                 val_data['totalWeight'].values
             ),
-            callbacks=[reduce_lr]
+            callbacks=[reduce_lr, early_stopping]
         )
     if save_model:
         if 'nonres' in global_settings["bdtType"]:
@@ -351,8 +377,8 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
             [train_var["ll"], train_var["hl"]], batch_size=1024)
         test_predicted_probabilities = model.predict(
             [test_var["ll"], test_var["hl"]], batch_size=1024)
-        #print test_var["ll"][0], 'hl==', test_var["hl"][0]
-        #print 'proba===', test_predicted_probabilities[0]
+        print test_var["ll"][0], 'hl==', test_var["hl"][0]
+        print 'proba===', test_predicted_probabilities[0]
     else:
         train_predicted_probabilities = model.predict(
             train_data[trainvars].values)
@@ -366,7 +392,7 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
     samples = []
     for i in sorted(set(train_data["multitarget"])):
         samples.append(list(set(train_data.loc[train_data["multitarget"] == i]["process"]))[0])
-    samples = ['HH' if x.find('signal') != -1 else x for x in samples]
+    #samples = ['HH' if x.find('signal') != -1 else x for x in samples]
     plot_confusion_matrix(
         cm, samples, global_settings['output_dir'], 'test')
 
@@ -378,7 +404,7 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
     samples = []
     for i in sorted(set(train_data["multitarget"])):
         samples.append(list(set(train_data.loc[train_data["multitarget"] == i]["process"]))[0])
-    samples = ['HH' if x.find('signal') != -1 else x for x in samples]
+    #samples = ['HH' if x.find('signal') != -1 else x for x in samples]
     plot_confusion_matrix(
         cm, samples, global_settings['output_dir'], 'train')
 
@@ -398,7 +424,7 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
             train_data.loc[train_data["process"] == process, "max_node_pos"] = np.argmax(value, axis=1)
             train_data.loc[train_data["process"] == process, "max_node_val"] = np.amax(value, axis=1)
 
-    color = ['b', 'g', 'y', 'r', 'magenta', 'orange']
+    color = ['b', 'g', 'y', 'r', 'magenta', 'orange', 'c']
     for node in sorted(set(train_data["multitarget"])):
         fig1, ax = plt.subplots()
         values = []
@@ -406,12 +432,14 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
         labels = []
         colors = []
         for i, process in enumerate(set(train_data["process"])):
-            values.append(train_data.loc[((train_data["max_node_pos"] == node) & \
-                                          (train_data["process"] == process)), ["max_node_val"]].values.tolist())
-            weights.append(train_data.loc[((train_data["max_node_pos"] == node) & \
-                                           (train_data["process"] == process)), ["evtWeight"]].values.tolist())
-            labels.append(process) if process.find('signal') == -1 else labels.append("HH")
-            colors.append(color[i])
+            if len(train_data.loc[((train_data["max_node_pos"] == node) & \
+                                         (train_data["process"] == process))]):
+                values.append(train_data.loc[((train_data["max_node_pos"] == node) & \
+                             (train_data["process"] == process)), ["max_node_val"]].values.tolist())
+                weights.append(train_data.loc[((train_data["max_node_pos"] == node) & \
+                              (train_data["process"] == process)), ["evtWeight"]].values.tolist())
+                labels.append(process)
+                colors.append(color[i])
         plt.hist(values, weights=weights,
                  label=labels, color=colors,
                  histtype='bar', stacked=True, range=(0, 1), bins=20)
@@ -478,7 +506,12 @@ if __name__ == '__main__':
     try:
         arguments = docopt.docopt(__doc__)
         save_model = bool(int(arguments['--save_model']))
-        main('None', save_model)
+        bdtType = arguments['--bdtType']
+        spinCase = arguments['--spinCase']
+        mode = arguments['--mode']
+        ml_method = arguments['--ml_method']
+        era = arguments['--era']
+        main('None', save_model, bdtType, spinCase, mode, ml_method, era)
     except docopt.DocoptExit as e:
         print(e)
     print(datetime.now() - startTime)
