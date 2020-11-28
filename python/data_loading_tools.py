@@ -57,6 +57,7 @@ def get_high_level(tree, particles, variables):
 def load_data(
         preferences,
         global_settings,
+        eras=0,
         remove_neg_weights=True
 ):
     '''
@@ -76,7 +77,7 @@ def load_data(
     data : pandas DataFrame
         DataFrame containing the data from all the wanted eras
     '''
-    eras = preferences['included_eras']
+    eras = preferences['included_eras'] if eras==0 else [eras]
     total_data = pandas.DataFrame({})
     for era in eras:
         input_path_key = 'inputPath' + str(era)
@@ -89,6 +90,7 @@ def load_data(
         )
         data['era'] = era
         total_data = total_data.append(data)
+    total_data = total_data.dropna(subset = ["SM","BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"])
     if 'bb1l' or 'bb2l' in global_settings["channel"]:
         print("DY: ", len(total_data.loc[total_data["process"] == "DY"]),\
               "W: ", len(total_data.loc[total_data["process"] == "W"]),\
@@ -100,11 +102,11 @@ def load_data(
     if global_settings['dataCuts'] != 0:
         total_data = data_cutting(total_data, global_settings)
     if 'bb1l' or 'bb2l' in global_settings["channel"]:
-        TT = total_data.loc[total_data["process"] == "TT"].head(100000)
-        ST = total_data.loc[total_data["process"] == "ST"].head(100000)
-        Other = total_data.loc[total_data["process"] == "Other"].head(100000)
-        W = total_data.loc[total_data["process"] == "W"].head(100000)
-        DY = total_data.loc[total_data["process"] == "DY"].head(100000)
+        TT = total_data.loc[total_data["process"] == "TT"].head(200000)
+        ST = total_data.loc[total_data["process"] == "ST"].head(200000)
+        Other = total_data.loc[total_data["process"] == "Other"].head(200000)
+        W = total_data.loc[total_data["process"] == "W"].head(200000)
+        DY = total_data.loc[total_data["process"] == "DY"].head(200000)
         HH = total_data.loc[total_data["target"] == 1]
         alldata = [TT, ST, Other, W, DY, HH]
         total_data = pandas.concat(alldata)
@@ -276,10 +278,10 @@ def load_data_from_tfile(
                 for drop in to_be_dropped:
                     if drop in to_be_loaded:
                         to_be_loaded.remove(drop)
-                stop = 1000000#None
+                stop = 10000#None
                 if 'bb1l' or 'bb2l' in global_settings["channel"]:
                     if sample_name == "TT":
-                        stop = 1000000#3000000
+                        stop = 1000#3000000
                 chunk_arr = tree2array(tree, branches=to_be_loaded, stop=stop)
             chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
@@ -343,7 +345,8 @@ def define_new_variables(
     chunk_df['totalWeight'] = chunk_df['evtWeight']
     if 'bb1l' or 'bb2l' in global_settings['channel']:
         chunk_df.loc[chunk_df["process"].isin(["TTW", "TTWW", "WW", "WZ", "ZZ", "TTH", "TH", "VH", "Other"]), "process"] = "Other"
-        chunk_df.loc[chunk_df["target"] == 1, 'process'] = 'signal_HH'
+        chunk_df.loc[(chunk_df["target"] == 1) & (chunk_df['process'].str.contains('ggf')), 'process'] = 'signal_HH_ggf'
+        chunk_df.loc[(chunk_df["target"] == 1) & (chunk_df['process'].str.contains('vbf')), 'process'] = 'signal_HH_vbf'
     if 'HH' in global_settings['bdtType']:
         data = hhdt.define_new_variables(
             chunk_df, sample_name, folder_name, target, preferences,
