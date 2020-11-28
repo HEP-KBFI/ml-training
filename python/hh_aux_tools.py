@@ -145,10 +145,11 @@ def normalize_hh_dataframe(
         data.loc[condition_bkg, [weight]] *= bkg_factor
 
 
-def load_hh_data(preferences, global_settings, reweight=True):
+def load_hh_data(preferences, global_settings, eras=0, reweight=True):
     data = dlt.load_data(
         preferences,
-        global_settings
+        global_settings,
+        eras
     )
     for trainvar in preferences['trainvars']:
         if str(data[trainvar].dtype) == 'object':
