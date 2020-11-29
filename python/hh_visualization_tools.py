@@ -8,7 +8,6 @@ import os
 import xgboost as xgb
 from collections import OrderedDict
 
-
 def plot_sampleWise_bdtOutput(
         model_odd,
         data_even,
@@ -322,7 +321,7 @@ def plot_nn_sampleWise_bdtOutput(
     else:
         sig_name = 'signal'
     data_even.loc[
-        data_even['process'].str.contains('signal'), ['process']] = sig_name#'signal'
+        data_even['process'].str.contains('signal'), ['process']] = sig_name
     bkg_predictions = []
     bkg_labels = []
     bkg_weights = []
