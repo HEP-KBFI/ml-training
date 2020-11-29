@@ -90,7 +90,8 @@ def load_data(
         )
         data['era'] = era
         total_data = total_data.append(data)
-    total_data = total_data.dropna(subset = ["SM","BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"])
+    if 'nonres' in global_settings['bdtType']: 
+        total_data = total_data.dropna(subset = ["SM","BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"])
     if 'bb1l' or 'bb2l' in global_settings["channel"]:
         print("DY: ", len(total_data.loc[total_data["process"] == "DY"]),\
               "W: ", len(total_data.loc[total_data["process"] == "W"]),\
@@ -278,10 +279,10 @@ def load_data_from_tfile(
                 for drop in to_be_dropped:
                     if drop in to_be_loaded:
                         to_be_loaded.remove(drop)
-                stop = 10000#None
+                stop = None
                 if 'bb1l' or 'bb2l' in global_settings["channel"]:
                     if sample_name == "TT":
-                        stop = 1000#3000000
+                        stop = 3000000
                 chunk_arr = tree2array(tree, branches=to_be_loaded, stop=stop)
             chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
