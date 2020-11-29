@@ -1,4 +1,5 @@
 {
+    "output_dir": "test",
     "ml_method": "lbn",
     "feature_importance" : 1,
     "trainvarOpt" : 0,
@@ -13,6 +14,6 @@
     "nthread": 3,
     "kappa": 0.3,
     "spinCase": "spin2",
-    "mode" : "boosted",
-    "dataCuts": "cuts_boosted.json"
+    "mode" : "resolved",
+    "dataCuts": "cuts_resolved.json"
 }
