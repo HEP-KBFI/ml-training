@@ -14,19 +14,18 @@
         "deepVSjMedium": {
             "TTdatacard": 10000,
             "DYdatacard": 10000,
-            "Wdatacard": 10000,
+	    "W": 10000,
 	    "Other":10000,
             "ST": 10000
         }
     },
     "tauID_training": {
         "deepVSjVVVLoose": {
-            "inputPath16": "/hdfs/local/veelken/hhAnalysis/2016/2020Nov19/histograms/hh_bb2l/Tight_OS/"
+            "inputPath16": "/hdfs/local/veelken/hhAnalysis/2016/2020Nov21/histograms/hh_bb2l/Tight_OS/"
         }
     },
     "keys": {
 	"TT": [16],
-        "W": [16],
         "DY": [16],
         "ST": [16],
         "TTWW":[16],
