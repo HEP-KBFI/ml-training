@@ -121,9 +121,6 @@ def main(output_dir, save_model, bdtType, spinCase, mode, ml_method, era):
         print(str(class_) + '\t' + str(multitarget))
     even_model = create_model(
         preferences, global_settings, data_dict, "even_data", save_model, particles)
-    odd_model = create_model(
-        preferences, global_settings, data_dict, "odd_data", save_model, particles)
-    print(odd_model.summary())
     if global_settings['feature_importance'] == 1:
         trainvars = preferences['trainvars']
         data = data_dict['odd_data']
@@ -133,6 +130,9 @@ def main(output_dir, save_model, bdtType, spinCase, mode, ml_method, era):
         )
         hhvt.plot_feature_importances_from_dict(
          score_dict, global_settings['output_dir'])
+    odd_model = create_model(
+        preferences, global_settings, data_dict, "odd_data", save_model, particles)
+    print(odd_model.summary())
     even_train_info, even_test_info = evaluate_model(
         even_model, data_dict, global_settings, "even_data")
     odd_train_info, odd_test_info = evaluate_model(
