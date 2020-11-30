@@ -109,7 +109,10 @@ information, raw_*, etc.
 histo_dict.json
 ```
 This file contains the info about what order polynomial to use for creating TProfiles for each variable.
-Currently the only relevalt keys are: fitFunc_AllMassTraining and Variable.
+Currently the only relevalt keys are:
+    nBins : number of bins for the fit
+    fitFunc_AllMassTraining : Value of this key is the polynomial. E.g 'pol6'
+    Variable : name of the variable for which the fit function belongs to.
 
 P.S Used only for the resonant cases (spin0 and spin2).
 ```
