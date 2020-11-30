@@ -109,9 +109,9 @@ class HHDataHelper:
             if 'Base' in self.preferences['nonResScenarios']:
                 self.to_be_dropped.append('Weight_Base')
                 self.to_be_loaded.append('Weight_SM')
-            else:
                 self.to_be_dropped.extend(
                     list(self.preferences['nonResScenarios']))
+            else:
                 self.to_be_loaded.extend(self.nonres_weights)
             self.to_be_dropped.extend(['nodeX'])
         else:
