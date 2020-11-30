@@ -240,7 +240,10 @@ class DataLoader:
         print('channel: ' + str(self.global_settings['channel']))
         print('keys: ')
         ut.print_columns(self.preferences['era_keys'])
-        print('masses: ' + str(self.preferences['masses']))
+        if 'nonres' in self.global_settings['scenario']:
+            print('Benchmark points: ' + str(self.preferences['nonResScenarios']))
+        else:
+            print('masses: ' + str(self.preferences['masses']))
         print('mass_randomization: ' + str(self.global_settings['bkg_mass_rand']))
 
     def save_to_csv(self):
