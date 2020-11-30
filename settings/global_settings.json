@@ -1,10 +1,10 @@
 {
-    "output_dir": "$HOME/BDT_Output/training/spin0",
+    "output_dir": "$HOME/BDT_Output",
     "ml_method": "xgb",
     "feature_importance" : 0,
     "process": "HH",
     "optimization_algo": "pso",
-    "bdtType": "evtLevelSUM_HH_2lss_res_spin0",
+    "bdtType": "evtLevelSUM_HH",
     "bkg_mass_rand": "oversampling",
     "channel": "2lss",
     "fitness_fn": "d_roc",
