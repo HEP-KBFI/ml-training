@@ -100,7 +100,7 @@ class HHDataHelper:
         if 'nonres' in self.global_settings['scenario']:
             self.extra_df_columns.append('nodeX')
 
-    def create_to_be_dropped_list(self, sample_name):
+    def create_to_be_dropped_list(self, process):
         self.to_be_dropped = []
         self.to_be_loaded = []
         if 'nonres' in self.global_settings['scenario']:
