@@ -89,11 +89,11 @@ class HHDataHelper:
         self.weight = 'totalWeight'
         self.nr_events_per_file = -1
         self.data_normalizer = data_normalizer
-        self.set_extra_df_columns()
-        self.cancelled_trainvars = ['gen_mHH']
         self.extra_df_columns = []
         self.to_be_dropped = []
         self.to_be_loaded = []
+        self.set_extra_df_columns()
+        self.cancelled_trainvars = ['gen_mHH']
         self.nonres_weights = []
 
     def set_extra_df_columns(self):
