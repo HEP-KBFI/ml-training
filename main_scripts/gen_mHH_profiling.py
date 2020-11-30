@@ -28,26 +28,6 @@ import glob
 import subprocess
 
 
-def get_all_trainvars(info_dir):
-    """ Reads the trainvars from the provided info dir
-
-    Parameters:
-    ----------
-    info_dir : str
-        Path to the info_directory of the required channel
-
-    Returns:
-    -------
-    trainvars : list
-        List of the training variables that will be used to create the
-        TProfiles.
-    """
-    trainvar_path = os.path.join(info_dir, 'trainvars.json')
-    trainvar_dicts = ut.read_parameters(trainvar_path)
-    trainvars = [trainvar_dict['key'] for trainvar_dict in trainvar_dicts]
-    return trainvars
-
-
 def create_histo_info(trainvars):
     """Creates the histogram info for each trainvar
 
@@ -80,7 +60,7 @@ def create_histo_info(trainvars):
     return histo_infos
 
 
-def create_histo_dict(info_dir):
+def create_histo_dict(info_dir, preferences):
     """ Creates the histo_dict.json. WARNING: Will overwrite the existing one
     in the info_dir
 
@@ -94,7 +74,7 @@ def create_histo_dict(info_dir):
     Nothing
     """
     histo_dict_path = os.path.join(info_dir, 'histo_dict.json')
-    trainvars = get_all_trainvars(info_dir)
+    trainvars = preferences['trainvars']
     if os.path.exists(histo_dict_path):
         histo_infos = update_histo_dict(trainvars, histo_dict_path)
     else:
@@ -195,7 +175,7 @@ def read_trainvars_from_histo_dict(histo_dict_path):
 ####################################################################
 
 
-def create_TProfiles(info_dir, data, label):
+def create_TProfiles(info_dir, data, preferences, label):
     """ Creates the TProfiles (without the fit) for all the trainvars vs
     gen_mHH
 
@@ -219,7 +199,7 @@ def create_TProfiles(info_dir, data, label):
     --------
     Nothing
     """
-    trainvars = list(get_all_trainvars(info_dir))
+    trainvars = preferences['trainvars']
     if 'gen_mHH' in trainvars:
         trainvars.remove('gen_mHH')
     for dtype in [0, 1]:
@@ -293,7 +273,7 @@ def choose_file_name(dtype, label, trainvar):
 ##################################################################
 
 
-def do_fit(info_dir, data):
+def do_fit(info_dir, data, preferences):
     """ Fits the Data with a given order of polynomial
 
     Parameters:
@@ -307,7 +287,7 @@ def do_fit(info_dir, data):
     --------
     Nothing
     """
-    trainvars = list(get_all_trainvars(info_dir))
+    trainvars = preferences['trainvars']
     if 'gen_mHH' in trainvars:
         trainvars.remove('gen_mHH')
     masses = find_masses()
@@ -493,7 +473,7 @@ def create_all_fitFunc_file(global_settings):
         global_settings['channel'],
         'TProfile_signal_fit_func',
         scenario
-        ])
+    ])
     resulting_file = os.path.join(weight_dir, res_fileName + '.root')
     subprocess.call('hadd ' + resulting_file + ' ' + all_paths_str, shell=True)
 
@@ -528,8 +508,9 @@ def main():
     normalizer = hht.HHDataNormalizer
     data_helper = hht.HHDataHelper
     preferences = reader.parameters
+    preferences['trainvars'] = preferences['all_trainvar_info'].keys()
     if create_info:
-        create_histo_dict(info_dir)
+        create_histo_dict(info_dir, preferences)
     if create_profile or fit:
         loader = dl.DataLoader(
             data_helper,
@@ -542,7 +523,7 @@ def main():
         if not os.path.exists(weight_dir):
             os.makedirs(weight_dir)
         if fit:
-            do_fit(info_dir, data)
+            do_fit(info_dir, data, preferences)
             resulting_hadd_file = os.path.join(weight_dir, 'all_fitFunc.root')
             print(
                 'Creating a single fit file with "hadd" to: ' + str(
@@ -551,10 +532,11 @@ def main():
             )
             create_all_fitFunc_file(global_settings)
         if create_profile:
-            create_TProfiles(info_dir, data, label='raw')
+            create_TProfiles(info_dir, data, preferences, label='raw')
             try:
                 data = loader.prepare_data(data)
-                create_TProfiles(info_dir, data, label='reweighed')
+                create_TProfiles(
+                    info_dir, data, preferences, label='reweighed')
             except ReferenceError:
                 print('No fit for variables found')
                 print('Please fit the variables for plots after reweighing')

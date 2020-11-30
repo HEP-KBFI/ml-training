@@ -1,10 +1,8 @@
-import ROOT
+import os
 import glob
 import numpy as np
-import os
+import ROOT
 from machineLearning.machineLearning import universal_tools as ut
-
-# needs to be able to load files also when hyperopt ??
 
 
 class HHDataNormalizer:
@@ -20,9 +18,9 @@ class HHDataNormalizer:
     def normalization_step1(self):
         if 'nonres' in self.global_settings['scenario']:
             self.data.loc[(self.data['target'] == 1), [self.weight]] *= 1./float(
-               len(self.preferences['nonResScenarios']))
+                len(self.preferences['nonResScenarios']))
             self.data.loc[(self.data['target'] == 0), [self.weight]] *= 1./float(
-               len(self.preferences['nonResScenarios']))
+                len(self.preferences['nonResScenarios']))
         elif 'oversampling' in self.global_settings['bkg_mass_rand']:
             self.data.loc[(self.data['target'] == 1), [self.weight]] *= 1./float(
                 len(self.preferences['masses']))
@@ -91,28 +89,33 @@ class HHDataHelper:
         self.weight = 'totalWeight'
         self.nr_events_per_file = -1
         self.data_normalizer = data_normalizer
+        self.extra_df_columns = []
+        self.to_be_dropped = []
+        self.to_be_loaded = []
         self.set_extra_df_columns()
         self.cancelled_trainvars = ['gen_mHH']
+        self.nonres_weights = []
 
     def set_extra_df_columns(self):
-        self.extra_df_columns = []
         if 'nonres' in self.global_settings['scenario']:
             self.extra_df_columns.append('nodeX')
 
-    def create_to_be_dropped_list(self, sample_name):
+    def create_to_be_dropped_list(self, process):
         self.to_be_dropped = []
         self.to_be_loaded = []
         if 'nonres' in self.global_settings['scenario']:
             self.nonres_weights = [
-                str('Weight_') + scenario for scenario in self.preferences['nonResScenarios']
+                str('Weight_') + scenario
+                for scenario in self.preferences['nonResScenarios']
             ]
-            if 'Base' in self.preferences['nonResScenarios']:
-                self.to_be_dropped.append('Weight_Base')
-            if 'nonres' in sample_name:
-                self.to_be_loaded.extend(self.nonres_weights)
-                if 'SM' not in self.preferences['nonResScenarios']:
+            if 'signal' in process:
+                if 'Base' in self.preferences['nonResScenarios']:
+                    self.to_be_dropped.append('Weight_Base')
                     self.to_be_loaded.append('Weight_SM')
-            self.to_be_dropped.extend(list(self.preferences['nonResScenarios']))
+                else:
+                    self.to_be_loaded.extend(self.nonres_weights)
+            self.to_be_dropped.extend(
+                list(self.preferences['nonResScenarios']))
             self.to_be_dropped.extend(['nodeX'])
         else:
             self.to_be_dropped.extend(['gen_mHH'])
@@ -130,18 +133,18 @@ class HHDataHelper:
             bkg_elements = background_categories[folder_name]
             for bkg_element in bkg_elements:
                 bkg_element_paths = self.find_paths_both_conventions(
-                    input_path, bkg_element, paths, file_type=file_type)
+                    input_path, bkg_element, file_type=file_type)
                 print('--------------')
                 print(bkg_element)
                 print(bkg_element_paths)
                 paths.extend(bkg_element_paths)
         else:
             paths = self.find_paths_both_conventions(
-                input_path, folder_name + '*', paths, file_type=file_type)
+                input_path, folder_name + '*', file_type=file_type)
         return paths
 
     def find_paths_both_conventions(
-            self, input_path, folder_name, paths, file_type
+            self, input_path, folder_name, file_type
     ):
         """ Finds the paths for both the old and the new convention given
         the main directory of the ntuples and the sample name to search for.
@@ -159,7 +162,7 @@ class HHDataHelper:
         if 'signal' in folder_name:
             return self.set_signal_sample_info(folder_name)
         else:
-            return self.set_background_sample_info(folder_name, path)
+            return self.set_background_sample_info(path)
 
     def set_signal_sample_info(self, folder_name):
         target = 1
@@ -169,7 +172,7 @@ class HHDataHelper:
             process = folder_name.replace('_' + folder_name.split('_')[-1], '')
         return process, target
 
-    def set_background_sample_info(self, folder_name, path):
+    def set_background_sample_info(self, path):
         target = 0
         background_catfile = os.path.join(
             os.path.expandvars('$CMSSW_BASE'),
@@ -190,18 +193,18 @@ class HHDataHelper:
         return process, target
 
     def data_imputer(
-        self, chunk_df, folder_name, target, data
+            self, chunk_df, folder_name, target, data
     ):
         if 'nonres' not in self.global_settings['scenario']:
-            data = self.resonant_data_manipulation(
+            data = self.resonant_data_imputer(
                 chunk_df, folder_name, target, data)
         else:
-            data = self.nonresonant_data_manipulation(
-                chunk_df, folder_name, target, data)
+            data = self.nonresonant_data_imputer(
+                chunk_df, target, data)
         return data
 
-    def resonant_data_manipulation(
-        self, chunk_df, folder_name, target, data
+    def resonant_data_imputer(
+            self, chunk_df, folder_name, target, data
     ):
         if target == 1:
             for mass in self.preferences['masses']:
@@ -219,13 +222,13 @@ class HHDataHelper:
                     data = data.append(chunk_df, ignore_index=True, sort=False)
             else:
                 raise ValueError(
-                    'Cannot use ' + self.global_settings['bkg_mass_rand'] + \
-                    " as mass_randomization"
+                    'Cannot u se ' + self.global_settings['bkg_mass_rand'] +
+                    ' as mass_randomization'
                 )
         return data
 
-    def nonresonant_data_manipulation(
-        self, chunk_df, folder_name, target, data
+    def nonresonant_data_imputer(
+            self, chunk_df, target, data
     ):
         for i in range(len(self.preferences['nonResScenarios'])):
             chunk_df_node = chunk_df.copy()
@@ -235,12 +238,12 @@ class HHDataHelper:
                 chunk_df_node[node] = 1 if idx == i else 0
             chunk_df_node['nodeXname'] = scenario
             if target == 1:
-                if scenario is not "SM":
-                    nodeWeight = 1.
+                if scenario != 'SM':
+                    node_weight = 1.
                     if 'Base' not in scenario:
-                        nodeWeight = chunk_df_node['Weight_' + scenario]
-                    nodeWeight /= chunk_df_node['Weight_SM']
-                    chunk_df_node['totalWeight'] *= nodeWeight
+                        node_weight = chunk_df_node['Weight_' + scenario]
+                    node_weight /= chunk_df_node['Weight_SM']
+                    chunk_df_node['totalWeight'] *= node_weight
             data = data.append(chunk_df_node, ignore_index=True, sort=False)
         return data
 
@@ -255,15 +258,9 @@ class HHDataHelper:
         ----------
         data : pandas Dataframe
             Data to be reweighed
-        weighed_files_dir : str
-            Path to the directory where the reweighing files are
-        trainvar_info : dict
-            Dictionary containing trainvar info (e.g is the trainvar supposed to
-            be an integer or not)
-        cancelled_trainvars :list
-            list of trainvars not to include
-        masses : list
-            list of masses
+        skip_int_vars : bool
+            [Default: True] Whether to skip integer valued variables when
+            reweighing in resonant scenario
 
         Returns:
         -------
