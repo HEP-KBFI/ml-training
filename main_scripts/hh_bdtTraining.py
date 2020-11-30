@@ -69,7 +69,7 @@ def split_data(global_settings, preferences):
         data = loader.data
     hhvt.plot_correlations(data, preferences['trainvars'], global_settings)
     keysNotToSplit = []
-    if ('3l_1tau' in global_settings['channel']):
+    if '3l_1tau' in global_settings['channel']:
         keysNotToSplit = ['WZ', 'DY', 'TTTo']
         print('These keys are excluded from splitting: ', keysNotToSplit)
     evtNotToSplit = (data['key'].isin(keysNotToSplit))
