@@ -69,3 +69,22 @@ also other miscellaneous files for a given channel:
   |
   |__[background_categories.json]
 ```
+
+### Explanation of files and the contents
+----
+hyperparameters.json:
+
+```
+Contains the following keys by default:
+    - n_estimators : number of trees (or rounds) for the XGBClassifier. Equivalent
+                     to the num_boost_rounds. n_estimators is used by the scikit-learn
+                     wrapper.
+    - subsample : 
+    - colsample_bytree
+    - gamma
+    - learning_rate
+    - max_depth : maximum depth of 
+    - min_child_weight
+```
+
+---
