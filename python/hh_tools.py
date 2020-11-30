@@ -101,6 +101,8 @@ class HHDataHelper:
             self.extra_df_columns.append('nodeX')
 
     def create_to_be_dropped_list(self, sample_name):
+        self.to_be_dropped = []
+        self.to_be_loaded = []
         if 'nonres' in self.global_settings['scenario']:
             self.nonres_weights = [
                 str('Weight_') + scenario
