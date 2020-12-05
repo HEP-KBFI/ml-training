@@ -14,7 +14,6 @@
         "deepVSjMedium": {
             "TTdatacard": 10000,
             "DYdatacard": 10000,
-	    "W": 10000,
 	    "Other":10000,
             "ST": 10000
         }
