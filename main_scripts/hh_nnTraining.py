@@ -177,13 +177,16 @@ def create_data_dict(preferences, global_settings, particles):
         + data.loc[data["process"] == "Other"]["totalWeight"].sum() \
         + data.loc[data["target"] == 1]["totalWeight"].sum()
     print(
-        "TT:W:DY:ST \t" \
+        "TT:W:DY:ST:HH \t" \
         + str(data.loc[data["process"] == "TT"]["totalWeight"].sum()/sumall) \
         + ":" + str(data.loc[data["process"] == "W"]["totalWeight"].sum()/sumall) \
         + ":" + str(data.loc[data["process"] == "DY"]["totalWeight"].sum()/sumall) \
-        + ":" + str(data.loc[data["process"] == 'ST']["totalWeight"].sum()/sumall)
+        + ":" + str(data.loc[data["process"] == 'ST']["totalWeight"].sum()/sumall) \
+        + ":" + str(data.loc[data["target"] == 1]["totalWeight"].sum()/sumall)
     )
-    data = mt.multiclass_encoding(data)
+    use_Wjet = True
+    if 'bb2l' in global_settings['channel']: use_Wjet = False
+    data = mt.multiclass_encoding(data, use_Wjet)
     hhvt.plot_correlations(data, preferences["trainvars"], global_settings)
     even_data = data.loc[(data['event'].values % 2 == 0)]
     odd_data = data.loc[~(data['event'].values % 2 == 0)]
@@ -392,7 +395,7 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
     samples = []
     for i in sorted(set(train_data["multitarget"])):
         samples.append(list(set(train_data.loc[train_data["multitarget"] == i]["process"]))[0])
-    #samples = ['HH' if x.find('signal') != -1 else x for x in samples]
+    samples = ['HH' if x.find('signal') != -1 else x for x in samples]
     plot_confusion_matrix(
         cm, samples, global_settings['output_dir'], 'test')
 
@@ -404,7 +407,7 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
     samples = []
     for i in sorted(set(train_data["multitarget"])):
         samples.append(list(set(train_data.loc[train_data["multitarget"] == i]["process"]))[0])
-    #samples = ['HH' if x.find('signal') != -1 else x for x in samples]
+    samples = ['HH' if x.find('signal') != -1 else x for x in samples]
     plot_confusion_matrix(
         cm, samples, global_settings['output_dir'], 'train')
 
@@ -438,7 +441,7 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
                              (train_data["process"] == process)), ["max_node_val"]].values.tolist())
                 weights.append(train_data.loc[((train_data["max_node_pos"] == node) & \
                               (train_data["process"] == process)), ["evtWeight"]].values.tolist())
-                labels.append(process)
+                labels.append('HH') if 'signal' in process else labels.append(process)
                 colors.append(color[i])
         plt.hist(values, weights=weights,
                  label=labels, color=colors,
@@ -511,7 +514,7 @@ if __name__ == '__main__':
         mode = arguments['--mode']
         ml_method = arguments['--ml_method']
         era = arguments['--era']
-        main('None', save_model, bdtType, spinCase, mode, ml_method, era)
+        main('test', save_model, bdtType, spinCase, mode, ml_method, era)
     except docopt.DocoptExit as e:
         print(e)
     print(datetime.now() - startTime)
