@@ -346,8 +346,7 @@ def define_new_variables(
     chunk_df['totalWeight'] = chunk_df['evtWeight']
     if 'bb1l' or 'bb2l' in global_settings['channel']:
         chunk_df.loc[chunk_df["process"].isin(["TTW", "TTWW", "WW", "WZ", "ZZ", "TTH", "TH", "VH", "Other"]), "process"] = "Other"
-        chunk_df.loc[(chunk_df["target"] == 1) & (chunk_df['process'].str.contains('ggf')), 'process'] = 'signal_HH_ggf'
-        chunk_df.loc[(chunk_df["target"] == 1) & (chunk_df['process'].str.contains('vbf')), 'process'] = 'signal_HH_vbf'
+        chunk_df.loc[chunk_df["process"].str.contains('signal'), "process"] = "signal_HH"
     if 'HH' in global_settings['bdtType']:
         data = hhdt.define_new_variables(
             chunk_df, sample_name, folder_name, target, preferences,
