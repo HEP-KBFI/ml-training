@@ -1,15 +1,14 @@
-import numpy as np
-import matplotlib
-matplotlib.use('agg')
-from machineLearning.machineLearning import evaluation_tools as et
 import glob
 import os
 import json
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
+import numpy as np
+from machineLearning.machineLearning import evaluation_tools as et
 
 
-class Particle():
-
+class Particle:
     def __init__(self, hyperparameter_info, iterations):
         self.confidence_coefficients = {'c_max': 1.62, 'w': 0.8, 'w2': 0.4}
         self.set_inertial_weight_step(iterations)
@@ -26,7 +25,7 @@ class Particle():
 
     def set_inertial_weight_step(self, iterations):
         range_size = (
-            self.confidence_coefficients['w'] - \
+            self.confidence_coefficients['w'] -
             self.confidence_coefficients['w2']
         )
         self.weight_step = range_size / iterations
@@ -34,10 +33,10 @@ class Particle():
     def initialize_speeds(self):
         self.speed = {}
         for key in self.keys:
-            v_max = (
-                self.hyperparameter_info[key]['max'] - \
-                self.hyperparameter_info[key]['min'] / 4
-            )
+            v_max = ((
+                self.hyperparameter_info[key]['max'] -
+                self.hyperparameter_info[key]['min']
+            )) / 4
             self.speed[key] = np.random.uniform() * v_max
 
     def set_fitness(self, fitness):
@@ -54,7 +53,6 @@ class Particle():
     def set_global_best(self, hyperparameters, fitness):
         self.global_best = hyperparameters.copy()
         self.global_best_fitness = float(fitness)
-
 
     def set_initial_bests(self, fitness):
         self.fitness = fitness
@@ -134,6 +132,7 @@ class Particle():
     def set_hyperparameter_values(self, hyperparameters):
         for key in self.keys:
             self.hyperparameters[key] = hyperparameters[key]
+
 
 class ParticleSwarm:
     def __init__(
@@ -220,8 +219,8 @@ class ParticleSwarm:
         compactness = et.calculate_compactness(all_locations)
         self.compactnesses.append(compactness)
         not_clustered = True
-        plot_progress(iteration, self.compactnesses, 'compactness', self.output_dir)
-        plot_progress(iteration, self.global_bests, 'global_best', self.output_dir)
+        plot_progress(self.compactnesses, 'compactness', self.output_dir)
+        plot_progress(self.global_bests, 'global_best', self.output_dir)
         iteration = 1
         while iteration <= self.settings['iterations'] and not_clustered:
             print('::::::: Iteration: ' + str(iteration) + ' ::::::::')
@@ -234,8 +233,8 @@ class ParticleSwarm:
                 fitnesses = self.fitness_function(all_locations, self.settings)
             self.set_particle_fitnesses(fitnesses)
             self.check_global_best()
-            plot_progress(iteration, self.compactnesses, 'compactness', self.output_dir)
-            plot_progress(iteration, self.global_bests, 'global_best', self.output_dir)
+            plot_progress(self.compactnesses, 'compactness', self.output_dir)
+            plot_progress(self.global_bests, 'global_best', self.output_dir)
             for particle in self.swarm:
                 particle.next_iteration()
             compactness = et.calculate_compactness(all_locations)
@@ -250,15 +249,19 @@ class ParticleSwarm:
 
 
 def collect_iteration_particles(iteration_dir):
-    iteration_paths = os.path.join(iteration_dir, 'previous_files', 'iteration_*')
+    iteration_paths = os.path.join(
+        iteration_dir, 'previous_files', 'iteration_*')
     all_iterations = glob.glob(iteration_paths)
     return check_last_iteration_completeness(all_iterations, iteration_dir)
 
 
 def check_last_iteration_completeness(all_iterations, iteration_dir):
-    iteration_nrs = [int(iteration.split('_')[-1]) for iteration in all_iterations]
+    iteration_nrs = [
+        int(iteration.split('_')[-1]) for iteration in all_iterations
+    ]
     iteration_nrs.sort()
-    last_iteration = os.path.join(iteration_dir, 'iteration_' + str(iteration_nrs[-1]))
+    last_iteration = os.path.join(
+        iteration_dir, 'iteration_' + str(iteration_nrs[-1]))
     all_particles_wildcard = os.path.join(last_iteration, '*')
     for path in glob.glob(all_particles_wildcard):
         parameter_file = os.path.join(path, 'parameters.json')
@@ -289,7 +292,7 @@ def get_iteration_info(output_dir, iteration, settings):
     return fitnesses, parameters_list
 
 
-def plot_progress(iteration, y_values, variable_name, output_dir):
+def plot_progress(y_values, variable_name, output_dir):
     iterations = np.arange(len(y_values))
     plt.plot(iterations, y_values)
     plt.xlabel('iterations')

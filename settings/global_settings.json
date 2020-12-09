@@ -2,17 +2,16 @@
     "output_dir": "$HOME/foobar_nonRes_NEW_NOV13_NTUPLES_wBUGFIXED_CONVERTER_ALL_ERAS_CMB_wNEW_VARS_wNEWCODE",
     "ml_method": "xgb",
     "feature_importance" : 0,
-    "trainvarOpt": 0,
     "process": "HH",
     "optimization_algo": "pso",
     "bdtType": "evtLevelSUM_HH_2l_2tau_nonres",
-    "tauID_training": "deepVSjVVVLoose",
     "bkg_mass_rand": "oversampling",
     "channel": "2l_2tau",
     "fitness_fn": "d_roc",
     "use_kfold": 0,
     "nthread": 6,
-    "kappa": 0.3,
-    "spinCase": "spinX",
-    "dataCuts": 0
+    "kappa": 0.1,
+    "scenario": "nonres/default",
+    "dataCuts": 0,
+    "debug": 0
 }

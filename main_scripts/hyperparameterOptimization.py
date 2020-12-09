@@ -13,11 +13,13 @@ import os
 import numpy as np
 import docopt
 import subprocess
+import pandas
 from machineLearning.machineLearning import slurm_tools as st
 from machineLearning.machineLearning import pso_tools as pt
 from machineLearning.machineLearning import universal_tools as ut
-from machineLearning.machineLearning import hh_aux_tools as hhat
-
+from machineLearning.machineLearning import hh_parameter_reader as hpr
+from machineLearning.machineLearning import hh_tools as hht
+from machineLearning.machineLearning import data_loader as dl
 np.random.seed(1)
 
 
@@ -40,7 +42,7 @@ def main(to_continue, opt_dir):
             ut.save_run_settings(output_dir)
         if not os.path.exists(os.path.join(output_dir, 'run_info')):
             ut.save_info_dir(output_dir)
-    use_scratch_for_data(global_settings)
+    # use_scratch_for_data(global_settings)
     print("::::::: Reading parameters :::::::")
     param_file = os.path.join(
         settings_dir,
@@ -49,19 +51,33 @@ def main(to_continue, opt_dir):
     hyperparameter_info = ut.read_json_cfg(param_file)
     pso_settings = ut.read_settings(settings_dir, 'pso')
     pso_settings.update(global_settings)
-    print('::::::::: Loading data to be saved to pandas.DataFrame :::::::::')
     addition = ut.create_infoPath_addition(global_settings)
     channel_dir = os.path.join(output_dir, 'run_info')
     info_dir = os.path.join(channel_dir, addition)
-    preferences = hhat.get_hh_parameters(
-        channel_dir,
-        global_settings['tauID_training'],
-        info_dir
-    )
-    global_settings['debug'] = False
+    scenario = global_settings['scenario']
+    reader = hpr.HHParameterReader(channel_dir, scenario)
+    preferences = reader.parameters
+    normalizer = hht.HHDataNormalizer
+    data_helper = hht.HHDataHelper
+    if os.path.exists(preferences['data_csv']):
+        print(':::::::: Loading data from .csv file ::::::::')
+        data = pandas.read_csv(preferences['data_csv'])
+    else:
+        print('::::::: Loading data to be saved to pandas.DataFrame :::::::')
+        loader = dl.DataLoader(
+            data_helper, normalizer, global_settings, preferences
+        )
+        data = loader.data
+        loader.save_to_csv()
     data_path = os.path.join(output_dir, 'data.csv')
     if not os.path.exists(data_path):
-        data = hhat.load_hh_data(preferences, global_settings)
+        loader = dl.DataLoader(
+            data_helper,
+            normalizer,
+            global_settings,
+            preferences
+        )
+        data = loader.data
         data.to_csv(data_path, index=False)
     print("\n============ Starting hyperparameter optimization ==========\n")
     swarm = pt.ParticleSwarm(

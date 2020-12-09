@@ -1,4 +1,4 @@
-'''
+"""
 Call with 'python'
 
 Usage:
@@ -10,13 +10,14 @@ Options:
     -n --min_nr_trainvars=INT       Number trainvars to end up with [default: 10]
     -s --step_size=INT              Number of trainvars dropped per iteration [default: 5]
 
-'''
+"""
 import shutil
 import os
 import json
-from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning import universal_tools as ut
-from machineLearning.machineLearning import hh_aux_tools as hhat
+from machineLearning.machineLearning import hh_parameter_reader as hpr
+from machineLearning.machineLearning import hh_tools as hht
+from machineLearning.machineLearning import data_loader as dl
 from machineLearning.machineLearning import xgb_tools as xt
 import numpy as np
 import docopt
@@ -24,16 +25,21 @@ import docopt
 
 def prepare_data():
     channel_dir, info_dir, global_settings = ut.find_settings()
-    global_settings['debug'] = False
     trainvars_path = os.path.join(info_dir, 'trainvars.json')
     all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
     shutil.copy(all_trainvars_path, trainvars_path)
-    preferences = hhat.get_hh_parameters(
-        channel_dir,
-        global_settings['tauID_training'],
-        info_dir
+    scenario = global_settings['scenario']
+    reader = hpr.HHParameterReader(channel_dir, scenario)
+    normalizer = hht.HHDataNormalizer
+    data_helper = hht.HHDataHelper
+    preferences = reader.parameters
+    loader = dl.DataLoader(
+        data_helper,
+        normalizer,
+        global_settings,
+        preferences
     )
-    data = hhat.load_hh_data(preferences, global_settings)
+    data = loader.data
     return data, preferences, global_settings, trainvars_path
 
 
@@ -74,7 +80,7 @@ def drop_worst_performing_ones(
 ):
     booster = model.get_booster()
     feature_importances = booster.get_fscore()
-    if 'nonres' in global_settings['bdtType']:
+    if 'nonres' in global_settings['scenario']:
         BM_in_trainvars = False
         for nonRes_scenario in preferences['nonResScenarios']:
             if nonRes_scenario in trainvars:
@@ -138,15 +144,10 @@ def drop_highly_currelated_variables(data, trainvars_initial, corr_threshold):
             corr_value = abs(correlations[trainvar][item])
             if corr_value > corr_threshold:
                 trainvars.remove(item)
-                print("Removing " + str(item) + ". Correlation with " \
+                print(
+                    "Removing " + str(item) + ". Correlation with "
                     + str(trainvar) + " is " + str(corr_value)
                 )
-    return trainvars
-
-
-def load_trainvars(all_trainvars_path):
-    trainvar_info = dlt.read_trainvar_info(all_trainvars_path)
-    trainvars = list(trainvar_info.keys())
     return trainvars
 
 
@@ -173,7 +174,7 @@ def main(corr_threshold, min_nr_trainvars, step_size):
 
 
 def update_trainvars(trainvars, preferences, global_settings):
-    if 'nonres' in global_settings['bdtType']:
+    if 'nonres' in global_settings['scenario']:
         for scenario in preferences['nonResScenarios']:
             if scenario not in trainvars:
                 trainvars.append(scenario)
@@ -184,7 +185,7 @@ def update_trainvars(trainvars, preferences, global_settings):
 
 
 def check_trainvars_integrity(trainvars, preferences, global_settings):
-    if 'nonres' in global_settings['bdtType']:
+    if 'nonres' in global_settings['scenario']:
         for nonRes_scenario in preferences['nonResScenarios']:
             if nonRes_scenario not in trainvars:
                 trainvars.append(nonRes_scenario)

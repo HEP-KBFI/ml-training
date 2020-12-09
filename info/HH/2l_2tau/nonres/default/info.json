@@ -1,0 +1,109 @@
+{
+    "masses": [250, 260, 270, 280, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 1000],
+    "masses_test": [400, 500, 800],
+    "masses_low": [250, 260, 270, 280, 300, 350, 400],
+    "masses_test_low": [300],
+    "masses_high": [450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 1000],
+    "masses_test_high": [500, 800],
+    "channelInTree": "hh_2l_2tau_sumOS_forBDTtraining",
+    "default_tauID_application": "deepVSjMedium",
+    "weight_dir": "$HOME/XXX",
+    "included_eras": ["16", "17", "18"],
+    "nonResScenarios": ["SM","BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"],
+    "nonResScenarios_test": ["SM","BM4","BM7","BM12"],
+    "tauID_training_key": "deepVSjVVVLoose",
+    "tauID_application": {
+        "deepVSjMedium": {
+            "VHdatacard": 2.34,
+            "WZdatacard": 2.31,
+            "TTdatacard": 3.60,
+            "DYdatacard": 16.62,
+            "ZZdatacard": 18.07
+	},
+        "deepVSjLoose": {
+            "TTdatacard": 2.40,
+            "DYdatacard": 22.44,
+            "ZZdatacard": 4.56
+        },
+        "deepVSjVLoose": {
+            "TTdatacard": 14.61,
+            "DYdatacard": 52.28,
+            "ZZdatacard": 5.84
+        },
+        "default": {
+            "TTdatacard": 1.0,
+            "DYdatacard": 1.0,
+            "ZZdatacard": 1.0
+        }
+    },
+    "tauID_training": {
+        "deepVSjLoose": {
+            "inputPath16": "/hdfs/local/ram/hhAnalysis/2017/2020Feb18_BDTtraining_2017_deepVSjLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/",
+            "inputPath17": "/hdfs/local/ram/hhAnalysis/2017/2020Feb18_BDTtraining_2017_deepVSjLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/",
+            "inputPath18": "/hdfs/local/ram/hhAnalysis/2017/2020Feb18_BDTtraining_2017_deepVSjLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/"
+        },
+        "deepVSjVLoose": {
+            "inputPath16": "/hdfs/local/ram/hhAnalysis/2017/2020Feb18_BDTtraining_2017_deepVSjVLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/",
+            "inputPath17": "/hdfs/local/ram/hhAnalysis/2017/2020Feb18_BDTtraining_2017_deepVSjLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/",
+            "inputPath18": "/hdfs/local/ram/hhAnalysis/2017/2020Feb18_BDTtraining_2017_deepVSjLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/"
+        },
+        "deepVSjVVLoose": {
+            "inputPath16": "/hdfs/local/ram/hhAnalysis/2017/2020May19_BDTtraining_wNewTauFR_2017_deepVSjVVLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/",
+            "inputPath17": "/hdfs/local/ram/hhAnalysis/2017/2020Feb18_BDTtraining_2017_deepVSjLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/",
+            "inputPath18": "/hdfs/local/ram/hhAnalysis/2017/2020Feb18_BDTtraining_2017_deepVSjLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/"
+        },
+        "deepVSjVVVLoose": {
+            "inputPath16": "/hdfs/local/ram/hhAnalysis/2016/2020Nov21_BDTtraining_2016_deepVSjVVVLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/",
+            "inputPath17": "/hdfs/local/ram/hhAnalysis/2017/2020Nov21_BDTtraining_2017_deepVSjVVVLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/",
+            "inputPath18": "/hdfs/local/ram/hhAnalysis/2018/2020Nov21_BDTtraining_2018_deepVSjVVVLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/"
+        }
+    },
+    "data_csv": "/path/to/data",
+    "keys": {
+        "VH": [16,17,18],
+	"WZ": [16,17,18],
+        "TTTo2L2Nu": [16,17,18],
+        "TTToSemiLeptonic": [16,17,18],
+        "DY": [16,17,18],
+        "ZZ": [16,17,18],
+	"signal_ggf_nonresonant_node10_hh_4t": [16,17,18],
+        "signal_ggf_nonresonant_node1_hh_4t": [16,17,18],
+        "signal_ggf_nonresonant_node12_hh_4t": [16,17,18],
+        "signal_ggf_nonresonant_node_2_hh_4t": [16,17,18],
+        "signal_ggf_nonresonant_node_3_hh_4t": [16,17,18],
+        "signal_ggf_nonresonant_node_4_hh_4t": [16,17,18],
+        "signal_ggf_nonresonant_node_5_hh_4t": [16,17,18],
+        "signal_ggf_nonresonant_node_6_hh_4t": [16,17,18],
+        "signal_ggf_nonresonant_node_7_hh_4t": [16,17,18],
+        "signal_ggf_nonresonant_node_8_hh_4t": [16,17,18],
+        "signal_ggf_nonresonant_node_9_hh_4t": [16,17,18],
+        "signal_ggf_nonresonant_node_box_hh_4t": [16,17,18],
+        "signal_ggf_nonresonant_node_sm_hh_4t": [16,17,18],
+        "signal_ggf_nonresonant_node10_hh_2v2t": [16,17,18],
+        "signal_ggf_nonresonant_node1_hh_2v2t": [16,17,18],
+        "signal_ggf_nonresonant_node12_hh_2v2t": [16,17,18],
+        "signal_ggf_nonresonant_node_2_hh_2v2t": [16,17,18],
+        "signal_ggf_nonresonant_node_3_hh_2v2t": [16,17,18],
+        "signal_ggf_nonresonant_node_4_hh_2v2t": [16,17,18],
+        "signal_ggf_nonresonant_node_5_hh_2v2t": [16,17,18],
+        "signal_ggf_nonresonant_node_6_hh_2v2t": [16,17,18],
+        "signal_ggf_nonresonant_node_7_hh_2v2t": [16,17,18],
+        "signal_ggf_nonresonant_node_8_hh_2v2t": [16,17,18],
+        "signal_ggf_nonresonant_node_9_hh_2v2t": [16,17,18],
+        "signal_ggf_nonresonant_node_box_hh_2v2t": [16,17,18],
+        "signal_ggf_nonresonant_node_sm_hh_2v2t": [16,17,18],
+        "signal_ggf_nonresonant_node10_hh_4v": [16,17,18],
+        "signal_ggf_nonresonant_node1_hh_4v": [16,17,18],
+        "signal_ggf_nonresonant_node12_hh_4v": [16,17,18],
+        "signal_ggf_nonresonant_node_2_hh_4v": [16,17,18],
+        "signal_ggf_nonresonant_node_3_hh_4v": [16,17,18],
+        "signal_ggf_nonresonant_node_4_hh_4v": [16,17,18],
+        "signal_ggf_nonresonant_node_5_hh_4v": [16,17,18],
+        "signal_ggf_nonresonant_node_6_hh_4v": [16,17,18],
+        "signal_ggf_nonresonant_node_7_hh_4v": [16,17,18],
+        "signal_ggf_nonresonant_node_8_hh_4v": [16,17,18],
+        "signal_ggf_nonresonant_node_9_hh_4v": [16,17,18],
+        "signal_ggf_nonresonant_node_box_hh_4v": [16,17,18],
+        "signal_ggf_nonresonant_node_sm_hh_4v": [16,17,18]
+    }
+}

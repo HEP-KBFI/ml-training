@@ -1,5 +1,5 @@
-'''Universal tools for file IO and other
-'''
+"""Universal tools for file IO and other
+"""
 import shutil
 import csv
 import itertools
@@ -11,7 +11,7 @@ from sklearn.metrics import confusion_matrix
 
 
 def best_to_file(best_values, output_dir, assesment):
-    '''Saves the best parameters and the scores to a file
+    """Saves the best parameters and the scores to a file
     'best_parameters.json'
 
     Parameters:
@@ -23,7 +23,7 @@ def best_to_file(best_values, output_dir, assesment):
     assessment : dict
         Different scores for the best parameters found for both train and test
         dataset.
-    '''
+    """
     output_path = os.path.join(output_dir, 'best_hyperparameters.json')
     with open(output_path, 'w') as file:
         json.dump(best_values, file)
@@ -32,7 +32,7 @@ def best_to_file(best_values, output_dir, assesment):
 
 
 def save_dict_to_json(dictionary, output_path):
-    '''Saves the feature importances into a feature_importances.json file
+    """Saves the feature importances into a feature_importances.json file
 
     Parameters:
     ----------
@@ -44,13 +44,13 @@ def save_dict_to_json(dictionary, output_path):
     Returns:
     -------
     Nothing
-    '''
+    """
     with open(output_path, 'w') as out_file:
         json.dump(dictionary, out_file, indent=4)
 
 
 def save_run_settings(output_dir):
-    '''Saves the run settings for future reference
+    """Saves the run settings for future reference
 
     Parameters:
     ----------
@@ -60,7 +60,7 @@ def save_run_settings(output_dir):
     Returns:
     -------
     Nothing
-    '''
+    """
     settings_dir = os.path.join(output_dir, 'run_settings')
     if not os.path.exists(settings_dir):
         os.makedirs(settings_dir)
@@ -73,7 +73,7 @@ def save_run_settings(output_dir):
 
 
 def save_info_dir(output_dir):
-    '''Saves the info dir for future reference
+    """Saves the info dir for future reference
 
     Parameters:
     ----------
@@ -83,14 +83,14 @@ def save_info_dir(output_dir):
     Returns:
     -------
     Nothing
-    '''
+    """
     channel_dir, info_dir, global_settings = find_settings()
     run_info = os.path.join(output_dir, 'run_info')
     shutil.copytree(channel_dir, run_info)
 
 
 def read_parameters(param_file):
-    '''Read values form a '.json' file
+    """Read values form a '.json' file
 
     Parameters:
     ----------
@@ -101,7 +101,7 @@ def read_parameters(param_file):
     -------
     value_dicts : list containing dicts
         List of parameter dictionaries
-    '''
+    """
     value_dicts = []
     with open(param_file, 'rt') as file:
         for line in file:
@@ -111,7 +111,7 @@ def read_parameters(param_file):
 
 
 def read_json_cfg(path):
-    ''' Reads the json info from a given path
+    """ Reads the json info from a given path
 
     Parameters:
     ----------
@@ -122,14 +122,14 @@ def read_json_cfg(path):
     --------
     info : dict
         The json dict that was loaded
-    '''
+    """
     with open(path, 'rt') as jsonFile:
         info = json.load(jsonFile)
     return info
 
 
 def read_settings(settings_dir, group):
-    '''Function to read the global settings of the optimization
+    """Function to read the global settings of the optimization
 
     Parameters:
     -----------
@@ -140,7 +140,7 @@ def read_settings(settings_dir, group):
     --------
     settings_dict : dict
         Dictionary containing the settings for the optimization
-    '''
+    """
     settings_path = os.path.join(
         settings_dir,
         group + '_settings.json')
@@ -149,10 +149,10 @@ def read_settings(settings_dir, group):
 
 
 def _decode_list(data):
-    '''Together with _decode_dict are meant to avoid unicode key and value
+    """Together with _decode_dict are meant to avoid unicode key and value
     pairs, due to the problem of ROOT not being able to load the parth when it
     is unicode. See https://stackoverflow.com/questions/956867/how-to-get-string-objects-instead-of-unicode-from-json
-    '''
+    """
     rv = []
     for item in data:
         if isinstance(item, unicode):
@@ -166,10 +166,10 @@ def _decode_list(data):
 
 
 def _decode_dict(data):
-    '''Together with _decode_list are meant to avoid unicode key and value
+    """Together with _decode_list are meant to avoid unicode key and value
     pairs, due to the problem of ROOT not being able to load the parth when it
     is unicode. See https://stackoverflow.com/questions/956867/how-to-get-string-objects-instead-of-unicode-from-json
-    '''
+    """
     rv = {}
     for key, value in data.iteritems():
         if isinstance(key, unicode):
@@ -185,7 +185,7 @@ def _decode_dict(data):
 
 
 def find_settings():
-    ''' Gets info directory path and returns it together with the global
+    """ Gets info directory path and returns it together with the global
     settings
 
     Parameters:
@@ -200,7 +200,7 @@ def find_settings():
         Path to the info directory of the specified channel
     global_settings: dict
         global settings for the training
-    '''
+    """
     package_dir = os.path.join(
         os.path.expandvars('$CMSSW_BASE'),
         'src/machineLearning/machineLearning/'
@@ -211,14 +211,28 @@ def find_settings():
     process = global_settings['process']
     mode = create_infoPath_addition(global_settings)
     channel_dir = os.path.join(package_dir, 'info', process, channel)
-    info_dir =  os.path.join(channel_dir, mode)
+    info_dir = os.path.join(channel_dir, mode)
     return channel_dir, info_dir, global_settings
 
 
+def print_columns(to_print):
+    """Prints the list into nice two columns"""
+    to_print = sorted(to_print)
+    if len(to_print) % 2 != 0:
+        to_print.append(' ')
+    split = int(len(to_print)/2)
+    l1 = to_print[0:split]
+    l2 = to_print[split:]
+    print('-----------------------------------')
+    for one, two in zip(l1, l2):
+        print('{0:<45s} {1}'.format(one, two))
+    print('-----------------------------------')
+
+
 def create_infoPath_addition(global_settings):
-    if 'nonres' in global_settings['bdtType']:
-        mode = 'nonRes'
+    if 'nonres' in global_settings['scenario']:
+        mode = global_settings['scenario']
     else:
-        spinCase = global_settings['spinCase']
-        mode = '/'.join(['res', spinCase])
+        scenario = global_settings['scenario']
+        mode = '/'.join(['res', scenario])
     return mode

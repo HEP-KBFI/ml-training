@@ -1,0 +1,41 @@
+name: 'Code checks'
+
+on:
+  pull_request:
+    branches:
+    - master
+
+env:
+  cmssw_ver: CMSSW_10_2_10
+  repo_url: https://github.com/HEP-KBFI/ml-training.git
+
+jobs:
+  GH_ACTION_pylint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Python Pylin GitHub Action
+        uses: fylein/python-pylint-github-action@v1
+        with:
+          args: pylint --exit-zero --disable F0401 scripts/*.py
+      - name: Python Pylin GitHub Action
+        uses: fylein/python-pylint-github-action@v1
+        with:
+          args: pylint --exit-zero --disable F0401 python/*.py
+  DOCKER_pylint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run docker Image
+        env:
+          build_image: clelange/cc7-cmssw-cvmfs:latest
+          docker_options: --cap-add SYS_ADMIN --cap-add=MKNOD --security-opt apparmor=unconfined -e CVMFS_MOUNTS="cms.cern.ch" -v $PWD:/home/cmsusr/results --device /dev/fuse -i
+        run: |
+            sudo docker run ${{ env.docker_options }} ${{ env.build_image }} /bin/bash \
+            -c 'source /cvmfs/cms.cern.ch/cmsset_default.sh && echo Succeeded to source || exit_on_error "Failed to source"!; \
+             scramv1 project CMSSW ${{ env.cmssw_ver }}; cd ${{ env.cmssw_ver }}/src; "eval `scramv1 runtime -sh`" ;\
+             git clone ${{ env.repo_url}} machineLearning/machineLearning; scram b -j2;\
+             cd machineLearning/machineLearning; sudo python -m pip -r install requirements.txt ; sudo yum -y install pylint; \
+             sudo pylint python/*.py ; sudo pylint scripts/*.py'
+
+        # Can't use the aliases like cmsrel, would need to echo it to .bashrc. Though this is the only place we need that alias.

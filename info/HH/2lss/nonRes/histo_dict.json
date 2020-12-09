@@ -1,1 +1,0 @@
-{"Variable": "diHiggsVisMass_sel", "nbins": 55, "min": 0.0, "max": 1100.0, "fitFunc_AllMassTraining": "pol1", "fitFunc_LowMassTraining": "pol4", "fitFunc_HighMassTraining": "pol4"}

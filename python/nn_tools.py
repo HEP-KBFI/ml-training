@@ -1,5 +1,5 @@
-'''Tools for creating a neural network model and evaluating it
-'''
+"""Tools for creating a neural network model and evaluating it
+"""
 from sklearn.model_selection import train_test_split
 from sklearn.utils.multiclass import type_of_target
 import keras
@@ -21,7 +21,7 @@ from machineLearning.machineLearning import multiclass_tools as mt
 
 
 def model_evaluation_main(nn_hyperparameters, data_dict, global_settings):
-    ''' Collected functions for CGB model evaluation
+    """ Collected functions for CGB model evaluation
 
     Parameters:
     ----------
@@ -36,7 +36,7 @@ def model_evaluation_main(nn_hyperparameters, data_dict, global_settings):
     -------
     score : float
         The score calculated according to the fitness_fn
-    '''
+    """
     k_model = parameter_evaluation(
         nn_hyperparameters,
         data_dict,
@@ -76,7 +76,7 @@ def create_nn_model(
         categorical_var_index,
         lbn=False
 ):
-    ''' Creates the neural network model. The normalization used is
+    """ Creates the neural network model. The normalization used is
     batch normalization. Kernel is initialized by the Kaiming initializer
     called 'he_uniform'
 
@@ -100,7 +100,7 @@ def create_nn_model(
     -------
     model : keras.engine.sequential.Sequential
         Sequential keras neural network model created.
-    '''
+    """
     if lbn:
         ll_inputs = tf.keras.Input(shape=(5, 4), name="LL")
         hl_inputs = tf.keras.Input(shape=(nr_trainvars,), name="HL")
@@ -157,7 +157,7 @@ def parameter_evaluation(
         nthread,
         num_class,
 ):
-    '''Creates the NN model according to the given hyperparameters
+    """Creates the NN model according to the given hyperparameters
 
     Parameters:
     ----------
@@ -174,7 +174,7 @@ def parameter_evaluation(
     -------
     k_model : KerasClassifier
         The created NN model
-    '''
+    """
     K.set_session(
         tf.Session(
             config=tf.ConfigProto(
@@ -200,7 +200,7 @@ def parameter_evaluation(
 
 
 def evaluate(k_model, data_dict, global_settings):
-    '''Evaluates the nn k_model
+    """Evaluates the nn k_model
 
     Parameters:
     ----------
@@ -215,7 +215,7 @@ def evaluate(k_model, data_dict, global_settings):
     -------
     score : float
         The score calculated according to the fitness_fn
-    '''
+    """
     trainvars = data_dict['trainvars']
     fit_result = k_model.fit(
         data_dict['train'][trainvars].values,
@@ -240,7 +240,7 @@ def evaluate(k_model, data_dict, global_settings):
 
 
 def get_feature_importances(model, data_dict, trainvars, data="even"):
-    '''Returns the feature importance relevant for neural network case using
+    """Returns the feature importance relevant for neural network case using
     the eli5 package. Note: calculating the feature importances takes a while
     due to it calculating all the permutations.
 
@@ -255,7 +255,7 @@ def get_feature_importances(model, data_dict, trainvars, data="even"):
     -------
     feature_importances : dict
         The feature importances equivalent for nn using the eli5 package.
-    '''
+    """
     perm = PermutationImportance(model, scoring=mt.roc_curve).fit(
         data_dict[data+"_data"][trainvars].values,
         data_dict[data+"_data"]['multitarget'],
@@ -278,7 +278,7 @@ def calculate_number_nodes_in_hidden_layer(
         number_samples,
         alpha
 ):
-    '''Calculates the number of nodes in a hidden layer
+    """Calculates the number of nodes in a hidden layer
 
     Parameters:
     ----------
@@ -304,7 +304,7 @@ def calculate_number_nodes_in_hidden_layer(
     N_i: number of input neurons (trainvars)
     N_o: number of output neurons
     alpha: usually 2, but some reccomend it in the range [5, 10]
-    '''
+    """
     number_nodes = number_samples / (
         alpha * (number_trainvars + number_classes)
     )
@@ -318,7 +318,7 @@ def create_hidden_net_structure(
         number_samples,
         alpha=2
 ):
-    '''Creates the hidden net structure for the NN
+    """Creates the hidden net structure for the NN
 
     Parameters:
     ----------
@@ -337,7 +337,7 @@ def create_hidden_net_structure(
     -------
     hidden_net : list
         List of hidden layers with the number of nodes in each.
-    '''
+    """
     number_nodes = calculate_number_nodes_in_hidden_layer(
         number_classes,
         number_trainvars,
