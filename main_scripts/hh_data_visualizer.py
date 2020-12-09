@@ -19,15 +19,12 @@ def main():
     if not os.path.exists(global_settings['output_dir']):
         os.makedirs(global_settings['output_dir'])
     preferences['trainvars'] = preferences['all_trainvar_info'].keys()
-    if os.path.exists(preferences['data_csv']):
-        data = pandas.read_csv(preferences['data_csv'])
-    else:
-        normalizer = hht.HHDataNormalizer
-        data_helper = hht.HHDataHelper
-        loader = dl.DataLoader(
-            data_helper, normalizer, global_settings, preferences
-        )
-        data = loader.data
+    normalizer = hht.HHDataNormalizer
+    data_helper = hht.HHDataHelper
+    loader = dl.DataLoader(
+        data_helper, normalizer, global_settings, preferences, reweigh=False
+    )
+    data = loader.data
     visualizer = dv.DataVisualizer(data, global_settings['output_dir'])
 
 
