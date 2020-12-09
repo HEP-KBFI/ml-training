@@ -26,7 +26,7 @@ def main():
     )
     data = loader.data
     visualizer = dv.DataVisualizer(data, global_settings['output_dir'])
-    visualizer.distribution_plots()
+    visualizer.visualize_data()
 
 
 

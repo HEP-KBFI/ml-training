@@ -58,7 +58,7 @@ class DataVisualizer(object):
                     if exclusion in feature:
                         self.features.remove(feature)
 
-    def distribution_plots(self):
+    def plot_distributions(self):
         """ Creates the distribution plots for all the features separated
         into the classes given in the target column """
         distributions = os.path.join(self.output_dir, 'distributions')
@@ -128,3 +128,7 @@ class DataVisualizer(object):
             output_dir, str(addition) + '_correlations.png')
         plt.savefig(plot_out, bbox_inches='tight')
         plt.close('all')
+
+    def visualize_data(self):
+        self.plot_distributions()
+        self.plot_correlations()
