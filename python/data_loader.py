@@ -50,8 +50,8 @@ class DataLoader:
             input_path, folder_name, file_type=file_type
         )
 
-    def prepare_data(self, data):
-        return self.process_loader.prepare_data(data)
+    def prepare_data(self, data, reweigh):
+        return self.process_loader.prepare_data(data, reweigh=reweigh)
 
     def data_imputer(self, chunk_df, process, folder_name, target):
         chunk_df['process'] = process
