@@ -12,7 +12,8 @@ class DataLoader:
             data_normalizer,
             global_settings,
             preferences,
-            normalize=True
+            normalize=True,
+            reweigh=True
     ):
         print('In DataLoader')
         self.data = pandas.DataFrame(columns=preferences['trainvars'])
@@ -23,6 +24,7 @@ class DataLoader:
         self.remove_neg_weights = True
         self.weight = 'totalWeight'
         self.normalize = normalize
+        self.reweigh = reweigh
         self.data = self.load_data()
 
     def set_variables_to_be_loaded(self, process):
@@ -48,8 +50,8 @@ class DataLoader:
             input_path, folder_name, file_type=file_type
         )
 
-    def prepare_data(self, data):
-        return self.process_loader.prepare_data(data)
+    def prepare_data(self, data, reweigh):
+        return self.process_loader.prepare_data(data, reweigh=reweigh)
 
     def data_imputer(self, chunk_df, process, folder_name, target):
         chunk_df['process'] = process
@@ -128,7 +130,7 @@ class DataLoader:
                 except:
                     continue
         if self.normalize:
-            data = self.prepare_data(data)
+            data = self.prepare_data(data, reweigh=self.reweigh)
         if self.remove_neg_weights:
             print('Removing events with negative weights')
             data = data.loc[data[self.weight] >= 0]
