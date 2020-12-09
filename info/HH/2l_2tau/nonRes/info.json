@@ -52,9 +52,9 @@
             "inputPath18": "/hdfs/local/ram/hhAnalysis/2017/2020Feb18_BDTtraining_2017_deepVSjLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/"
         },
         "deepVSjVVVLoose": {
-            "inputPath16": "/hdfs/local/ram/hhAnalysis/2016/2020Nov13_BDTtraining_2016_deepVSjVVVLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/",
-            "inputPath17": "/hdfs/local/ram/hhAnalysis/2017/2020Nov13_BDTtraining_2017_deepVSjVVVLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/",
-            "inputPath18": "/hdfs/local/ram/hhAnalysis/2018/2020Nov13_BDTtraining_2018_deepVSjVVVLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/"
+            "inputPath16": "/hdfs/local/ram/hhAnalysis/2016/2020Nov21_BDTtraining_2016_deepVSjVVVLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/",
+            "inputPath17": "/hdfs/local/ram/hhAnalysis/2017/2020Nov21_BDTtraining_2017_deepVSjVVVLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/",
+            "inputPath18": "/hdfs/local/ram/hhAnalysis/2018/2020Nov21_BDTtraining_2018_deepVSjVVVLoose/histograms/hh_2l_2tau/forBDTtraining_sumOS/"
         }
     },
     "keys": {
