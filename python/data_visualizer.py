@@ -95,9 +95,9 @@ class DataVisualizer(object):
             os.makedirs(output_dir)
         for class_ in self.classes:
             mode_data = self.data.loc[self.data['target'] == class_]
-            plot_single_mode_correlation(
+            self.plot_single_mode_correlation(
                 mode_data, output_dir, self.mapping[class_])
-        plot_single_mode_correlation(data, trainvars, output_dir, 'total')
+        self.plot_single_mode_correlation(data, trainvars, output_dir, 'total')
 
     def plot_single_mode_correlation(self, data, output_dir, addition):
         """ Creates the correlation matrix for one specific target or for
