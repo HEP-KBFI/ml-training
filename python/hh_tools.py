@@ -284,9 +284,9 @@ class HHDataHelper:
                     data['gen_mHH'] == mass, [trainvar]] /= function.Eval(mass)
             tfile.Close()
 
-    def prepare_data(self, data):
+    def prepare_data(self, data, reweigh):
         data = data.copy()
-        if 'nonres' not in self.global_settings['scenario']:
+        if 'nonres' not in self.global_settings['scenario'] and reweigh:
             self.data_reweighing(data)
         normalizer = self.data_normalizer(
             data, self.preferences, self.global_settings)
