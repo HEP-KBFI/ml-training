@@ -86,3 +86,31 @@ class DataVisualizer(object):
             plt.title(feature)
             plt.savefig(plot_out, bbox_inches='tight')
             plt.close('all')
+
+    def plot_correlations(self):
+        output_dir = os.path.join(self.output_dir, 'correlations')
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        for class_ in self.classes:
+            mode_data = self.data.loc[self.data['target'] == class_]
+            plot_single_mode_correlation(
+                mode_data, output_dir, self.mapping[class_])
+        plot_single_mode_correlation(data, trainvars, output_dir, 'total')
+
+    def plot_single_mode_correlation(self, data, output_dir, addition):
+        correlations = data[self.features].corr()
+        fig = plt.figure(figsize=(10, 10))
+        ax = fig.add_subplot(111)
+        cax = ax.matshow(correlations, vmin=-1, vmax=1, cmap='viridis')
+        ticks = np.arange(0, len(self.features), 1)
+        plt.rc('axes', labelsize=8)
+        ax.set_xticks(ticks)
+        ax.set_yticks(ticks)
+        ax.set_xticklabels(self.features, rotation=-90)
+        ax.set_yticklabels(self.features)
+        fig.colorbar(cax)
+        fig.tight_layout()
+        plot_out = os.path.join(
+            output_dir, str(addition) + '_correlations.png')
+        plt.savefig(plot_out, bbox_inches='tight')
+        plt.close('all')
