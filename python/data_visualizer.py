@@ -70,9 +70,9 @@ class DataVisualizer(object):
             bin_edges = np.histogram(self.data[feature], bins=25)[1]
             for class_ in self.classes:
                 class_data = self.data.loc[
-                    data[self.target] == class_, feature]
+                    self.data[self.target] == class_, feature]
                 weights = self.data.loc[
-                    data[self.target] == class_, self.weight]
+                    self.data[self.target] == class_, self.weight]
                 ax.hist(
                     class_data,
                     bins=bin_edges,
@@ -88,6 +88,8 @@ class DataVisualizer(object):
             plt.close('all')
 
     def plot_correlations(self):
+        """ Creates correlation matrices for all different targets and
+        a total data correlation matrix for all the features"""
         output_dir = os.path.join(self.output_dir, 'correlations')
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -98,6 +100,18 @@ class DataVisualizer(object):
         plot_single_mode_correlation(data, trainvars, output_dir, 'total')
 
     def plot_single_mode_correlation(self, data, output_dir, addition):
+        """ Creates the correlation matrix for one specific target or for
+        the sum of it
+
+        Args:
+            data: pandas.DataFrame
+                dataframe containing all the data
+            output_dir: str
+                Path of the output directory for the correlations
+            addition: str
+                String that specifies the data class and is added to the
+                end of the file name
+        """
         correlations = data[self.features].corr()
         fig = plt.figure(figsize=(10, 10))
         ax = fig.add_subplot(111)
