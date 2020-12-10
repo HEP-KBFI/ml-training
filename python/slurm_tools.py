@@ -43,7 +43,7 @@ def get_fitness_score(
     settings_dir = os.path.join(output_dir, 'run_settings')
     if sample_size == 0:
         opt_settings = ut.read_settings(
-            settings_dir, global_settings['optimization_algo'])
+            settings_dir, 'pso')
         sample_size = opt_settings['sample_size']
     parameters_to_file(output_dir, hyperparameter_sets)
     wild_card_path = os.path.join(

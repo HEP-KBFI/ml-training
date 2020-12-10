@@ -3,7 +3,6 @@
     "ml_method": "xgb",
     "feature_importance" : 0,
     "process": "HH",
-    "optimization_algo": "pso",
     "bdtType": "evtLevelSUM_HH",
     "bkg_mass_rand": "oversampling",
     "channel": "2lss",
