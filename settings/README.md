@@ -56,7 +56,7 @@ Template of a cut file.
 ```
 
 ___
-xgb_parameters.json
+**xgb_parameters.json**
 ```
 The ranges of the XGBoost hyperparameters used in hyperparameter optimization. Can be used to
 reduce or increase the hyperparameter space to be scanned by the particles.
