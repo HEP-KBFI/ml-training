@@ -51,9 +51,9 @@ Used as a stub for the creation a sbatch job.
 
 ___
 **test_cuts.json**
-```
+````
 Template of a cut file.
-```
+````
 
 ___
 **xgb_parameters.json**
