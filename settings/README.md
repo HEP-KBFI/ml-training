@@ -1,6 +1,13 @@
 ## Settings folder
 
-### Files
+### Contents
+
+**templates/***
+
+```
+This folder contains the templates for various configuration files
+```
+
 ___
 **global_settings.json**
 
@@ -50,15 +57,8 @@ Used as a stub for the creation a sbatch job.
 ```
 
 ___
-**test_cuts.json**
-````
-Template of a cut file.
-````
-
-___
 **xgb_parameters.json**
 ```
 The ranges of the XGBoost hyperparameters used in hyperparameter optimization. Can be used to
 reduce or increase the hyperparameter space to be scanned by the particles.
 ```
-
