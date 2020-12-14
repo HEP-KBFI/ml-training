@@ -111,7 +111,7 @@ def CMS_lumi(pad, iPeriod, iPosX):
 
     extraTextSize = extraOverCmsTextSize * cmsTextSize
 
-    latex.SetTextFont(42)
+    latex.SetTextFont(30)
     latex.SetTextAlign(31)
     latex.SetTextSize(lumiTextSize * t)
 
