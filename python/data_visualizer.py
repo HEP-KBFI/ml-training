@@ -253,9 +253,9 @@ class ROOTDataVisualizer(DataVisualizer):
                     self.histstyles[self.mapping[class_]]['LineColor'])
                 histogram.SetLineWidth(
                     self.histstyles[self.mapping[class_]]['LineWidth'])
-                histogram.SetTitle("; %s; normalized Entries" % (feature))
-                histogram.GetXaxis().SetTitleSize(0.35)
-                histogram.GetYaxis().SetTitleSize(0.35)
+                histogram.SetTitle("; %s; normalized Entries" %feature)
+                histogram.GetXaxis().SetTitleSize(0.8)
+                histogram.GetYaxis().SetTitleSize(0.8)
                 data_dict[class_] = histogram
                 histogram.DrawNormalized('histsame')
             box = ROOT.TBox(0.5, 0., len(self.data), canvas.GetUymax())
