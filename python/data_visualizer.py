@@ -197,7 +197,7 @@ class ROOTDataVisualizer(DataVisualizer):
             },
             {
                 'FillColor': ROOT.kBlue,
-                'FillStyle': 3007,
+                'FillStyle': 3008,
                 'LineWidth': 1,
                 'LineColor': 0
             },
@@ -253,7 +253,7 @@ class ROOTDataVisualizer(DataVisualizer):
                     self.histstyles[self.mapping[class_]]['LineColor'])
                 histogram.SetLineWidth(
                     self.histstyles[self.mapping[class_]]['LineWidth'])
-                histogram.SetTitle("; normalized Entries; %s" % (feature))
+                histogram.SetTitle("; %s; normalized Entries" % (feature))
                 data_dict[class_] = histogram
                 histogram.DrawNormalized('histsame')
             box = ROOT.TBox(0.5, 0., len(self.data), canvas.GetUymax())
@@ -301,7 +301,7 @@ class ROOTDataVisualizer(DataVisualizer):
         CMS_lumi.cmsText = "CMS"
         CMS_lumi.extraText = "       Preliminary"
         CMS_lumi.cmsTextSize = 0.65
-        CMS_lumi.outOfFrame = True
+        CMS_lumi.outOfFrame = False
         tdrstyle.setTDRStyle()
 
     def plot_single_mode_correlation(self, data, output_dir, addition):
