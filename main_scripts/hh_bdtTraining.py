@@ -3,7 +3,7 @@ Call with 'python'
 
 Usage: 
     bdtTraining.py
-    bdtTraining.py [--output_dir=DIR --settings_dir=DIR --hyperparameter_file=PTH --debug=BOOL --save_model=INT --mode=INT --bdtType=INT --ml_method=INT --spinCase=INT --era=INT]
+    bdtTraining.py [--output_dir=DIR --settings_dir=DIR --hyperparameter_file=PTH --debug=BOOL --save_model=INT --mode=INT --bdtType=INT --ml_method=INT --spinCase=INT --era=INT --BM=INT]
 
 Options:
     -o --output_dir=DIR             Directory of the output [default: None]
@@ -15,6 +15,7 @@ Options:
     -ml_method    --ml_method       name of ml_method  [default: lbn]
     -spinCase   --spinCase=INT      which spin to be considered [default: 0]
     -era --era=INT                  era to be processed [defaule: 2016]
+    -BM --BM=INT                   BM point to be considered
 '''
 import os
 import docopt
@@ -75,6 +76,8 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
         global_settings['tauID_training'],
         info_dir
     )
+    if BM: preferences["nonResScenarios"]=[BM]
+    print 'BM point to be considered', preferences["nonResScenarios"]
     preferences = define_trainvars(global_settings, preferences, info_dir)
     if hyperparameter_file == 'None':
         hyperparameter_file = os.path.join(info_dir, 'hyperparameters.json')
@@ -385,6 +388,7 @@ if __name__ == '__main__':
         mode = arguments['--mode']
         ml_method = arguments['--ml_method']
         era = arguments['--era']
-        main(output_dir, settings_dir, hyperparameter_file, debug)
+        BM = arguments['--BM']
+        main('bdt_parametrized_v2', settings_dir, hyperparameter_file, debug)
     except docopt.DocoptExit as e:
         print(e)
