@@ -186,13 +186,16 @@ class ROOTDataVisualizer(DataVisualizer):
     def set_histogram_style(self):
         """ Creates the histogram styles for different classes """
         pairs = [
-            {'FillColor': ROOT.kRed, 'FillStyle': 3006},
-            {'FillColor': ROOT.kBlue, 'FillStyle': 3007},
-            {'FillColor': ROOT.kGreen, 'FillStyle': 3004},
-            {'FillColor': ROOT.kOrange, 'FillStyle': 3005}
+            {'FillColor': ROOT.kRed, 'FillStyle': 3006, 'LineWidth': 1},
+            {'FillColor': ROOT.kBlue, 'FillStyle': 3007,'LineWidth': 1},
+            {'FillColor': ROOT.kGreen, 'FillStyle': 3004, 'LineWidth': 1},
+            {'FillColor': ROOT.kOrange, 'FillStyle': 3005, 'LineWidth': 1}
         ]
         if len(self.classes) == 2:
-            self.histstyles['signal'] = pairs[0]
+            self.histstyles['signal'] = {
+                'FillColor': ROOT.kWhite, 'FillStyle': 3001,
+                'LineWidth': 3
+            }
             self.histstyles['background'] = pairs[1]
         else:
             for i, class_ in enumerate(self.classes):
