@@ -2,8 +2,13 @@
 import os
 import numpy as np
 import matplotlib
+import ROOT
+ROOT.gROOT.SetBatch(True)
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
+from machineLearning.machineLearning import CMS_lumi
+from machineLearning.machineLearning import tdrstyle
+
 
 class DataVisualizer(object):
     """ Class for visualizing the data"""
@@ -26,7 +31,7 @@ class DataVisualizer(object):
         self.data = data
         self.target = target
         self.excluded_features = [
-            'event', 'era', 'target', 'process', 'key', '*Weight']
+            'event', 'era', 'target', 'process', 'key', '*Weight', 'nodeX*']
         self.features = list(data.columns)
         self.classes = set(self.data[target])
         self.choose_features_for_plotting()
@@ -57,6 +62,35 @@ class DataVisualizer(object):
                     feature = self.features[idx]
                     if exclusion in feature:
                         self.features.remove(feature)
+
+    def plot_distribution(self):
+        """ Distribution plotting stub"""
+        raise NotImplementedError('Please define distribution plotting')
+
+    def plot_correlations(self):
+        """ Correlation plotting stub"""
+        raise NotImplementedError('Please define distribution plotting')
+
+    def plot_single_mode_correlation(self, data, output_dir, addition):
+        """ Single mode correlation plotting stub"""
+        raise NotImplementedError(
+            'Please define single mode distribution plotting')
+
+    def visualize_data(self):
+        """ Collects all the visualizers """
+        self.plot_distributions()
+        self.plot_correlations()
+
+
+class MPLDataVisualizer(object):
+    """ Class for visualizing the data using matplotlib"""
+
+    def __init__(
+            self, data, output_dir, target='target', weight='totalWeight'
+    ):
+        super(MPLDataVisualizer, self).__init__(
+            data, output_dir, target=target, weight=weight
+        )
 
     def plot_distributions(self):
         """ Creates the distribution plots for all the features separated
@@ -129,6 +163,98 @@ class DataVisualizer(object):
         plt.savefig(plot_out, bbox_inches='tight')
         plt.close('all')
 
-    def visualize_data(self):
-        self.plot_distributions()
-        self.plot_correlations()
+
+class ROOTDataVisualizer(DataVisualizer):
+    """ Class for visualizing the data using ROOT """
+    def __init__(
+            self, data, output_dir, target='target', weight='totalWeight',
+            suffixes=['pdf', 'root']
+    ):
+        super(MPLDataVisualizer, self).__init__(
+            data, output_dir, target=target, weight=weight
+        )
+        self.W = 800
+        self.H = 600
+        self.T = 0.08 * self.H
+        self.B = 0.12 * self.H
+        self.L = 0.12 * self.W
+        self.R = 0.04 * self.W
+        self.suffixes = suffixes
+
+    def plot_distributions(self):
+        """ Creates the distribution plots for all the features separated
+        into the classes given in the target column """
+        distributions = os.path.join(self.output_dir, 'distributions')
+        if not os.path.exists(distributions):
+            os.makedirs(distributions)
+        for feature in self.features:
+            canvas = ROOT.TCanvas("canvas", "canvas", 100, 100, self.W, self.H)
+            self.modify_canvas(canvas)
+            feature_min = min(self.data[feature])
+            feature_max = max(self.data[feature])
+            for class_ in self.classes:
+                histogram = ROOT.TH1F(
+                    class_, class_, 25, feature_min, feature_max
+                )
+                class_data = self.data.loc[
+                    self.data[self.target] == class_, feature]
+                weights = self.data.loc[
+                    self.data[self.target] == class_, self.weight]
+                for event, weight in zip(class_data, weights):
+                    histogram.Fill(event, weight)
+                histogram.Draw('histsame')
+                canvas.Update()
+                legend = ROOT.TLegend(0.2, 0.6, 0.55, 0.9)
+                legend.SetNColumns(3)
+                legend.SetFillStyle(0);
+                legend.Draw()
+                CMS_lumi.lumi_sqrtS = ylabel
+                CMS_lumi.CMS_lumi(c, 0, 0)
+                ROOT.gPad.SetTicks(1, 1)
+                for suffix in self.suffixes:
+                    output_path = os.path.join(
+                        self.output_dir, feature + '.' + suffix)
+                    canvas.SaveAs(output_path)
+
+
+
+    def modify_canvas(self, canvas):
+        canvas.SetFillColor(0)
+        canvas.SetBorderMode(0)
+        canvas.SetFrameFillStyle(0)
+        canvas.SetFrameBorderMode(0)
+        canvas.SetLeftMargin(self.L / self.W)
+        canvas.SetRightMargin(self.R / self.W)
+        canvas.SetTopMargin(self.T / self.H)
+        canvas.SetBottomMargin(self.B / self.H)
+        canvas.SetTickx(0)
+        canvas.SetTicky(0)
+        canvas.SetGrid()
+        canvas.cd()
+        CMS_lumi.cmsText = "CMS"
+        CMS_lumi.extraText = " Preliminary"
+        CMS_lumi.cmsTextSize = 0.65
+        CMS_lumi.outOfFrame = True
+        tdrstyle.setTDRStyle()
+
+
+    def plot_correlations(self):
+        """ Creates correlation matrices for all different targets and
+        a total data correlation matrix for all the features"""
+        print('foobar')
+
+    def plot_single_mode_correlation(self, data, output_dir, addition):
+        """ Creates the correlation matrix for one specific target or for
+        the sum of it
+
+        Args:
+            data: pandas.DataFrame
+                dataframe containing all the data
+            output_dir: str
+                Path of the output directory for the correlations
+            addition: str
+                String that specifies the data class and is added to the
+                end of the file name
+        """
+        print('foobar')
+

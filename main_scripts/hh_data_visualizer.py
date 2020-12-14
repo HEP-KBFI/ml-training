@@ -25,7 +25,7 @@ def main():
         data_helper, normalizer, global_settings, preferences, reweigh=False
     )
     data = loader.data
-    visualizer = dv.DataVisualizer(data, global_settings['output_dir'])
+    visualizer = dv.MPLDataVisualizer(data, global_settings['output_dir'])
     visualizer.visualize_data()
 
 
