@@ -254,6 +254,7 @@ class ROOTDataVisualizer(DataVisualizer):
                 histogram.SetLineWidth(
                     self.histstyles[self.mapping[class_]]['LineWidth'])
                 histogram.SetTitle("; %s; normalized Entries" %feature)
+                histogram.GetYaxis().SetTitleOffset(1.2)
                 data_dict[class_] = histogram
                 histogram.DrawNormalized('histsame')
             box = ROOT.TBox(0.5, 0., len(self.data), canvas.GetUymax())
@@ -272,7 +273,7 @@ class ROOTDataVisualizer(DataVisualizer):
                 if hist.Integral() > 0:
                     legend.AddEntry(hist, hist.GetName(), "F")
             legend.Draw()
-            CMS_lumi.lumi_sqrtS = '137.2 fb^-1 @ 13 TeV | %s:%s' %(
+            CMS_lumi.lumi_sqrtS = ' %s:%s | 137.2 fb^{-1} @ 13 TeV' %(
                 self.analysis, self.channel
             )
             CMS_lumi.CMS_lumi(canvas, 0, 0)
