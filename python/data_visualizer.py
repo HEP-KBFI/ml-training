@@ -44,6 +44,9 @@ class DataVisualizer(object):
             }
         else:
             self.mapping = {class_: class_ for class_ in self.classes}
+        self.distributions_dir = os.path.join(self.output_dir, 'distributions')
+        self.correlations_dir = os.path.join(self.output_dir, 'correlations')
+
 
     def choose_features_for_plotting(self):
         """ Chooses features for plotting. The reason for iteration the
@@ -78,7 +81,11 @@ class DataVisualizer(object):
 
     def visualize_data(self):
         """ Collects all the visualizers """
+        if not os.path.exists(self.distributions_dir):
+            os.makedirs(self.distributions_dir)
         self.plot_distributions()
+        if not os.path.exists(self.correlations_dir):
+            os.makedirs(self.correlations_dir)
         self.plot_correlations()
 
 
@@ -95,9 +102,6 @@ class MPLDataVisualizer(object):
     def plot_distributions(self):
         """ Creates the distribution plots for all the features separated
         into the classes given in the target column """
-        distributions = os.path.join(self.output_dir, 'distributions')
-        if not os.path.exists(distributions):
-            os.makedirs(distributions)
         for feature in self.features:
             fig = plt.figure()
             ax = plt.subplot(111)
@@ -116,7 +120,7 @@ class MPLDataVisualizer(object):
                     weights=weights
                 )
             ax.legend()
-            plot_out = os.path.join(distributions, feature + '.png')
+            plot_out = os.path.join(self.distributions_dir, feature + '.png')
             plt.title(feature)
             plt.savefig(plot_out, bbox_inches='tight')
             plt.close('all')
@@ -124,13 +128,10 @@ class MPLDataVisualizer(object):
     def plot_correlations(self):
         """ Creates correlation matrices for all different targets and
         a total data correlation matrix for all the features"""
-        output_dir = os.path.join(self.output_dir, 'correlations')
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
         for class_ in self.classes:
             mode_data = self.data.loc[self.data['target'] == class_]
             self.plot_single_mode_correlation(
-                mode_data, output_dir, self.mapping[class_])
+                mode_data, self.correlations_dir, self.mapping[class_])
         self.plot_single_mode_correlation(self.data, output_dir, 'total')
 
     def plot_single_mode_correlation(self, data, output_dir, addition):
@@ -170,7 +171,7 @@ class ROOTDataVisualizer(DataVisualizer):
             self, data, output_dir, target='target', weight='totalWeight',
             suffixes=['pdf', 'root']
     ):
-        super(MPLDataVisualizer, self).__init__(
+        super(ROOTDataVisualizer, self).__init__(
             data, output_dir, target=target, weight=weight
         )
         self.W = 800
@@ -184,9 +185,6 @@ class ROOTDataVisualizer(DataVisualizer):
     def plot_distributions(self):
         """ Creates the distribution plots for all the features separated
         into the classes given in the target column """
-        distributions = os.path.join(self.output_dir, 'distributions')
-        if not os.path.exists(distributions):
-            os.makedirs(distributions)
         for feature in self.features:
             canvas = ROOT.TCanvas("canvas", "canvas", 100, 100, self.W, self.H)
             self.modify_canvas(canvas)
@@ -213,7 +211,7 @@ class ROOTDataVisualizer(DataVisualizer):
                 ROOT.gPad.SetTicks(1, 1)
                 for suffix in self.suffixes:
                     output_path = os.path.join(
-                        self.output_dir, feature + '.' + suffix)
+                        self.distributions_dir, feature + '.' + suffix)
                     canvas.SaveAs(output_path)
 
 
