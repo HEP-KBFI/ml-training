@@ -254,8 +254,8 @@ class ROOTDataVisualizer(DataVisualizer):
                 histogram.SetLineWidth(
                     self.histstyles[self.mapping[class_]]['LineWidth'])
                 histogram.SetTitle("; %s; normalized Entries" % (feature))
-                histogram.GetXaxis().SetLabelSize(0.35)
-                histogram.GetYaxis().SetLabelSize(0.35)
+                histogram.GetXaxis().SetTitleSize(0.15)
+                histogram.GetYaxis().SetTitleSize(0.15)
                 data_dict[class_] = histogram
                 histogram.DrawNormalized('histsame')
             box = ROOT.TBox(0.5, 0., len(self.data), canvas.GetUymax())
@@ -302,7 +302,7 @@ class ROOTDataVisualizer(DataVisualizer):
             canvas.SetLogy()
         CMS_lumi.cmsText = "CMS"
         CMS_lumi.extraText = "       Preliminary"
-        CMS_lumi.cmsTextSize = 0.65
+        CMS_lumi.cmsTextSize = 0.50
         CMS_lumi.outOfFrame = True
         tdrstyle.setTDRStyle()
 
