@@ -167,7 +167,8 @@ class ROOTDataVisualizer(DataVisualizer):
     """ Class for visualizing the data using ROOT """
     def __init__(
             self, data, output_dir, target='target', weight='totalWeight',
-            suffixes=['.pdf', '.root', '.png'], logy=False
+            suffixes=['.pdf', '.root', '.png'], logy=False,
+            analysis='hh-multilepton', channel='channelName'
     ):
         super(ROOTDataVisualizer, self).__init__(
             data, output_dir, target=target, weight=weight
@@ -182,19 +183,41 @@ class ROOTDataVisualizer(DataVisualizer):
         self.logy = logy
         self.histstyles = {}
         self.set_histogram_style()
+        self.analysis = analysis
+        self.channel = channel
 
     def set_histogram_style(self):
         """ Creates the histogram styles for different classes """
         pairs = [
-            {'FillColor': ROOT.kRed, 'FillStyle': 3006, 'LineWidth': 1},
-            {'FillColor': ROOT.kBlue, 'FillStyle': 3007,'LineWidth': 1},
-            {'FillColor': ROOT.kGreen, 'FillStyle': 3004, 'LineWidth': 1},
-            {'FillColor': ROOT.kOrange, 'FillStyle': 3005, 'LineWidth': 1}
+            {
+                'FillColor': ROOT.kRed,
+                'FillStyle': 3006,
+                'LineWidth': 1,
+                'LineColor': 0
+            },
+            {
+                'FillColor': ROOT.kBlue,
+                'FillStyle': 3007,
+                'LineWidth': 1,
+                'LineColor': 0
+            },
+            {
+                'FillColor': ROOT.kGreen,
+                'FillStyle': 3004,
+                'LineWidth': 1,
+                'LineColor': 0
+            },
+            {
+                'FillColor': ROOT.kOrange,
+                'FillStyle': 3005,
+                'LineWidth': 1,
+                'LineColor': 0
+            }
         ]
         if len(self.classes) == 2:
             self.histstyles['signal'] = {
                 'FillColor': ROOT.kWhite, 'FillStyle': 3001,
-                'LineWidth': 3
+                'LineWidth': 3, 'LineColor': ROOT.kRed
             }
             self.histstyles['background'] = pairs[1]
         else:
@@ -226,8 +249,13 @@ class ROOTDataVisualizer(DataVisualizer):
                     self.histstyles[self.mapping[class_]]['FillColor'])
                 histogram.SetFillStyle(
                     self.histstyles[self.mapping[class_]]['FillStyle'])
+                histogram.SetLineColor(
+                    self.histstyles[self.mapping[class_]]['LineColor'])
+                histogram.SetLineWidth(
+                    self.histstyles[self.mapping[class_]]['LineWidth'])
+                histogram.SetTitle("; normalized Entries; %s" % (feature))
                 data_dict[class_] = histogram
-                histogram.Draw('histsame')
+                histogram.DrawNormalized('histsame')
             box = ROOT.TBox(0.5, 0., len(self.data), canvas.GetUymax())
             if self.logy:
                 box = ROOT.TBox(
@@ -244,14 +272,16 @@ class ROOTDataVisualizer(DataVisualizer):
                 if hist.Integral() > 0:
                     legend.AddEntry(hist, hist.GetName(), "F")
             legend.Draw()
-            CMS_lumi.lumi_sqrtS = feature
+            CMS_lumi.lumi_sqrtS = '137.2 fb^-1 @ 13 TeV | %s:%s' %(
+                self.analysis, self.channel
+            )
             CMS_lumi.CMS_lumi(canvas, 0, 0)
             ROOT.gPad.SetTicks(1, 1)
             for suffix in self.suffixes:
                 output_path = os.path.join(
                     self.distributions_dir, feature + suffix)
                 canvas.SaveAs(output_path)
-            del canvas
+            canvas.Close()
 
     def modify_canvas(self, canvas):
         canvas.SetFillColor(0)
