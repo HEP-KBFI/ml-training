@@ -18,7 +18,6 @@ import docopt
 import numpy as np
 import json
 import pandas as pd
-import itertools
 import tensorflow as tf
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import auc, roc_curve
@@ -40,30 +39,41 @@ tf.config.threading.set_inter_op_parallelism_threads(4)
 
 execfile('python/particle_list.py')
 particles_list = ll_objects_list()
-def plot_confusion_matrix(cm, class_names, output_dir, addition):
-    figure = plt.figure(figsize=(4, 4))
-    plt.imshow(cm, interpolation='nearest', cmap="summer")
-    plt.title("Confusion matrix")
-    plt.colorbar()
-    tick_marks = np.arange(len(class_names))
-    plt.xticks(tick_marks, class_names, fontsize=5, rotation=70)
-    plt.yticks(tick_marks, class_names, fontsize=5)
-    cm = np.moveaxis(
-        np.around(
-            cm.astype('float') / cm.sum(axis=1)[:, np.newaxis],
-            decimals=2),
-        0, 1
+
+def plot_confusion_matrix(data, probabilities, output_dir, addition):
+    cm = confusion_matrix(
+        data["multitarget"].astype(int),
+        np.argmax(probabilities, axis=1),
+        sample_weight=data["totalWeight"].astype(float)
     )
-    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-        plt.text(i, j, cm[i, j], horizontalalignment="center", size=5)
-    plt.tight_layout()
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
-    outfile = os.path.join(output_dir, 'confusion_matrix_resolved_%s.png' %addition) \
-              if output_dir.find("resolved") != -1 \
-                 else os.path.join(output_dir, 'confusion_matrix_boosted_%s.png' %addition)
-    plt.savefig(outfile, bbox_inches='tight')
-    plt.close('all')
+    samples = []
+    for i in sorted(set(data["multitarget"])):
+        samples.append(list(set(data.loc[data["multitarget"] == i]["process"]))[0])
+    samples = ['HH' if x.find('signal') != -1 else x for x in samples]
+    hhvt.plot_confusion_matrix(
+        cm, samples, output_dir, addition)
+
+def plot_DNNScore(data, model, lbn, output_dir, trainvars, particles, addition):
+    data["max_node_pos"] = -1
+    data["max_node_val"] = -1
+    if lbn != 'lbn':
+        for process in set(data["process"]):
+            data = data.loc[data["process"] == process]
+            value = model.predict(data[trainvars].values)
+            data.loc[data["process"] == process, "max_node_pos"]\
+                = np.argmax(value, axis=1)
+            data.loc[data["process"] == process, "max_node_val"]\
+                = np.amax(value, axis=1)
+    else:
+        for process in set(data["process"]):
+            process_only_data = data.loc[data["process"] == process]
+            value = model.predict(
+                [dlt.get_low_level(process_only_data, particles),
+                 dlt.get_high_level(process_only_data, particles, trainvars)],
+                batch_size=1024)
+            data.loc[data['process'] == process, "max_node_pos"] = np.argmax(value, axis=1)
+            data.loc[data['process'] == process, "max_node_val"] = np.amax(value, axis=1)
+    hhvt.plot_DNNScore(data, output_dir, addition)
 
 def update_global_settings(global_settings, bdtType, spinCase, mode, ml_method, era):
     global_settings['bdtType'] = bdtType
@@ -79,7 +89,6 @@ def update_global_settings(global_settings, bdtType, spinCase, mode, ml_method, 
     return global_settings
 
 def main(output_dir, save_model, bdtType, spinCase, mode, ml_method, era):
-    #if output_dir == 'None':
     settings_dir = os.path.join(
         os.path.expandvars('$CMSSW_BASE'),
         'src/machineLearning/machineLearning/settings'
@@ -133,10 +142,15 @@ def main(output_dir, save_model, bdtType, spinCase, mode, ml_method, era):
     odd_model = create_model(
         preferences, global_settings, data_dict, "odd_data", save_model, particles)
     print(odd_model.summary())
+    nodewise_performance(data_dict['odd_data'], data_dict['even_data'],\
+        odd_model, even_model, data_dict['trainvars'], particles, \
+        global_settings, preferences)
     even_train_info, even_test_info = evaluate_model(
-        even_model, data_dict, global_settings, "even_data")
+        even_model, data_dict['even_data'], data_dict['odd_data'],\
+        data_dict['trainvars'], global_settings, "even_data", particles)
     odd_train_info, odd_test_info = evaluate_model(
-        odd_model, data_dict, global_settings, "odd_data")
+        odd_model, data_dict['odd_data'], data_dict['even_data'], \
+        data_dict['trainvars'], global_settings, "odd_data", particles)
     hhvt.plotROC(
         [odd_train_info, odd_test_info],
         [even_train_info, even_test_info],
@@ -190,26 +204,11 @@ def create_data_dict(preferences, global_settings, particles):
     hhvt.plot_correlations(data, preferences["trainvars"], global_settings)
     even_data = data.loc[(data['event'].values % 2 == 0)]
     odd_data = data.loc[~(data['event'].values % 2 == 0)]
-    if global_settings['ml_method'] == 'lbn':
-        ll_odd = dlt.get_low_level(odd_data, particles)
-        ll_even = dlt.get_low_level(even_data, particles)
-        hl_odd = dlt.get_high_level(odd_data, particles, preferences["trainvars"])
-        hl_even = dlt.get_high_level(even_data, particles, preferences["trainvars"])
-        data_dict = {
-            'trainvars': preferences['trainvars'],
-            'odd_data':  odd_data,
-            'even_data': even_data,
-            'll_odd' : ll_odd,
-            'll_even' : ll_even,
-            'hl_odd' : hl_odd,
-            'hl_even' : hl_even
-        }
-    else:
-        data_dict = {
-            'trainvars': preferences['trainvars'],
-            'odd_data':  odd_data,
-            'even_data': even_data
-        }
+    data_dict = {
+        'trainvars': preferences['trainvars'],
+        'odd_data':  odd_data,
+        'even_data': even_data
+    }
     return data_dict
 
 def create_model(
@@ -220,6 +219,8 @@ def create_model(
         save_model,
         particles
 ):
+    train_data = data_dict['odd_data'] if choose_data == "odd_data" else data_dict['even_data']
+    val_data = data_dict['even_data']  if choose_data == "odd_data" else data_dict['odd_data']
     lbn = 1 if global_settings['ml_method'] == 'lbn' else 0
     low_level_var = ["%s_%s" %(part, var) for part in particles
                     for var in ["e", "px", "py", "pz"]]
@@ -237,15 +238,15 @@ def create_model(
     categorical_vars = ["SM", "BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"]
     if lbn:
         nr_trainvars = len(trainvars) - len(low_level_var)
-        hl_var = [var for var in preferences["trainvars"] if var not in low_level_var]
+        hl_var = [var for var in trainvars if var not in low_level_var]
         input_var = np.array([data_dict[choose_data][var] for var in hl_var])
         categorical_var_index = [hl_var.index(categorical_var) for categorical_var in categorical_vars \
                                  if categorical_var in hl_var]
     else :
         nr_trainvars = len(trainvars)
-        input_var = np.array([data_dict[choose_data][var] for var in preferences["trainvars"]])
-        categorical_var_index = [preferences["trainvars"].index(categorical_var) for categorical_var in \
-                             categorical_vars if categorical_var in preferences["trainvars"]]
+        input_var = np.array([data_dict[choose_data][var] for var in trainvars])
+        categorical_var_index = [trainvars.index(categorical_var) for categorical_var in \
+                             categorical_vars if categorical_var in trainvars]
     if len(categorical_var_index) == 0: categorical_var_index = None
     model_structure = nt.create_nn_model(
         nr_trainvars,
@@ -256,44 +257,22 @@ def create_model(
         lbn=lbn
     )
     if global_settings['ml_method'] == 'lbn':
-        if choose_data == 'odd_data':
-            train_data = {
-                "ll": data_dict["ll_odd"],
-                "hl": data_dict['hl_odd'],
-                "train_data": data_dict["odd_data"]
-            }
-            val_data = {
-                "ll": data_dict["ll_even"],
-                "hl": data_dict['hl_even'],
-                "val_data": data_dict["even_data"]
-            }
-        else:
-            train_data = {
-                "ll": data_dict["ll_even"],
-                "hl": data_dict['hl_even'],
-                "train_data": data_dict["even_data"]
-            }
-            val_data = {
-                "ll": data_dict["ll_odd"],
-                "hl": data_dict['hl_odd'],
-                "val_data": data_dict["odd_data"]
-            }
         fitted_model = model_structure.fit(
-            [train_data["ll"], train_data["hl"]],
-            train_data["train_data"]['multitarget'].values,
+            [dlt.get_low_level(train_data, particles),
+             dlt.get_high_level(train_data, particles, trainvars)],
+            train_data['multitarget'].values,
             epochs=25,
             batch_size=1024,
-            sample_weight=train_data["train_data"]['totalWeight'].values,
+            sample_weight=train_data['totalWeight'].values,
             validation_data=(
-                [val_data["ll"], val_data["hl"]],
-                val_data["val_data"]["multitarget"].values,
-                val_data["val_data"]["totalWeight"].values
+                [dlt.get_low_level(val_data, particles),
+                 dlt.get_high_level(val_data, particles, trainvars)],
+                val_data["multitarget"].values,
+                val_data["totalWeight"].values
             ),
             callbacks=[reduce_lr, early_stopping]
         )
     else:
-        train_data = data_dict['odd_data'] if choose_data == "odd_data" else data_dict['even_data']
-        val_data = data_dict['even_data']  if choose_data == "odd_data" else data_dict['odd_data']
         fitted_model = model_structure.fit(
             train_data[trainvars].values,
             train_data['multitarget'].astype(np.int),
@@ -308,152 +287,82 @@ def create_model(
             callbacks=[reduce_lr, early_stopping]
         )
     if save_model:
-        if 'nonres' in global_settings["bdtType"]:
-            res_nonres = 'nonres'
-        else :
-            res_nonres = 'res_%s' %global_settings['spinCase']
-        pb_filename = os.path.join(global_settings["output_dir"], "multiclass_DNN_w%s_for_%s_%s_%s_%s.pb"\
-                                %(global_settings["ml_method"], global_settings["channel"], \
-                                  global_settings["mode"], choose_data, res_nonres))
-        log_filename = os.path.join(global_settings["output_dir"], "multiclass_DNN_w%s_for_%s_%s_%s_%s.log"\
-                                %(global_settings["ml_method"], global_settings["channel"], \
-                                  global_settings["mode"], choose_data, res_nonres))
-        cmsml.tensorflow.save_graph(pb_filename, model_structure, variables_to_constants=True)
-        file = open(log_filename, "w")
-        file.write(str(hl_var))
-        file.close()
-    fig1, ax = plt.subplots()
-    epochs = range(1, len(fitted_model.history["loss"])+1)
-    plt.figure(figsize=(9, 4))
-    plt.subplot(1, 2, 1)
-    plt.plot(epochs, fitted_model.history["loss"], "o-", label="Training")
-    plt.plot(epochs, fitted_model.history["val_loss"], "o-", label="Validation")
-    plt.xlabel("Epochs"), plt.ylabel("Loss")
-    #plt.ylim(0.0,1.0)
-    plt.ylim(0.0, 1.2*max(max(fitted_model.history["loss"]), max(fitted_model.history["val_loss"])))
-    plt.grid()
-    plt.legend();
-
-    plt.subplot(1, 2, 2)
-    plt.plot(epochs, fitted_model.history["accuracy"], "o-", label="Training")
-    plt.plot(epochs, fitted_model.history["val_accuracy"], "o-", label="Validation")
-    plt.xlabel("Epochs"), plt.ylabel("Accuracy")
-    #plt.yscale("log")
-    plt.ylim(0.0,1.0)
-    plt.grid()
-    plt.legend(loc="best");
-    loss_vs_epoch = os.path.join(global_settings["output_dir"], "loss_vs_epoch_%s_%s.png" \
-                   %(global_settings["mode"], choose_data))
-    plt.savefig(loss_vs_epoch)
-    plt.close('all')
+        savemodel(model_structure, global_settings)
+    hhvt.plot_loss_accuracy(fitted_model, global_settings['output_dir'], choose_data)
 
     return model_structure
 
+def nodewise_performance(odd_data, even_data,
+                         odd_model, even_model, trainvars, particles,\
+                         global_settings, preferences):
+    if 'nonres' in global_settings['bdtType']:
+        nodes = preferences['nonResScenarios_test']
+        mode = 'nodeXname'
+    else:
+        nodes = preferences['masses_test']
+        mode = 'gen_mHH'
+    roc_infos = []
+    for node in nodes:
+        split_odd_data = odd_data.loc[odd_data[mode] == node]
+        split_even_data = even_data.loc[even_data[mode] == node]
+        odd_total_infos = list(evaluate_model(
+            odd_model, split_odd_data, split_even_data, trainvars,
+            global_settings, 'odd_data', particles, True
+        ))
+        even_total_infos = list(evaluate_model(
+            even_model, split_even_data, split_odd_data, trainvars,
+            global_settings, 'even_data', particles, True
+        ))
+        roc_info = {
+            'even_auc_test': even_total_infos[1]['auc'],
+            'odd_auc_test': odd_total_infos[1]['auc'],
+            'even_auc_train': even_total_infos[0]['auc'],
+            'odd_auc_train': odd_total_infos[0]['auc'],
+            'even_fpr_test': even_total_infos[1]['fpr'],
+            'odd_fpr_test': odd_total_infos[1]['fpr'],
+            'even_fpr_train': even_total_infos[0]['fpr'],
+            'odd_fpr_train': odd_total_infos[0]['fpr'],
+            'even_tpr_test': even_total_infos[1]['tpr'],
+            'odd_tpr_test': odd_total_infos[1]['tpr'],
+            'even_tpr_train': even_total_infos[0]['tpr'],
+            'odd_tpr_train': odd_total_infos[0]['tpr'],
+            'node': node
+        }
+        #nodeWise_performances.append(nodeWise_histo_dict)
+        roc_infos.append(roc_info)
+    #hhvt.plot_nodeWise_performance(
+    #global_settings, nodeWise_performances, mode)
+    hhvt.plot_nodeWise_roc(global_settings, roc_infos, mode)
 
-def evaluate_model(model, data_dict, global_settings, choose_data):
-    trainvars = data_dict['trainvars']
-    train_data = data_dict["odd_data"] if choose_data == "odd_data" else data_dict["even_data"]
-    test_data = data_dict["even_data"] if choose_data == "odd_data" else data_dict["odd_data"]
-    train_data["max_node_pos"] = -1
-    train_data["max_node_val"] = -1
+def evaluate_model(model, train_data, test_data, trainvars, \
+                   global_settings, choose_data, particles, nodeWise=False):
 
     if global_settings['ml_method'] == 'lbn':
-        if choose_data == 'odd_data':
-            train_var = {
-                'll': data_dict['ll_odd'],
-                'hl': data_dict['hl_odd']
-            }
-            test_var = {
-                'll': data_dict['ll_even'],
-                'hl': data_dict['hl_even']
-            }
-        else:
-            train_var = {
-                'll': data_dict['ll_even'],
-                'hl': data_dict['hl_even']
-            }
-            test_var = {
-                'll': data_dict['ll_odd'],
-                'hl': data_dict['hl_odd']\
-            }
         train_predicted_probabilities = model.predict(
-            [train_var["ll"], train_var["hl"]], batch_size=1024)
+            [dlt.get_low_level(train_data, particles),
+             dlt.get_high_level(train_data, particles, trainvars)],
+            batch_size=1024)
         test_predicted_probabilities = model.predict(
-            [test_var["ll"], test_var["hl"]], batch_size=1024)
-        print test_var["ll"][0], 'hl==', test_var["hl"][0]
-        print 'proba===', test_predicted_probabilities[0]
+            [dlt.get_low_level(test_data, particles),
+             dlt.get_high_level(test_data, particles, trainvars)],
+            batch_size=1024)
+        #print test_var["ll"][0], 'hl==', test_var["hl"][0]
+        #print 'proba===', test_predicted_probabilities[0]
     else:
         train_predicted_probabilities = model.predict(
             train_data[trainvars].values)
         test_predicted_probabilities = model.predict(
             test_data[trainvars].values)
-    cm = confusion_matrix(
-        test_data["multitarget"].astype(int),
-        np.argmax(test_predicted_probabilities, axis=1),
-        sample_weight=test_data["totalWeight"].astype(float)
-    )
-    samples = []
-    for i in sorted(set(train_data["multitarget"])):
-        samples.append(list(set(train_data.loc[train_data["multitarget"] == i]["process"]))[0])
-    samples = ['HH' if x.find('signal') != -1 else x for x in samples]
-    plot_confusion_matrix(
-        cm, samples, global_settings['output_dir'], 'test')
+    if not nodeWise:
+        plot_confusion_matrix(test_data, test_predicted_probabilities, \
+           global_settings["output_dir"], choose_data+'_test')
+        plot_confusion_matrix(train_data, train_predicted_probabilities, \
+           global_settings["output_dir"], choose_data+'_train')
+        plot_DNNScore(train_data, model, global_settings['ml_method'], \
+           global_settings['output_dir'], trainvars, particles, choose_data+'_train')
+        plot_DNNScore(test_data, model, global_settings['ml_method'], \
+           global_settings['output_dir'], trainvars, particles, choose_data+'_test')
 
-    cm = confusion_matrix(
-        train_data["multitarget"].astype(int),
-        np.argmax(train_predicted_probabilities, axis=1),
-        sample_weight=train_data["totalWeight"].astype(float)
-    )
-    samples = []
-    for i in sorted(set(train_data["multitarget"])):
-        samples.append(list(set(train_data.loc[train_data["multitarget"] == i]["process"]))[0])
-    samples = ['HH' if x.find('signal') != -1 else x for x in samples]
-    plot_confusion_matrix(
-        cm, samples, global_settings['output_dir'], 'train')
-
-    if global_settings['ml_method'] != 'lbn':
-        for process in set(train_data["process"]):
-            data = train_data.loc[train_data["process"] == process]
-            value = model.predict(data[trainvars].values)
-            train_data.loc[train_data["process"] == process, "max_node_pos"]\
-                = np.argmax(value, axis=1)
-            train_data.loc[train_data["process"] == process, "max_node_val"] \
-                = np.amax(value, axis=1)
-    if global_settings['ml_method'] == 'lbn':
-        for process in set(train_data["process"]):
-            idx = np.where(np.array(train_data["process"]) == process)[0]
-            value = model.predict(
-                [train_var["ll"][idx], train_var["hl"][idx]], batch_size=1024)
-            train_data.loc[train_data["process"] == process, "max_node_pos"] = np.argmax(value, axis=1)
-            train_data.loc[train_data["process"] == process, "max_node_val"] = np.amax(value, axis=1)
-
-    color = ['b', 'g', 'y', 'r', 'magenta', 'orange', 'c']
-    for node in sorted(set(train_data["multitarget"])):
-        fig1, ax = plt.subplots()
-        values = []
-        weights = []
-        labels = []
-        colors = []
-        for i, process in enumerate(set(train_data["process"])):
-            if len(train_data.loc[((train_data["max_node_pos"] == node) & \
-                                         (train_data["process"] == process))]):
-                values.append(train_data.loc[((train_data["max_node_pos"] == node) & \
-                             (train_data["process"] == process)), ["max_node_val"]].values.tolist())
-                weights.append(train_data.loc[((train_data["max_node_pos"] == node) & \
-                              (train_data["process"] == process)), ["evtWeight"]].values.tolist())
-                labels.append('HH') if 'signal' in process else labels.append(process)
-                colors.append(color[i])
-        plt.hist(values, weights=weights,
-                 label=labels, color=colors,
-                 histtype='bar', stacked=True, range=(0, 1), bins=20)
-        nodeName = list(set(train_data.loc[train_data["multitarget"] == node]["process"]))[0]
-        plt.legend(loc='best', title=nodeName+"_node")
-        plt.yscale('log')
-        outfile = os.path.join(global_settings["output_dir"], 'DNNScore_'+nodeName+'_node_resolved.png')\
-                  if global_settings["dataCuts"].find("resolved") != -1 \
-                     else os.path.join(global_settings["output_dir"], 'DNNScore_'+nodeName+'_node_boosted.png')
-        plt.savefig(outfile)
-        plt.clf()
     test_fpr, test_tpr = mt.roc_curve(
         test_data['multitarget'].astype(int),
         test_predicted_probabilities,
@@ -482,6 +391,21 @@ def evaluate_model(model, data_dict, global_settings, choose_data):
     }
     return train_info, test_info
 
+def savemodel(model_structure, global_settings):
+     if 'nonres' in global_settings["bdtType"]:
+         res_nonres = 'nonres'
+     else:
+        res_nonres = 'res_%s' %global_settings['spinCase']
+     pb_filename = os.path.join(global_settings["output_dir"], "multiclass_DNN_w%s_for_%s_%s_%s_%s.pb"\
+                                %(global_settings["ml_method"], global_settings["channel"], \
+                                  global_settings["mode"], choose_data, res_nonres))
+     log_filename = os.path.join(global_settings["output_dir"], "multiclass_DNN_w%s_for_%s_%s_%s_%s.log"\
+                                %(global_settings["ml_method"], global_settings["channel"], \
+                                  global_settings["mode"], choose_data, res_nonres))
+     cmsml.tensorflow.save_graph(pb_filename, model_structure, variables_to_constants=True)
+     file = open(log_filename, "w")
+     file.write(str(hl_var))
+     file.close()
 
 def define_trainvars(global_settings, preferences, info_dir):
     if global_settings["ml_method"] == "lbn" :
@@ -514,7 +438,7 @@ if __name__ == '__main__':
         mode = arguments['--mode']
         ml_method = arguments['--ml_method']
         era = arguments['--era']
-        main('test', save_model, bdtType, spinCase, mode, ml_method, era)
+        main('onlySMwovbf', save_model, bdtType, spinCase, mode, ml_method, era)
     except docopt.DocoptExit as e:
         print(e)
     print(datetime.now() - startTime)
