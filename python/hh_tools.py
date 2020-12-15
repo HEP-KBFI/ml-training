@@ -92,8 +92,8 @@ class HHDataLoader(DataLoader):
         print("Using HHDataLoader")
         self.weight = weight
         super(HHDataLoader, self).__init__(
-            preferences, global_settings, normalize, reweigh,
-            remove_negative_weights, nr_events_per_file
+            preferences, global_settings, normalize, remove_negative_weights,
+            nr_events_per_file, weight
         )
         self.data_normalizer = data_normalizer
         self.set_extra_df_columns()

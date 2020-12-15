@@ -11,8 +11,9 @@ class DataLoader(object):
             preferences,
             global_settings,
             normalize=True,
-            reweigh=True,
-            remove_negative_weights=True
+            remove_negative_weights=True,
+            nr_events_per_file=-1,
+            weight='totalWeight'
     ):
         print('In DataLoader')
         self.data = pandas.DataFrame(columns=preferences['trainvars'])
@@ -22,11 +23,9 @@ class DataLoader(object):
         self.remove_neg_weights = remove_negative_weights
         self.weight = weight
         self.normalize = normalize
-        self.reweigh = reweigh
         self.to_be_dropped = []
         self.to_be_loaded = []
         self.extra_df_columns = []
-
 
     def set_variables_to_be_loaded(self, process):
         self.to_be_loaded = list(self.preferences['trainvars'])
@@ -53,7 +52,7 @@ class DataLoader(object):
             "Please implement getting ntuple paths step for your class"
         )
 
-    def prepare_data(self, data, reweigh):
+    def prepare_data(self, data):
         raise NotImplementedError(
             "Please implement data preparation step for your class"
         )
