@@ -7,9 +7,9 @@ import subprocess
 import json
 import csv
 import glob
-from shutil import copyfile
 import shutil
 import numpy as np
+from textwrap import dedent
 from machineLearning.machineLearning import universal_tools as ut
 
 
@@ -43,7 +43,7 @@ def get_fitness_score(
     settings_dir = os.path.join(output_dir, 'run_settings')
     if sample_size == 0:
         opt_settings = ut.read_settings(
-            settings_dir, global_settings['optimization_algo'])
+            settings_dir, 'pso')
         sample_size = opt_settings['sample_size']
     parameters_to_file(output_dir, hyperparameter_sets)
     wild_card_path = os.path.join(
@@ -117,25 +117,31 @@ def prepare_job_file(
         os.path.expandvars('$CMSSW_BASE'),
         'src/machineLearning/machineLearning')
     output_dir = os.path.expandvars(global_settings['output_dir'])
-    template_dir = os.path.join(main_dir, 'settings')
     job_file = os.path.join(output_dir, 'parameter_' + str(sample_nr) + '.sh')
-    template_file = os.path.join(template_dir, 'submit_template.sh')
     error_file = os.path.join(output_dir, 'error' + str(sample_nr))
     output_file = os.path.join(output_dir, 'output' + str(sample_nr))
     file_title = '_'.join([
         'slurm', global_settings['ml_method'], global_settings['process']])
     batch_job_file = file_title + '.py'
     run_script = os.path.join(main_dir, 'evaluation_scripts', batch_job_file)
-    copyfile(template_file, job_file)
     with open(job_file, 'a') as filehandle:
-        filehandle.writelines("""
-#SBATCH -e %s
-#SBATCH -o %s
-env
-date
-python %s --parameter_file %s --output_dir %s
-        """ % (error_file, output_file, run_script,
-               parameter_file, output_dir))
+        filehandle.writelines(dedent(
+            """
+                #!/bin/bash
+                #SBATCH --job-name=optimization
+                #SBATCH --ntasks=1
+                #SBATCH --time=12:00:00
+                #SBATCH --cpus-per-task=8
+                #SBATCH -e %s
+                #SBATCH -o %s
+                env
+                date
+                python %s --parameter_file %s --output_dir %s
+            """ % (
+                    error_file, output_file, run_script,
+                    parameter_file, output_dir
+            )
+        ).strip('\n'))
     return job_file
 
 

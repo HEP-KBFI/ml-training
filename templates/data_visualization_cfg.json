@@ -1,0 +1,26 @@
+{
+  "included_features": ["foo", "bar", "baz"],
+  "feature_configurations": {
+    "foo": {
+      "nBins": 20,
+      "xMin": 0,
+      "xMax": 100,
+      "xLabel": "The x values",
+      "yLabel": "Nr entries"
+    },
+    "bar": {
+      "nBins": 20,
+      "xMin": 0,
+      "xMax": 100,
+      "xLabel": "The x values",
+      "yLabel": "Nr entries"
+    },
+    "baz": {
+      "nBins": 20,
+      "xMin": 0,
+      "xMax": 100,
+      "xLabel": "The x values",
+      "yLabel": "Nr entries"
+    }
+  }
+}
