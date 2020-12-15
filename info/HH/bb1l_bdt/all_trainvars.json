@@ -1,0 +1,19 @@
+{"key": "lep_pt", "true_int": 0}
+{"key": "met", "true_int": 0}
+{"key": "HT", "true_int": 0}
+{"key": "m_Hbb_regCorr", "true_int": 0}
+{"key": "m_Wjj", "true_int": 0}
+{"key": "Smin_Hww", "true_int": 0}
+{"key": "dR_b1lep", "true_int": 0}
+{"key": "dR_b2lep", "true_int": 0}
+{"key": "pT_HH", "true_int": 0}
+{"key": "mT_W", "true_int": 0}
+{"key": "mT_top_2particle", "true_int": 0}
+{"key": "mindr_lep1_jet", "true_int": 0}
+{"key": "avg_dr_jet_central", "true_int": 0}
+{"key": "mbb_loose", "true_int": 0}
+{"key": "mbb_medium", "true_int": 0}
+{"key": "dR_HH", "true_int": 0}
+{"key": "nJet", "true_int": 1}
+{"key": "numBJets", "true_int":1}
+{"key": "numWJets", "true_int":1}
