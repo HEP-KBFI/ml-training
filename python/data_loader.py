@@ -5,53 +5,58 @@ from root_numpy import tree2array
 from machineLearning.machineLearning import universal_tools as ut
 
 
-class DataLoader:
+class DataLoader(object):
     def __init__(
             self,
-            data_loader_class,
-            data_normalizer,
-            global_settings,
             preferences,
+            global_settings,
             normalize=True,
-            reweigh=True
+            reweigh=True,
+            remove_negative_weights=True
     ):
         print('In DataLoader')
         self.data = pandas.DataFrame(columns=preferences['trainvars'])
-        self.process_loader = data_loader_class(
-            data_normalizer, preferences, global_settings)
         self.global_settings = global_settings
         self.preferences = preferences
-        self.remove_neg_weights = True
-        self.weight = 'totalWeight'
+        self.nr_events_per_file = nr_events_per_file
+        self.remove_neg_weights = remove_negative_weights
+        self.weight = weight
         self.normalize = normalize
         self.reweigh = reweigh
-        self.data = self.load_data()
+        self.to_be_dropped = []
+        self.to_be_loaded = []
+        self.extra_df_columns = []
+
 
     def set_variables_to_be_loaded(self, process):
         self.to_be_loaded = list(self.preferences['trainvars'])
         self.to_be_loaded.extend(['evtWeight', 'event'])
-        self.to_be_dropped = []
         if self.global_settings['debug']:
             self.to_be_loaded.extend(['luminosityBlock', 'run'])
-        self.process_loader.create_to_be_dropped_list(process)
-        self.to_be_loaded.extend(self.process_loader.to_be_loaded)
-        self.to_be_dropped.extend(self.process_loader.to_be_dropped)
+        self.update_to_be_dropped_list(process)
         for drop in self.to_be_dropped:
             if drop in self.to_be_loaded:
                 self.to_be_loaded.remove(drop)
 
+    def update_to_be_dropped_list(self, process):
+        raise NotImplementedError(
+            'Please implement creating to_be_dropped list step for your class'
+        )
+
     def set_sample_info(self, folder_name, path):
-        return self.process_loader.set_sample_info(
-            folder_name, path
+        raise NotImplementedError(
+            "Please implement getting ntuple paths step for your class"
         )
 
     def get_ntuple_paths(self, input_path, folder_name, file_type='hadd*'):
-        return self.process_loader.get_ntuple_paths(
-            input_path, folder_name, file_type=file_type
+        raise NotImplementedError(
+            "Please implement getting ntuple paths step for your class"
         )
 
     def prepare_data(self, data, reweigh):
-        return self.process_loader.prepare_data(data, reweigh=reweigh)
+        raise NotImplementedError(
+            "Please implement data preparation step for your class"
+        )
 
     def data_imputer(self, chunk_df, process, folder_name, target):
         chunk_df['process'] = process
@@ -76,7 +81,7 @@ class DataLoader:
             self.set_variables_to_be_loaded(process)
             chunk_arr = tree2array(
                 tree, branches=self.to_be_loaded,
-                stop=self.process_loader.nr_events_per_file
+                stop=self.nr_events_per_file
             )
             chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
@@ -130,7 +135,7 @@ class DataLoader:
                 except:
                     continue
         if self.normalize:
-            data = self.prepare_data(data, reweigh=self.reweigh)
+            data = self.prepare_data(data)
         if self.remove_neg_weights:
             print('Removing events with negative weights')
             data = data.loc[data[self.weight] >= 0]
