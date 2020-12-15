@@ -95,6 +95,7 @@ class HHDataLoader(DataLoader):
             preferences, global_settings, normalize, remove_negative_weights,
             nr_events_per_file, weight
         )
+        self.reweigh = reweigh
         self.data_normalizer = data_normalizer
         self.set_extra_df_columns()
         self.cancelled_trainvars = cancelled_trainvars

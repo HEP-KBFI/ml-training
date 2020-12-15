@@ -63,8 +63,10 @@ def split_data(global_settings, preferences):
     else:
         normalizer = hht.HHDataNormalizer
         data_helper = hht.HHDataHelper
-        loader = dl.DataLoader(
-            data_helper, normalizer, global_settings, preferences
+        loader = hht.HHDataLoader(
+            normalizer,
+            preferences,
+            global_settings
         )
         data = loader.data
     hhvt.plot_correlations(data, preferences['trainvars'], global_settings)

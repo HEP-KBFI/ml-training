@@ -512,11 +512,10 @@ def main():
     if create_info:
         create_histo_dict(info_dir, preferences)
     if create_profile or fit:
-        loader = dl.DataLoader(
-            data_helper,
+        loader = hht.HHDataLoader(
             normalizer,
-            global_settings,
             preferences,
+            global_settings,
             normalize=False
         )
         data = loader.data

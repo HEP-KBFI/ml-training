@@ -32,12 +32,10 @@ def prepare_data():
     reader = hpr.HHParameterReader(channel_dir, scenario)
     normalizer = hht.HHDataNormalizer
     data_helper = hht.HHDataHelper
-    preferences = reader.parameters
-    loader = dl.DataLoader(
-        data_helper,
+    loader = hht.HHDataLoader(
         normalizer,
-        global_settings,
-        preferences
+        preferences,
+        global_settings
     )
     data = loader.data
     return data, preferences, global_settings, trainvars_path
