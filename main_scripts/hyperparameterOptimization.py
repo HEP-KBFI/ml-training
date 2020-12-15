@@ -58,27 +58,18 @@ def main(to_continue, opt_dir):
     reader = hpr.HHParameterReader(channel_dir, scenario)
     preferences = reader.parameters
     normalizer = hht.HHDataNormalizer
-    data_helper = hht.HHDataHelper
     if os.path.exists(preferences['data_csv']):
         print(':::::::: Loading data from .csv file ::::::::')
         data = pandas.read_csv(preferences['data_csv'])
     else:
         print('::::::: Loading data to be saved to pandas.DataFrame :::::::')
-        loader = dl.DataLoader(
-            data_helper, normalizer, global_settings, preferences
+        loader = hht.HHDataLoader(
+            normalizer,
+            preferences,
+            global_settings
         )
         data = loader.data
         loader.save_to_csv()
-    data_path = os.path.join(output_dir, 'data.csv')
-    if not os.path.exists(data_path):
-        loader = dl.DataLoader(
-            data_helper,
-            normalizer,
-            global_settings,
-            preferences
-        )
-        data = loader.data
-        data.to_csv(data_path, index=False)
     print("\n============ Starting hyperparameter optimization ==========\n")
     swarm = pt.ParticleSwarm(
         pso_settings, st.get_fitness_score, hyperparameter_info,

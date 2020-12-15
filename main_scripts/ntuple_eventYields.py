@@ -33,9 +33,10 @@ def main():
         reader = hpr.HHParameterReader(channel_dir, mode)
         preferences = reader.parameters
         normalizer = hht.HHDataNormalizer
-        data_helper = hht.HHDataHelper
-        loader = dl.DataLoader(
-            data_helper, normalizer, global_settings, preferences
+        loader = hht.HHDataLoader(
+            normalizer,
+            preferences,
+            global_settings
         )
         mode_data = loader.data
         for era in set(mode_data['era']):

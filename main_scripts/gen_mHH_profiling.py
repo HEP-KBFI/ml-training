@@ -506,17 +506,15 @@ def main():
         scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
     normalizer = hht.HHDataNormalizer
-    data_helper = hht.HHDataHelper
     preferences = reader.parameters
     preferences['trainvars'] = preferences['all_trainvar_info'].keys()
     if create_info:
         create_histo_dict(info_dir, preferences)
     if create_profile or fit:
-        loader = dl.DataLoader(
-            data_helper,
+        loader = hht.HHDataLoader(
             normalizer,
-            global_settings,
             preferences,
+            global_settings,
             normalize=False
         )
         data = loader.data
