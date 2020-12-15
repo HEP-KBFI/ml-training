@@ -62,7 +62,6 @@ def split_data(global_settings, preferences):
         data = pandas.read_csv(preferences['data_csv'])
     else:
         normalizer = hht.HHDataNormalizer
-        data_helper = hht.HHDataHelper
         loader = hht.HHDataLoader(
             normalizer,
             preferences,

@@ -31,7 +31,6 @@ def prepare_data():
     scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
     normalizer = hht.HHDataNormalizer
-    data_helper = hht.HHDataHelper
     loader = hht.HHDataLoader(
         normalizer,
         preferences,

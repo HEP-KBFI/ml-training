@@ -506,7 +506,6 @@ def main():
         scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
     normalizer = hht.HHDataNormalizer
-    data_helper = hht.HHDataHelper
     preferences = reader.parameters
     preferences['trainvars'] = preferences['all_trainvar_info'].keys()
     if create_info:
