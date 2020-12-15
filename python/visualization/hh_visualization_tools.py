@@ -198,7 +198,7 @@ def plot_nodeWise_performance(
             lw=2
         )
         ###########################################
-        plt.legend('upper center')
+        plt.legend(loc='upper center')
         plt.xlim([0.0, 1.0])
         plt.tight_layout()
         plt.savefig(plot_out, bbox_inches='tight')
@@ -236,7 +236,7 @@ def plot_nodeWise_roc(global_settings, roc_infos, mode):
         )
     plot_out = os.path.join(output_dir, 'nodeWiseROC_performance.png')
     plt.grid()
-    plt.legend('lower right')
+    plt.legend(loc='lower right')
     plt.ylim([0.0, 1.0])
     plt.xlim([0.0, 1.0])
     plt.tight_layout()
@@ -332,7 +332,7 @@ def plot_nn_sampleWise_bdtOutput(
         process_prediction, histtype='step', label=sig_name,
         lw=2, ec='k', alpha=1, normed=True, bins=bins, weights=weights
     )
-    plt.legend('upper center')
+    plt.legend(loc='upper center')
     output_path = os.path.join(
         output_dir,
         'sampleWise_bdtOutput_node_%s.png' % class_
