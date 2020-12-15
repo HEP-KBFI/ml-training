@@ -3,7 +3,7 @@
 import os
 import json
 from machineLearning.machineLearning import hh_parameter_reader as hpr
-from machineLearning.machineLearning import data_visualizer as dv
+from machineLearning.machineLearning.visualization import data_visualizer as dv
 from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import data_loader as dl
 from machineLearning.machineLearning import universal_tools as ut

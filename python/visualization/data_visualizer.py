@@ -6,8 +6,8 @@ import ROOT
 ROOT.gROOT.SetBatch(True)
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
-from machineLearning.machineLearning import CMS_lumi
-from machineLearning.machineLearning import tdrstyle
+from machineLearning.machineLearning.visualization import CMS_lumi
+from machineLearning.machineLearning.visualization import tdrstyle
 
 
 class DataVisualizer(object):
