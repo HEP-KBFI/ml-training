@@ -1,7 +1,7 @@
 {
     "output_dir": "test",
     "ml_method": "lbn",
-    "feature_importance" : 1,
+    "feature_importance" : 0,
     "trainvarOpt" : 0,
     "process": "HH",
     "optimization_algo": "pso",
