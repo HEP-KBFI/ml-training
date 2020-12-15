@@ -90,7 +90,6 @@ class HHDataLoader(DataLoader):
             reweigh=True, remove_negative_weights=True
     ):
         print("Using HHDataLoader")
-        self.weight = weight
         super(HHDataLoader, self).__init__(
             preferences, global_settings, normalize, remove_negative_weights,
             nr_events_per_file, weight
