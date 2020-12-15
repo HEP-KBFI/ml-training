@@ -70,15 +70,6 @@ def main(to_continue, opt_dir):
         )
         data = loader.data
         loader.save_to_csv()
-    data_path = os.path.join(output_dir, 'data.csv')
-    if not os.path.exists(data_path):
-        loader = hht.HHDataLoader(
-            normalizer,
-            preferences,
-            global_settings
-        )
-        data = loader.data
-        data.to_csv(data_path, index=False)
     print("\n============ Starting hyperparameter optimization ==========\n")
     swarm = pt.ParticleSwarm(
         pso_settings, st.get_fitness_score, hyperparameter_info,
