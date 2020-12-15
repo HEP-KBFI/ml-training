@@ -3,9 +3,10 @@ import glob
 import numpy as np
 import ROOT
 from machineLearning.machineLearning import universal_tools as ut
+from machineLearning.machineLearning.data_loader import DataLoader
 
 
-class HHDataNormalizer:
+class HHDataNormalizer(object):
     def __init__(self, data, preferences, global_settings):
         print("Using HHDataNormalizer")
         self.data = data
@@ -81,28 +82,30 @@ class HHDataNormalizer:
         return self.data
 
 
-class HHDataHelper:
-    def __init__(self, data_normalizer, preferences, global_settings):
-        print("Using HHDataHelper")
-        self.preferences = preferences
-        self.global_settings = global_settings
-        self.weight = 'totalWeight'
-        self.nr_events_per_file = -1
+class HHDataLoader(DataLoader):
+    def __init__(
+            self, data_normalizer, preferences, global_settings,
+            nr_events_per_file=-1, weight='totalWeight',
+            cancelled_trainvars=['gen_mHH'], normalize=True,
+            reweigh=True, remove_negative_weights=True
+    ):
+        print("Using HHDataLoader")
+        super(HHDataLoader, self).__init__(
+            preferences, global_settings, normalize, remove_negative_weights,
+            nr_events_per_file, weight
+        )
+        self.reweigh = reweigh
         self.data_normalizer = data_normalizer
-        self.extra_df_columns = []
-        self.to_be_dropped = []
-        self.to_be_loaded = []
         self.set_extra_df_columns()
-        self.cancelled_trainvars = ['gen_mHH']
+        self.cancelled_trainvars = cancelled_trainvars
         self.nonres_weights = []
+        self.data = self.load_data()
 
     def set_extra_df_columns(self):
         if 'nonres' in self.global_settings['scenario']:
             self.extra_df_columns.append('nodeX')
 
-    def create_to_be_dropped_list(self, process):
-        self.to_be_dropped = []
-        self.to_be_loaded = []
+    def update_to_be_dropped_list(self, process):
         if 'nonres' in self.global_settings['scenario']:
             self.nonres_weights = [
                 str('Weight_') + scenario
@@ -192,7 +195,7 @@ class HHDataHelper:
         process = sample_dict[max(possible_processes, key=len)]
         return process, target
 
-    def data_imputer(
+    def process_data_imputer(
             self, chunk_df, folder_name, target, data
     ):
         if 'nonres' not in self.global_settings['scenario']:
@@ -284,9 +287,9 @@ class HHDataHelper:
                     data['gen_mHH'] == mass, [trainvar]] /= function.Eval(mass)
             tfile.Close()
 
-    def prepare_data(self, data, reweigh):
+    def prepare_data(self, data):
         data = data.copy()
-        if 'nonres' not in self.global_settings['scenario'] and reweigh:
+        if 'nonres' not in self.global_settings['scenario'] and self.reweigh:
             self.data_reweighing(data)
         normalizer = self.data_normalizer(
             data, self.preferences, self.global_settings)

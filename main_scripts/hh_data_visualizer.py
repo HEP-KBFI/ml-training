@@ -20,9 +20,11 @@ def main():
         os.makedirs(global_settings['output_dir'])
     preferences['trainvars'] = preferences['all_trainvar_info'].keys()
     normalizer = hht.HHDataNormalizer
-    data_helper = hht.HHDataHelper
-    loader = dl.DataLoader(
-        data_helper, normalizer, global_settings, preferences, reweigh=False
+    loader = hht.HHDataLoader(
+        normalizer,
+        preferences,
+        global_settings,
+        reweigh=False
     )
     data = loader.data
     visualizer = dv.ROOTDataVisualizer(

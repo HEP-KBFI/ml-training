@@ -124,9 +124,10 @@ def create_data_dict(preferences, global_settings):
         data = pandas.read_csv(preferences['data_csv'])
     else:
         normalizer = hht.HHDataNormalizer
-        data_helper = hht.HHDataHelper
-        loader = dl.DataLoader(
-            data_helper, normalizer, global_settings, preferences
+        loader = hht.HHDataLoader(
+            normalizer,
+            preferences,
+            global_settings
         )
         data = loader.data
     for trainvar in preferences['trainvars']:
