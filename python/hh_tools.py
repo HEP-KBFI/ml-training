@@ -195,7 +195,7 @@ class HHDataLoader(DataLoader):
         process = sample_dict[max(possible_processes, key=len)]
         return process, target
 
-    def data_imputer(
+    def process_data_imputer(
             self, chunk_df, folder_name, target, data
     ):
         if 'nonres' not in self.global_settings['scenario']:

@@ -62,8 +62,13 @@ class DataLoader(object):
         chunk_df['key'] = folder_name
         chunk_df['target'] = int(target)
         chunk_df['totalWeight'] = chunk_df['evtWeight']
-        return self.process_loader.data_imputer(
+        return self.process_data_imputer(
             chunk_df, folder_name, target, self.data
+        )
+
+    def process_data_imputer(self, chunk_df, folder_name, target, data):
+        raise NotImplementedError(
+            "Please implement process_data_imputer for your class"
         )
 
     def load_data_from_tfile(
@@ -179,7 +184,7 @@ class DataLoader(object):
     def load_data_from_one_era(self):
         columns = list(self.preferences['trainvars'])
         columns.extend(['process', 'key', 'target', 'totalWeight'])
-        columns.extend(self.process_loader.extra_df_columns)
+        columns.extend(self.extra_df_columns)
         data = pandas.DataFrame(columns=columns)
         for folder in self.preferences['era_keys']:
             paths = self.get_ntuple_paths(
