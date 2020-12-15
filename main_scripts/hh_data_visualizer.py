@@ -3,7 +3,7 @@
 import os
 import json
 from machineLearning.machineLearning import hh_parameter_reader as hpr
-from machineLearning.machineLearning import data_visualizer as dv
+from machineLearning.machineLearning.visualization import data_visualizer as dv
 from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import data_loader as dl
 from machineLearning.machineLearning import universal_tools as ut
@@ -25,7 +25,9 @@ def main():
         data_helper, normalizer, global_settings, preferences, reweigh=False
     )
     data = loader.data
-    visualizer = dv.DataVisualizer(data, global_settings['output_dir'])
+    visualizer = dv.ROOTDataVisualizer(
+        data, global_settings['output_dir'], channel=global_settings['channel']
+    )
     visualizer.visualize_data()
 
 
