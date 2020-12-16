@@ -12,14 +12,14 @@ class DataLoader(object):
             global_settings,
             normalize=True,
             remove_negative_weights=True,
-            nr_TT_events_per_file=-1,
+            nr_events_per_file=-1,
             weight='totalWeight'
     ):
         print('In DataLoader')
         self.data = pandas.DataFrame(columns=preferences['trainvars'])
         self.global_settings = global_settings
         self.preferences = preferences
-        self.nr_TT_events_per_file = nr_TT_events_per_file
+        self.nr_events_per_file = nr_events_per_file
         self.remove_neg_weights = remove_negative_weights
         self.weight = weight
         self.normalize = normalize
@@ -82,10 +82,9 @@ class DataLoader(object):
         try:
             tree = tfile.Get(input_tree)
             self.set_variables_to_be_loaded(process)
-            stop = self.nr_TT_events_per_file if 'TT' in folder_name else None
             chunk_arr = tree2array(
                 tree, branches=self.to_be_loaded,
-                stop=stop
+                stop=self.nr_events_per_file
             )
             chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
