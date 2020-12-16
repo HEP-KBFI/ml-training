@@ -6,7 +6,7 @@ from machineLearning.machineLearning.data_loader import DataLoader as dlt
 class bbWWLoader(HHDataLoader):
     def __init__(
             self, data_normalizer, preferences, global_settings,
-            nr_events_per_file=3000000, weight='totalWeight',
+            nr_events_per_file=-1, weight='totalWeight',
             cancelled_trainvars=['gen_mHH'], normalize=True,
             reweigh=True, remove_negative_weights=True
     ):
