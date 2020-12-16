@@ -4,13 +4,13 @@ from machineLearning.machineLearning.hh_tools import HHDataLoader
 class bbWWLoader(HHDataLoader):
     def __init__(
             self, data_normalizer, preferences, global_settings,
-            nr_events_per_file=200000, weight='totalWeight',
+            nr_TT_events_per_file=3000000, weight='totalWeight',
             cancelled_trainvars=['gen_mHH'], normalize=True,
             reweigh=True, remove_negative_weights=True
     ):
         print('Using bbWW flavor of the HHDataLoader')
         super(bbWWLoader, self).__init__(
-            data_normalizer, preferences, global_settings, nr_events_per_file,
+            data_normalizer, preferences, global_settings, nr_TT_events_per_file,
             weight, cancelled_trainvars, normalize, reweigh,
             remove_negative_weights
         )
