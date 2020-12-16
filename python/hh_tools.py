@@ -153,11 +153,11 @@ class HHDataLoader(DataLoader):
         the main directory of the ntuples and the sample name to search for.
         """
         wild_card_path = os.path.join(
-            input_path, folder_name, 'central', file_type + '.root')
+            input_path, folder_name, 'central', file_type)
         paths = glob.glob(wild_card_path)
         if len(paths) == 0:
             wild_card_path = os.path.join(
-                input_path, folder_name, file_type + '.root')
+                input_path, folder_name, file_type)
             paths = glob.glob(wild_card_path)
         return paths
 
