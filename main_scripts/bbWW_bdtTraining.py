@@ -2,17 +2,16 @@
 Call with 'python'
 Usage: 
     bbWW_bdtTraining.py
-    bbWW_bdtTraining.py [--output_dir=DIR --settings_dir=DIR --hyperparameter_file=PTH --debug=BOOL --mode=INT --bdtType=INT --ml_method=XGB --scenario=INT --era=INT --BM=INT]
+    bbWW_bdtTraining.py [--output_dir=DIR --settings_dir=DIR --hyperparameter_file=PTH --debug=BOOL --channel=STR --res_nonres=XGB --mode=STR --era=INT --BM=INT]
 
 Options:
     -o --output_dir=DIR             Directory of the output [default: None]
     -s --settings_dir=DIR           Directory of the settings [default: None]
     -h --hyperparameter_file=PTH    Path to the hyperparameters file [default: None]
     -d --debug=BOOL                 Whether to debug the event classification [default: 0]
-    -m --mode=INT                   whhether resolved or boosted catgory to be considered [default: resolved]
-    -bdt --bdtType=INT              type of bdt [default: evtLevelSUM_HH_bb1l_nonres]
-    -ml_method --ml_method=INT      name of ml_method [default: xgb]
-    -scenario --scenario=INT        which scenario to be considered [default: nonres]
+    -channel --channel=INT          which channel to be considered [default: bb1l]
+    -res_nonres --res_nonres=STR        res or nonres to be considered [default: nonres]
+    -mode --mode=STR                resolved or boosted to be considered [default: resolved]
     -era --era=INT                  era to be processed [default: 2016]
     -BM --BM=STR                    BM point to be considered  [default: None]
 '''
@@ -33,35 +32,25 @@ from sklearn.metrics import auc
 import pandas
 import numpy as np
 import json
+import subprocess
 try:
     import cPickle as pickle
 except ModuleNotFoundError:
     import pickle
 
-def update_global_settings(global_settings, bdtType, scenario, mode, ml_method, era):
-    global_settings['bdtType'] = bdtType
-    channel = 'bb2l' if 'bb2l' in bdtType else 'bb1l'
-    channel = channel+'_bdt' if 'xgb' in ml_method else channel
-    global_settings['channel'] = channel
-    global_settings['scenario'] = scenario
-    global_settings['dataCuts'] = 'cuts_%s.json' %mode
-    global_settings['ml_method'] = ml_method
-    global_settings['mode'] = mode
-    era = era.replace('20', '')
-    global_settings['era'] = era
-    return global_settings
-
-def main(output_dir, settings_dir, hyperparameter_file, debug, scenario):
+def main(output_dir, settings_dir, hyperparameter_file, debug):
     if settings_dir == 'None':
         settings_dir = os.path.join(
             os.path.expandvars('$CMSSW_BASE'),
             'src/machineLearning/machineLearning/settings'
         )
+    global_settings = settings_dir+'/'+'global_%s_%s_%s_settings.json' %(channel, mode, res_nonres)
+    command = 'rsync %s ~/machineLearning/CMSSW_11_2_0_pre1/src/machineLearning/machineLearning/settings/global_settings.json' %global_settings
+    p = subprocess.Popen(command, shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     global_settings = ut.read_settings(settings_dir, 'global')
-    global_settings = update_global_settings(global_settings, bdtType, scenario, mode, ml_method, era)
     if output_dir == 'None':
         output_dir = global_settings['channel']+'/'+global_settings['ml_method']+'/'+\
-                     scenario + '/' + global_settings['mode'] +'/' + era
+                     res_nonres + '/' + mode +'/' + era
         global_settings['output_dir'] = output_dir
     else:
         global_settings['output_dir'] = output_dir
@@ -69,13 +58,13 @@ def main(output_dir, settings_dir, hyperparameter_file, debug, scenario):
         global_settings['output_dir'])
     if not os.path.exists(global_settings['output_dir']):
         os.makedirs(global_settings['output_dir'])
-    channel_dir, info_dir, _ = ut.find_settings(global_settings)
+    channel_dir, info_dir, _ = ut.find_settings()
     scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
     preferences = reader.parameters
     if not BM=='None': 
       preferences["nonResScenarios"]=[BM]
-      print ('BM point to be considered' , BM)
+      print ('BM point to be considered: ', BM)
     preferences = define_trainvars(global_settings, preferences, info_dir)
     if hyperparameter_file == 'None':
         hyperparameter_file = os.path.join(info_dir, 'hyperparameters.json')
@@ -367,12 +356,11 @@ if __name__ == '__main__':
         settings_dir = arguments['--settings_dir']
         hyperparameter_file = arguments['--hyperparameter_file']
         debug = bool(int(arguments['--debug']))
-        bdtType = arguments['--bdtType']
-        scenario = arguments['--scenario']
+        channel = arguments['--channel']
         mode = arguments['--mode']
-        ml_method = arguments['--ml_method']
+        res_nonres = arguments['--res_nonres']
         era = arguments['--era']
         BM = arguments['--BM']
-        main('None', settings_dir, hyperparameter_file, debug, scenario)
+        main('None', settings_dir, hyperparameter_file, debug)
     except docopt.DocoptExit as e:
         print(e)
