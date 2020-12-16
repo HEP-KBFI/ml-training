@@ -1,16 +1,19 @@
 {
-    "output_dir": "$HOME/BDT_Output",
+    "output_dir": "test",
     "ml_method": "xgb",
     "feature_importance" : 0,
+    "trainvarOpt" : 0,
     "process": "HH",
-    "bdtType": "evtLevelSUM_HH",
-    "bkg_mass_rand": "oversampling",
-    "channel": "2lss",
+    "optimization_algo": "pso",
+    "bdtType": "evtLevelSUM_HH_bb1l_nonres",
+    "tauID_training": "deepVSjVVVLoose",
+    "bkg_mass_rand": "default",
+    "channel": "bb1l_bdt",
     "fitness_fn": "d_roc",
     "use_kfold": 1,
-    "nthread": 8,
+    "nthread": 3,
     "kappa": 0.3,
-    "scenario": "spin0",
-    "dataCuts": 0,
-    "debug": 0
+    "scenario": "nonres",
+    "debug": 0,
+    "dataCuts": "cuts_resolved.json"
 }
