@@ -1,18 +1,18 @@
 from machineLearning.machineLearning.hh_tools import HHDataLoader
 import os
 from machineLearning.machineLearning import universal_tools as ut
-from machineLearning.machineLearning.data_loader import DataLoader
+from machineLearning.machineLearning.data_loader import DataLoader as dlt
 
 class bbWWLoader(HHDataLoader):
     def __init__(
             self, data_normalizer, preferences, global_settings,
-            nr_TT_events_per_file=3000000, weight='totalWeight',
+            nr_events_per_file=3000000, weight='totalWeight',
             cancelled_trainvars=['gen_mHH'], normalize=True,
             reweigh=True, remove_negative_weights=True
     ):
         print('Using bbWW flavor of the HHDataLoader')
         super(bbWWLoader, self).__init__(
-            data_normalizer, preferences, global_settings, nr_TT_events_per_file,
+            data_normalizer, preferences, global_settings, nr_events_per_file,
             weight, cancelled_trainvars, normalize, reweigh,
             remove_negative_weights
         )
@@ -76,3 +76,22 @@ class bbWWLoader(HHDataLoader):
            paths = self.find_paths_both_conventions(
                input_path, folder_name + '*', file_type=file_type)
        return paths
+    
+    def load_data_from_tfile(
+        self,
+        process,
+        folder_name,
+        target,
+        path,
+        input_tree
+    ):
+        if 'TT' in folder_name:
+          self.nr_events_per_file = 3000000 
+        return dlt.load_data_from_tfile(
+            self,
+            process,
+            folder_name,
+            target,
+            path,
+            input_tree
+          )

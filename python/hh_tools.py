@@ -85,14 +85,14 @@ class HHDataNormalizer(object):
 class HHDataLoader(DataLoader):
     def __init__(
             self, data_normalizer, preferences, global_settings,
-            nr_TT_events_per_file=-1, weight='totalWeight',
+            nr_events_per_file=-1, weight='totalWeight',
             cancelled_trainvars=['gen_mHH'], normalize=True,
             reweigh=True, remove_negative_weights=True
     ):
         print("Using HHDataLoader")
         super(HHDataLoader, self).__init__(
             preferences, global_settings, normalize, remove_negative_weights,
-            nr_TT_events_per_file, weight
+            nr_events_per_file, weight
         )
         self.reweigh = reweigh
         self.data_normalizer = data_normalizer
