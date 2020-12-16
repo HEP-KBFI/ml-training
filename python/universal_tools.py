@@ -184,7 +184,7 @@ def _decode_dict(data):
     return rv
 
 
-def find_settings(global_settings={}):
+def find_settings():
     """ Gets info directory path and returns it together with the global
     settings
 
@@ -206,7 +206,7 @@ def find_settings(global_settings={}):
         'src/machineLearning/machineLearning/'
     )
     settings_dir = os.path.join(package_dir, 'settings')
-    if not len(global_settings.keys()): global_settings = read_settings(settings_dir, 'global')
+    global_settings = read_settings(settings_dir, 'global')
     channel = global_settings['channel']
     process = global_settings['process']
     mode = create_infoPath_addition(global_settings)
