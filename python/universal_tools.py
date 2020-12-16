@@ -123,7 +123,9 @@ def read_json_cfg(path):
     info : dict
         The json dict that was loaded
     """
+    print 'path========== ', path
     with open(path, 'rt') as jsonFile:
+        print 'json========== ', jsonFile
         info = json.load(jsonFile)
     return info
 
@@ -184,7 +186,7 @@ def _decode_dict(data):
     return rv
 
 
-def find_settings():
+def find_settings(global_settings={}):
     """ Gets info directory path and returns it together with the global
     settings
 
@@ -206,7 +208,7 @@ def find_settings():
         'src/machineLearning/machineLearning/'
     )
     settings_dir = os.path.join(package_dir, 'settings')
-    global_settings = read_settings(settings_dir, 'global')
+    if not len(global_settings.keys()): global_settings = read_settings(settings_dir, 'global')
     channel = global_settings['channel']
     process = global_settings['process']
     mode = create_infoPath_addition(global_settings)
