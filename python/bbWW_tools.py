@@ -51,3 +51,6 @@ class bbWWLoader(HHDataLoader):
             data = self.nonresonant_data_imputer(
                 chunk_df, target, data)
         return data
+
+    def get_ntuple_paths(self, input_path, folder_name, file_type='hadd*Tight.root'):
+        return HHDataLoader.get_ntuple_paths(self, input_path, folder_name, file_type)
