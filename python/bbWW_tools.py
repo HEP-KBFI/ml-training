@@ -1,5 +1,7 @@
 from machineLearning.machineLearning.hh_tools import HHDataLoader
-
+import os
+from machineLearning.machineLearning import universal_tools as ut
+from machineLearning.machineLearning.data_loader import DataLoader
 
 class bbWWLoader(HHDataLoader):
     def __init__(
@@ -53,4 +55,24 @@ class bbWWLoader(HHDataLoader):
         return data
 
     def get_ntuple_paths(self, input_path, folder_name, file_type='hadd*Tight.root'):
-        return HHDataLoader.get_ntuple_paths(self, input_path, folder_name, file_type)
+       paths = []
+       background_catfile = os.path.join(
+            os.path.expandvars('$CMSSW_BASE'),
+            'src/machineLearning/machineLearning/info',
+            'HH',
+            'background_categories.json'
+        )
+       background_categories = ut.read_json_cfg(background_catfile)
+       if 'signal' not in folder_name and folder_name in background_categories.keys():
+           bkg_elements = background_categories[folder_name]
+           for bkg_element in bkg_elements:
+               bkg_element_paths = self.find_paths_both_conventions(
+                   input_path, bkg_element, file_type=file_type)
+               print('--------------')
+               print(bkg_element)
+               print(bkg_element_paths)
+               paths.extend(bkg_element_paths)
+       else:
+           paths = self.find_paths_both_conventions(
+               input_path, folder_name + '*', file_type=file_type)
+       return paths

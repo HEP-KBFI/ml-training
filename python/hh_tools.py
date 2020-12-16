@@ -136,14 +136,14 @@ class HHDataLoader(DataLoader):
             bkg_elements = background_categories[folder_name]
             for bkg_element in bkg_elements:
                 bkg_element_paths = self.find_paths_both_conventions(
-                    input_path, bkg_element, file_type=file_type)
+                    input_path, bkg_element, file_type=file_type + '.root')
                 print('--------------')
                 print(bkg_element)
                 print(bkg_element_paths)
                 paths.extend(bkg_element_paths)
         else:
             paths = self.find_paths_both_conventions(
-                input_path, folder_name + '*', file_type=file_type)
+                input_path, folder_name + '*', file_type=file_type + '.root')
         return paths
 
     def find_paths_both_conventions(
