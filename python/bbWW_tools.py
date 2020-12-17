@@ -61,7 +61,7 @@ class bbWWLoader(HHDataLoader):
                 str('Weight_') + scenario
                 for scenario in self.preferences['nonResScenarios']
             ]
-            if 'signal' in process:
+            if 'signal' in process and 'vbf' not in process:
                 if 'Base' in self.preferences['nonResScenarios']:
                     self.to_be_dropped.append('Weight_Base')
                     self.to_be_loaded.append('Weight_SM')
@@ -114,7 +114,39 @@ class bbWWLoader(HHDataLoader):
            paths = self.find_paths_both_conventions(
                input_path, folder_name + '*', file_type=file_type)
        return paths
-    
+
+    def do_loading(self):
+      eras = self.preferences['included_eras']
+      data = pandas.DataFrame({})
+      for era in eras:
+         input_path_key = 'inputPath' + str(era)
+         self.preferences['era_inputPath'] = self.preferences[input_path_key]
+         self.preferences['era_keys'] = self.preferences['keys' + str(era)]
+         self.print_info()
+         era_data = self.load_data_from_one_era()
+         era_data['era'] = era
+         data = data.append(era_data, ignore_index=True, sort=False)
+      if self.global_settings['dataCuts'] != 0:
+         total_data = self.data_cutting(data)
+      TT = total_data.loc[total_data["process"] == "TT"].head(200000)
+      ST = total_data.loc[total_data["process"] == "ST"].head(200000)
+      Other = total_data.loc[total_data["process"] == "Other"].head(200000)
+      W = total_data.loc[total_data["process"] == "W"].head(200000)
+      DY = total_data.loc[total_data["process"] == "DY"].head(200000)
+      HH = total_data.loc[total_data["target"] == 1]
+      alldata = [TT, ST, Other, W, DY, HH]
+      total_data = pandas.concat(alldata)
+      print("DY: ", len(total_data.loc[total_data["process"] == "DY"]),\
+            "W: ", len(total_data.loc[total_data["process"] == "W"]), \
+            "TT: ", len(total_data.loc[total_data["process"] == "TT"]), \
+            'ST: ', len(total_data.loc[total_data["process"] == "ST"]), \
+            'Other:', len(total_data.loc[total_data["process"] == "Other"]), \
+            'HH', len(total_data.loc[total_data["target"] == 1])
+         )
+
+      self.print_nr_signal_bkg(total_data)
+      return total_data
+
     def load_data_from_tfile(
         self,
         process,
@@ -139,6 +171,15 @@ class bbWWLoader(HHDataLoader):
       else:
         return HHDataLoader.set_background_sample_info(self, path)
 
+    def set_signal_sample_info(self, folder_name):
+        target = 1
+        if 'ggf_nonresonant' in folder_name:
+            process = 'signal_ggf_nonresonant_hh'
+        elif 'vbf_nonresonant' in folder_name:
+            process = folder_name.replace('_2b2v_sl_dipoleRecoilOff', '')
+        else:
+            process = folder_name.replace('_' + folder_name.split('_')[-1], '')
+        return process, target
     def nonresonant_data_imputer(
             self, chunk_df, folder_name, target, data
     ):
