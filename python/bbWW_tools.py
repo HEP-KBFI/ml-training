@@ -95,3 +95,35 @@ class bbWWLoader(HHDataLoader):
             path,
             input_tree
           )
+
+    def set_background_sample_info(self, path):
+      if 'ST' in path: return 'ST', 0
+      else:
+        return HHDataLoader.set_background_sample_info(self, path)
+
+    def nonresonant_data_imputer(
+            self, chunk_df, target, data
+    ):
+       if target == 1 and 'ggf' in folder_name:
+            for i in range(len(preferences['nonResScenarios'])):
+               chunk_df_node = chunk_df.copy()
+               scenario = preferences['nonResScenarios'][i]
+               chunk_df_node['nodeX'] = i
+               for idx, node in enumerate(preferences['nonResScenarios']):
+                 chunk_df_node[node] = 1 if idx == i else 0
+               chunk_df_node['nodeXname'] = scenario
+               if scenario is not "SM":
+                   nodeWeight = chunk_df_node['Weight_' + scenario]
+                   nodeWeight /= chunk_df_node['Weight_SM']
+                   chunk_df_node['totalWeight'] *= nodeWeight
+               data = data.append(chunk_df_node, ignore_index=True, sort=False)
+       else :
+          chunk_df_node = chunk_df.copy()
+          chunk_df_node['nodeXname'] = np.random.choice(preferences['nonResScenarios'], size=len(chunk_df_node))
+          for idx, node in enumerate(preferences['nonResScenarios']):
+            if len(chunk_df_node.loc[chunk_df_node['nodeXname'] == node]):
+                chunk_df_node.loc[chunk_df_node['nodeXname'] == node, node] = 1
+                chunk_df_node.loc[chunk_df_node['nodeXname'] != node, node] = 0
+                chunk_df_node.loc[chunk_df_node['nodeXname'] == node, 'nodeX'] = idx
+            data = data.append(chunk_df_node, ignore_index=True, sort=False)
+       return data
