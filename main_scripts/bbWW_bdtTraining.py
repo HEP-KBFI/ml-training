@@ -80,7 +80,7 @@ def split_data(global_settings, preferences):
     if os.path.exists(preferences['data_csv']):
         data = pandas.read_csv(preferences['data_csv'])
     else:
-        normalizer = hht.HHDataNormalizer
+        normalizer = bbwwt.bbWWDataNormalizer
         loader = bbwwt.bbWWLoader(
              normalizer,
              preferences,
