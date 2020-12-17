@@ -33,6 +33,7 @@ import pandas
 import numpy as np
 import json
 import subprocess
+from datetime import datetime
 try:
     import cPickle as pickle
 except ModuleNotFoundError:
@@ -65,6 +66,8 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
     if not BM=='None': 
       preferences["nonResScenarios"]=[BM]
       print ('BM point to be considered: ', BM)
+    if not era=='0': preferences['included_eras'] = [era.replace('20', '')]
+    print 'era=======', preferences['included_eras']
     preferences = define_trainvars(global_settings, preferences, info_dir)
     if hyperparameter_file == 'None':
         hyperparameter_file = os.path.join(info_dir, 'hyperparameters.json')
@@ -350,6 +353,7 @@ def define_trainvars(global_settings, preferences, info_dir):
      return preferences
 
 if __name__ == '__main__':
+    startTime = datetime.now()
     try:
         arguments = docopt.docopt(__doc__)
         output_dir = arguments['--output_dir']
@@ -364,3 +368,4 @@ if __name__ == '__main__':
         main('None', settings_dir, hyperparameter_file, debug)
     except docopt.DocoptExit as e:
         print(e)
+    print(datetime.now() - startTime)
