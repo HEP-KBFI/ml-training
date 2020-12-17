@@ -3,6 +3,7 @@ import os
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning.data_loader import DataLoader as dlt
 import numpy as np
+import pandas 
 
 class bbWWDataNormalizer(HHDataNormalizer):
    def __init__(self, data, preferences, global_settings):
