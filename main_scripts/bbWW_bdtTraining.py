@@ -9,7 +9,7 @@ Options:
     -s --settings_dir=DIR           Directory of the settings [default: None]
     -h --hyperparameter_file=PTH    Path to the hyperparameters file [default: None]
     -d --debug=BOOL                 Whether to debug the event classification [default: 0]
-    -channel --channel=INT          which channel to be considered [default: bb1l]
+    -channel --channel=INT          which channel to be considered [default: bb1l_bdt]
     -res_nonres --res_nonres=STR        res or nonres to be considered [default: nonres]
     -mode --mode=STR                resolved or boosted to be considered [default: resolved]
     -era --era=INT                  era to be processed [default: 2016]
