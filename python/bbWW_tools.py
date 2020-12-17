@@ -1,8 +1,46 @@
-from machineLearning.machineLearning.hh_tools import HHDataLoader
+from machineLearning.machineLearning.hh_tools import HHDataLoader, HHDataNormalizer
 import os
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning.data_loader import DataLoader as dlt
+import numpy as np
 
+class bbWWDataNormalizer(HHDataNormalizer):
+   def __init__(self, data, preferences, global_settings):
+      print("Using bbWWDataNormalizer")
+      super(bbWWDataNormalizer, self).__init__(
+         data, preferences, global_settings
+       )
+
+   def normalization_step1(self):
+        if 'nonres' in self.global_settings['scenario']:
+            self.data.loc[(self.data['target'] == 1), [self.weight]] *= 1./float(
+                len(self.preferences['nonResScenarios']))
+            self.data.loc[(self.data['target'] == 0), [self.weight]] *= 1./float(
+                len(self.preferences['nonResScenarios']))
+        elif 'oversampling' in self.global_settings['bkg_mass_rand']:
+            self.data.loc[(self.data['target'] == 1), [self.weight]] *= 1./float(
+                len(self.preferences['masses']))
+            self.data.loc[(self.data['target'] == 0), [self.weight]] *= 1./float(
+                len(self.preferences['masses']))
+        if 'SUM_HH' in self.global_settings['bdtType']:
+         sample_normalizations = self.preferences['tauID_application']
+         for sample in sample_normalizations.keys():
+            sample_name = sample.replace('datacard', '')
+            sample_weights = self.data.loc[self.data['process'] == sample_name, [self.weight]]
+            sample_factor = sample_normalizations[sample]/sample_weights.sum()
+            self.data.loc[self.data['process'] == sample_name, [self.weight]] *= sample_factor
+        sumall = self.data.loc[self.data["process"] == "TT"]["totalWeight"].sum() \
+        + self.data.loc[self.data["process"] == "W"]["totalWeight"].sum() \
+        + self.data.loc[self.data["process"] == "DY"]["totalWeight"].sum() \
+        + self.data.loc[self.data["process"] == "ST"]["totalWeight"].sum() \
+        + self.data.loc[self.data["process"] == "Other"]["totalWeight"].sum()
+        print(
+            "TT:W:DY:ST \t" \
+            + str(self.data.loc[self.data["process"] == "TT"]["totalWeight"].sum()/sumall) \
+            + ":" + str(self.data.loc[self.data["process"] == "W"]["totalWeight"].sum()/sumall) \
+            + ":" + str(self.data.loc[self.data["process"] == "DY"]["totalWeight"].sum()/sumall) \
+            + ":" + str(self.data.loc[self.data["process"] == 'ST']["totalWeight"].sum()/sumall)
+        )
 class bbWWLoader(HHDataLoader):
     def __init__(
             self, data_normalizer, preferences, global_settings,
@@ -51,7 +89,7 @@ class bbWWLoader(HHDataLoader):
                 chunk_df, folder_name, target, data)
         else:
             data = self.nonresonant_data_imputer(
-                chunk_df, target, data)
+                chunk_df, folder_name, target, data)
         return data
 
     def get_ntuple_paths(self, input_path, folder_name, file_type='hadd*Tight.root'):
@@ -102,14 +140,14 @@ class bbWWLoader(HHDataLoader):
         return HHDataLoader.set_background_sample_info(self, path)
 
     def nonresonant_data_imputer(
-            self, chunk_df, target, data
+            self, chunk_df, folder_name, target, data
     ):
        if target == 1 and 'ggf' in folder_name:
-            for i in range(len(preferences['nonResScenarios'])):
+            for i in range(len(self.preferences['nonResScenarios'])):
                chunk_df_node = chunk_df.copy()
-               scenario = preferences['nonResScenarios'][i]
+               scenario = self.preferences['nonResScenarios'][i]
                chunk_df_node['nodeX'] = i
-               for idx, node in enumerate(preferences['nonResScenarios']):
+               for idx, node in enumerate(self.preferences['nonResScenarios']):
                  chunk_df_node[node] = 1 if idx == i else 0
                chunk_df_node['nodeXname'] = scenario
                if scenario is not "SM":
@@ -119,8 +157,8 @@ class bbWWLoader(HHDataLoader):
                data = data.append(chunk_df_node, ignore_index=True, sort=False)
        else :
           chunk_df_node = chunk_df.copy()
-          chunk_df_node['nodeXname'] = np.random.choice(preferences['nonResScenarios'], size=len(chunk_df_node))
-          for idx, node in enumerate(preferences['nonResScenarios']):
+          chunk_df_node['nodeXname'] = np.random.choice(self.preferences['nonResScenarios'], size=len(chunk_df_node))
+          for idx, node in enumerate(self.preferences['nonResScenarios']):
             if len(chunk_df_node.loc[chunk_df_node['nodeXname'] == node]):
                 chunk_df_node.loc[chunk_df_node['nodeXname'] == node, node] = 1
                 chunk_df_node.loc[chunk_df_node['nodeXname'] != node, node] = 0
