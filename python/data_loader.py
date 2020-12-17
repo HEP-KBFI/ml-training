@@ -176,7 +176,7 @@ class DataLoader(object):
             era_data['era'] = era
             data = data.append(era_data, ignore_index=True, sort=False)
         if self.global_settings['dataCuts'] != 0:
-            data = self.data_cutting()
+            data = self.data_cutting(data)
         self.print_nr_signal_bkg(data)
         return data
 
