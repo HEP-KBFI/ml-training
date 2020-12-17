@@ -136,14 +136,14 @@ class HHDataLoader(DataLoader):
             bkg_elements = background_categories[folder_name]
             for bkg_element in bkg_elements:
                 bkg_element_paths = self.find_paths_both_conventions(
-                    input_path, bkg_element, file_type=file_type)
+                    input_path, bkg_element, file_type=file_type + '.root')
                 print('--------------')
                 print(bkg_element)
                 print(bkg_element_paths)
                 paths.extend(bkg_element_paths)
         else:
             paths = self.find_paths_both_conventions(
-                input_path, folder_name + '*', file_type=file_type)
+                input_path, folder_name + '*', file_type=file_type + '.root')
         return paths
 
     def find_paths_both_conventions(
@@ -153,11 +153,11 @@ class HHDataLoader(DataLoader):
         the main directory of the ntuples and the sample name to search for.
         """
         wild_card_path = os.path.join(
-            input_path, folder_name, 'central', file_type + '.root')
+            input_path, folder_name, 'central', file_type)
         paths = glob.glob(wild_card_path)
         if len(paths) == 0:
             wild_card_path = os.path.join(
-                input_path, folder_name, file_type + '.root')
+                input_path, folder_name, file_type)
             paths = glob.glob(wild_card_path)
         return paths
 

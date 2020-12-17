@@ -3,13 +3,13 @@ Call with 'python'
 
 Usage:
     trainvar_optimization.py
-    trainvar_optimization.py [--corr_threshold=FLOAT --min_nr_trainvars=INT --step_size=INT]
+    trainvar_optimization.py [--corr_threshold=FLOAT --min_nr_trainvars=INT --step_size=INT --bbww=INT]
 
 Options:
     -c --corr_threshold=FLOAT       Threshold from which trainvar is dropped [default: 0.8]
     -n --min_nr_trainvars=INT       Number trainvars to end up with [default: 10]
     -s --step_size=INT              Number of trainvars dropped per iteration [default: 5]
-
+    -bbww --bbww=INT                it is for bbww or multilepton channel [default: 0]
 """
 import shutil
 import os
@@ -19,23 +19,32 @@ from machineLearning.machineLearning import hh_parameter_reader as hpr
 from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import data_loader as dl
 from machineLearning.machineLearning import xgb_tools as xt
+from machineLearning.machineLearning import bbWW_tools as bbwwt
 import numpy as np
 import docopt
 
 
-def prepare_data():
+def prepare_data(bbww=0):
     channel_dir, info_dir, global_settings = ut.find_settings()
     trainvars_path = os.path.join(info_dir, 'trainvars.json')
     all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
     shutil.copy(all_trainvars_path, trainvars_path)
     scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
-    normalizer = hht.HHDataNormalizer
-    loader = hht.HHDataLoader(
-        normalizer,
-        preferences,
-        global_settings
-    )
+    preferences = reader.parameters
+    normalizer = hht.HHDataNormalizer if not bbww else bbwwt.bbWWDataNormalizer
+    if not bbww:
+      loader = hht.HHDataLoader(
+         normalizer,
+         preferences,
+         global_settings
+      )
+    else:
+      loader = bbwwt.bbWWLoader(
+          normalizer,
+          preferences,
+          global_settings
+      )
     data = loader.data
     return data, preferences, global_settings, trainvars_path
 
@@ -148,8 +157,8 @@ def drop_highly_currelated_variables(data, trainvars_initial, corr_threshold):
     return trainvars
 
 
-def main(corr_threshold, min_nr_trainvars, step_size):
-    data, preferences, global_settings, trainvars_path = prepare_data()
+def main(corr_threshold, min_nr_trainvars, step_size, bbww):
+    data, preferences, global_settings, trainvars_path = prepare_data(bbww)
     cmssw_base = os.path.expandvars('$CMSSW_BASE')
     hyperparameter_file = os.path.join(
         cmssw_base,
@@ -216,6 +225,7 @@ if __name__ == '__main__':
         corr_threshold = float(arguments['--corr_threshold'])
         min_nr_trainvars = int(arguments['--min_nr_trainvars'])
         step_size = int(arguments['--step_size'])
-        main(corr_threshold, min_nr_trainvars, step_size)
+        bbww = int(arguments['--bbww'])
+        main(corr_threshold, min_nr_trainvars, step_size, bbww)
     except docopt.DocoptExit as e:
         print(e)

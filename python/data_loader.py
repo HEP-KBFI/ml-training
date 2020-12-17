@@ -36,7 +36,6 @@ class DataLoader(object):
         for drop in self.to_be_dropped:
             if drop in self.to_be_loaded:
                 self.to_be_loaded.remove(drop)
-
     def update_to_be_dropped_list(self, process):
         raise NotImplementedError(
             'Please implement creating to_be_dropped list step for your class'
@@ -177,7 +176,7 @@ class DataLoader(object):
             era_data['era'] = era
             data = data.append(era_data, ignore_index=True, sort=False)
         if self.global_settings['dataCuts'] != 0:
-            data = self.data_cutting()
+            data = self.data_cutting(data)
         self.print_nr_signal_bkg(data)
         return data
 
@@ -194,7 +193,7 @@ class DataLoader(object):
                 data = data.append(folder_data, ignore_index=True, sort=False)
         return data
 
-    def data_cutting(self):
+    def data_cutting(self, data):
         package_dir = os.path.join(
             os.path.expandvars('$CMSSW_BASE'),
             'src/machineLearning/machineLearning/'
@@ -226,17 +225,17 @@ class DataLoader(object):
                 for key in cut_keys:
                     try:
                         min_value = cut_dict[key]['min']
-                        self.data = self.data.loc[(self.data[key] >= min_value)]
+                        data = data.loc[(data[key] >= min_value)]
                     except KeyError:
                         print('Minimum condition for %s not implemented' % key)
                     try:
                         max_value = cut_dict[key]['max']
-                        self.data = self.data.loc[(self.data[key] <= max_value)]
+                        data = data.loc[(data[key] <= max_value)]
                     except KeyError:
                         print('Maximum condition for %s not implemented' % key)
         else:
             print('Cut file %s does not exist' % cut_file)
-        return self.data
+        return data
 
     def print_info(self):
         """Prints the data loading preferences info"""
