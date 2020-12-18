@@ -48,6 +48,7 @@ class TrainvarOptimizer(object):
             trainvars = self.drop_worst_performing_ones(
                 feature_importances, trainvars
             )
+        del data_dict
         return trainvars
 
     def drop_not_used_variables(self, feature_importances, trainvars):
@@ -170,6 +171,7 @@ class TrainvarOptimizer(object):
                         "Removing " + str(item) + ". Correlation with "
                         + str(trainvar) + " is " + str(corr_value)
                     )
+        del correlations
         return trainvars
 
     def update_trainvars(self, trainvars):
@@ -290,6 +292,7 @@ class TrainvarOptimizer(object):
                 feature_importances.items(), key=lambda x: -x[1]
             )
         ]
+        del data_dict
         return ordered_features
 
     def feature_drop_tracking(self, step_name, feature, value, finished=False):
@@ -363,14 +366,16 @@ class XGBTrainvar_optimizer(TrainvarOptimizer):
             'auc', self.weight
         )
         feature_importances = model.get_booster().get_fscore()
+        del model
         return feature_importances
 
 
 class NNTrainvarOptimizer(TrainvarOptimizer):
     """ The neural network flavor wrapper for the TrainvarOptimizer"""
     def __init__(
-            self, data, preferences, global_settings, corr_threshold=0.8,
-            min_nr_trainvars=10, step_size=5, weight='totalWeight'
+            self, data, preferences, global_settings, hyperparameters,
+            corr_threshold=0.8, min_nr_trainvars=10, step_size=5,
+            weight='totalWeight'
     ):
         """ Initializes the neural net version of the trainvar optimizer
 
@@ -405,3 +410,28 @@ class NNTrainvarOptimizer(TrainvarOptimizer):
         model = 'foobar'
         feature_importances = 'bar'
         return feature_importances
+
+
+class LBNTrainvarOptimizer(TrainvarOptimizer):
+    """ The Lorentz Boost Network flavor wrapper for the TrainvarOptimizer"""
+    def __init__(
+            self, data, preferences, global_settings, hyperparameters,
+            corr_threshold=0.8, min_nr_trainvars=10, step_size=5,
+            weight='totalWeight'
+    ):
+        """ Initializes the Lorentz Boost Network version of the trainvar
+        optimizer
+
+        Args:
+            data: pandas.DataFrame
+                Dataframe containing the full data
+            preferences: dict
+                Dictionary containing the preferences for a given scenario
+            global_settings: dict
+                Dictionary containing the preferences for the given run
+        """
+        super(XGBTrainvar_optimizer, self).__init__(
+            data, preferences, global_settings, corr_threshold,
+            min_nr_trainvars, step_size, weight
+        )
+        self.hyperparameters = hyperparameters

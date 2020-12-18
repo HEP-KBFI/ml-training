@@ -19,8 +19,8 @@ from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_parameter_reader as hpr
 from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import data_loader as dl
-from machineLearning.machineLearning import xgb_tools as xt
 from machineLearning.machineLearning import bbWW_tools as bbwwt
+from machineLearning.machineLearning import trainvar_optimization_tools as tot
 import numpy as np
 import docopt
 
@@ -66,9 +66,22 @@ def prepare_data(analysis):
 def main(corr_threshold, min_nr_trainvars, step_size, analysis):
     data, preferences, global_settings, trainvars_path = prepare_data(analysis)
     if global_settings['ml_method'] == 'xgb':
-        optimizer = XGBTrainvar_optimizer(
-            data, preferences, global_settings, preferences['hyperparameters'])
+        optimizer = tot.XGBTrainvarOptimizer(
+            data, preferences, global_settings, preferences['hyperparameters'],
+            corr_threshold, min_nr_trainvars, step_size, 'totalWeight'
+        )
+    elif global_settings['ml_method'] == 'nn':
+        optimizer = tot.NNTrainvarOptimizer(
+            data, preferences, global_settings, preferences['hyperparameters'],
+            corr_threshold, min_nr_trainvars, step_size, 'totalWeight'
+        )
+    elif global_settings['ml_method'] == 'lbn':
+        optimizer = tot.LBNTrainvarOptimizer(
+            data, preferences, global_settings, preferences['hyperparameters'],
+            corr_threshold, min_nr_trainvars, step_size, 'totalWeight'
+        )
         optimizer.optimization_collector()
+
 
 if __name__ == '__main__':
     try:
