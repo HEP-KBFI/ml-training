@@ -12,24 +12,18 @@ Options:
     -a --analysis=STR               Options: 'hh-bbWW', 'hh-multilepton' [default:hh-multilepton]
 
 """
-import shutil
 import os
 import json
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_parameter_reader as hpr
 from machineLearning.machineLearning import hh_tools as hht
-from machineLearning.machineLearning import data_loader as dl
 from machineLearning.machineLearning import bbWW_tools as bbwwt
 from machineLearning.machineLearning import trainvar_optimization_tools as tot
-import numpy as np
 import docopt
 
 
 def prepare_data(analysis):
     channel_dir, info_dir, global_settings = ut.find_settings()
-    trainvars_path = os.path.join(info_dir, 'trainvars.json')
-    all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
-    shutil.copy(all_trainvars_path, trainvars_path)
     scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
     preferences = reader.parameters
@@ -78,7 +72,8 @@ def main(corr_threshold, min_nr_trainvars, step_size, analysis):
     elif global_settings['ml_method'] == 'lbn':
         optimizer = tot.LBNTrainvarOptimizer(
             data, preferences, global_settings, preferences['hyperparameters'],
-            corr_threshold, min_nr_trainvars, step_size, 'totalWeight'
+            particles, corr_threshold, min_nr_trainvars, step_size,
+            'totalWeight'
         )
         optimizer.optimization_collector()
 

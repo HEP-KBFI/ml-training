@@ -6,6 +6,7 @@ import json
 import os
 from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import xgb_tools as xt
+from machineLearning.machineLearning import nn_tools as nt
 
 
 class TrainvarOptimizer(object):
@@ -407,8 +408,11 @@ class NNTrainvarOptimizer(TrainvarOptimizer):
                 Dictionary containining the feature names as keys and the
                 importance score as the value for the feature.
         """
-        model = 'foobar'
-        feature_importances = 'bar'
+        importance_calculator = nt.NNFeatureImportances(
+            self.model, self.data, self.trainvars, self.weight,
+            self.target, permutations=self.permutations
+        )
+        feature_importances = importance_calculator.permutation_importance()
         return feature_importances
 
 
@@ -416,7 +420,7 @@ class LBNTrainvarOptimizer(TrainvarOptimizer):
     """ The Lorentz Boost Network flavor wrapper for the TrainvarOptimizer"""
     def __init__(
             self, data, preferences, global_settings, hyperparameters,
-            corr_threshold=0.8, min_nr_trainvars=10, step_size=5,
+            particles, corr_threshold=0.8, min_nr_trainvars=10, step_size=5,
             weight='totalWeight'
     ):
         """ Initializes the Lorentz Boost Network version of the trainvar
@@ -434,4 +438,28 @@ class LBNTrainvarOptimizer(TrainvarOptimizer):
             data, preferences, global_settings, corr_threshold,
             min_nr_trainvars, step_size, weight
         )
+        self.particles = particles
         self.hyperparameters = hyperparameters
+
+    def get_feature_importances(self, data_dict):
+        """ Stub for get_feature_importances
+
+        Args:
+            data_dict: dict
+                Contains the keys 'train' with the data to be used for creating
+                the model, and 'trainvars' with the list of features to be
+                used from this data
+
+        Returns:
+            feature_importances: dict
+                Dictionary containining the feature names as keys and the
+                importance score as the value for the feature.
+        """
+        importance_calculator = nt.LBNFeatureImportances(
+            self.model, self.data, self.trainvars, self.weight,
+            self.target, self.particles,
+            permutations=self.permutations
+        )
+        feature_importances = importance_calculator.permutation_importance()
+        return feature_importances
+

@@ -353,8 +353,7 @@ class NNFeatureImportances(object):
     """ Class for finding the feature importances for NN or LBN models"""
     def __init__(
             self, model, data, trainvars, weight='evtWeight',
-            target='multitarget', particles=None,
-            permutations=5
+            target='multitarget', permutations=5
     ):
         self.model = model
         self.trainvars = trainvars
@@ -365,9 +364,8 @@ class NNFeatureImportances(object):
         self.data = data[trainvars]
         self.data_dict = data_dict
         self.permutations = permutations
-        self.particles = particles
 
-    def custom_permutation_importance(self):
+    def permutation_importance(self):
         print('Starting permutation importance')
         score_dict = {}
         prediction = self.predict_from_model(self.data)
