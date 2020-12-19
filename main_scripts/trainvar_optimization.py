@@ -3,7 +3,7 @@ Call with 'python'
 
 Usage:
     trainvar_optimization.py
-    trainvar_optimization.py [--corr_threshold=FLOAT --min_nr_trainvars=INT --step_size=INT --bbww=INT]
+    trainvar_optimization.py [--corr_threshold=FLOAT --min_nr_trainvars=INT --step_size=INT --analysis=STR]
 
 Options:
     -c --corr_threshold=FLOAT       Threshold from which trainvar is dropped [default: 0.8]
@@ -75,7 +75,9 @@ def main(corr_threshold, min_nr_trainvars, step_size, analysis):
             particles, corr_threshold, min_nr_trainvars, step_size,
             'totalWeight'
         )
-        optimizer.optimization_collector()
+    else:
+        raise NotImplementedError('Given ml_method is not implemented')
+    optimizer.optimization_collector()
 
 
 if __name__ == '__main__':
