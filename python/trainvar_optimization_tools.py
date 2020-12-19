@@ -342,7 +342,7 @@ class XGBTrainvarOptimizer(TrainvarOptimizer):
             global_settings: dict
                 Dictionary containing the preferences for the given run
         """
-        super(XGBTrainvar_optimizer, self).__init__(
+        super(XGBTrainvarOptimizer, self).__init__(
             data, preferences, global_settings, corr_threshold,
             min_nr_trainvars, step_size, weight
         )
