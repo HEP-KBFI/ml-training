@@ -244,7 +244,7 @@ class TrainvarOptimizer(object):
                 The path to the trainvars.json file of the given scenario
         """
         cmssw_base = os.path.expandvars('$CMSSW_BASE')
-        scenario = global_settings['scenario']
+        scenario = self.global_settings['scenario']
         scenario = 'res/' + scenario if 'nonres' not in scenario else scenario
         scenario_dir = os.path.join(
             cmssw_base, 'src/machineLearning/machineLearning/info',
