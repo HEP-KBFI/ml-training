@@ -30,9 +30,9 @@ def prepare_data(analysis):
     if analysis == 'HHmultilepton':
         normalizer = hht.HHDataNormalizer
         loader = hht.HHDataLoader(
-         normalizer,
-         preferences,
-         global_settings
+            normalizer,
+            preferences,
+            global_settings
         )
     elif analysis == 'HHbbWW':
         normalizer = bbwwt.bbWWDataNormalizer
@@ -42,7 +42,7 @@ def prepare_data(analysis):
             global_settings
         )
     data = loader.data
-    scenario = global_settings['scnenario']
+    scenario = global_settings['scenario']
     scenario = scenario if 'nonres' in scenario else 'res/' + scenario
     hyperparameters_file = os.path.join(
         os.path.expandvars('$CMSSW_BASE'),
@@ -53,7 +53,7 @@ def prepare_data(analysis):
         'hyperparameters.json'
     )
     with open(hyperparameters_file, 'rt') as in_file:
-        preferences['hyperparameters'] = json.loads(in_file)
+        preferences['hyperparameters'] = json.load(in_file)
     return data, preferences, global_settings, trainvars_path
 
 
