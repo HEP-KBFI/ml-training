@@ -229,9 +229,13 @@ class TrainvarOptimizer(object):
         with open(trainvars_file, 'wt') as outfile:
             for trainvar in self.trainvars:
                 trainvar_info = self.preferences['all_trainvar_info']
+                if trainvar in trainvar_info.keys():
+                    true_int = trainvar_info[trainvar]
+                else:
+                    true_int = 1
                 trainvar_dict = {
                     'key': trainvar,
-                    'true_int': trainvar_info[trainvar]
+                    'true_int': true_int
                 }
                 json.dump(trainvar_dict, outfile)
                 outfile.write('\n')
