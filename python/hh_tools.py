@@ -247,7 +247,7 @@ class HHDataLoader(DataLoader):
                         node_weight = chunk_df_node['Weight_' + scenario]
                     node_weight /= chunk_df_node['Weight_SM']
                     chunk_df_node['totalWeight'] *= node_weight
-            data = data.append(chunk_df_node, ignore_index=True, sort=False)
+        data = data.append(chunk_df_node, ignore_index=True, sort=False)
         return data
 
     def data_reweighing(
