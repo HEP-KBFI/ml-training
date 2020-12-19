@@ -228,7 +228,7 @@ class TrainvarOptimizer(object):
         """
         with open(trainvars_file, 'wt') as outfile:
             for trainvar in self.trainvars:
-                trainvar_info = self.preferences['trainvar_info']
+                trainvar_info = self.preferences['all_trainvar_info']
                 trainvar_dict = {
                     'key': trainvar,
                     'true_int': trainvar_info[trainvar]
