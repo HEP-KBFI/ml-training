@@ -54,11 +54,11 @@ def prepare_data(analysis):
     )
     with open(hyperparameters_file, 'rt') as in_file:
         preferences['hyperparameters'] = json.load(in_file)
-    return data, preferences, global_settings, trainvars_path
+    return data, preferences, global_settings
 
 
 def main(corr_threshold, min_nr_trainvars, step_size, analysis):
-    data, preferences, global_settings, trainvars_path = prepare_data(analysis)
+    data, preferences, global_settings = prepare_data(analysis)
     if global_settings['ml_method'] == 'xgb':
         optimizer = tot.XGBTrainvarOptimizer(
             data, preferences, global_settings, preferences['hyperparameters'],
@@ -66,14 +66,13 @@ def main(corr_threshold, min_nr_trainvars, step_size, analysis):
         )
     elif global_settings['ml_method'] == 'nn':
         optimizer = tot.NNTrainvarOptimizer(
-            data, preferences, global_settings, preferences['hyperparameters'],
-            corr_threshold, min_nr_trainvars, step_size, 'totalWeight'
+            data, preferences, global_settings, corr_threshold,
+            min_nr_trainvars, step_size, 'totalWeight'
         )
     elif global_settings['ml_method'] == 'lbn':
         optimizer = tot.LBNTrainvarOptimizer(
-            data, preferences, global_settings, preferences['hyperparameters'],
-            particles, corr_threshold, min_nr_trainvars, step_size,
-            'totalWeight'
+            data, preferences, global_settings, particles, corr_threshold,
+            min_nr_trainvars, step_size, 'totalWeight'
         )
     else:
         raise NotImplementedError('Given ml_method is not implemented')
