@@ -9,7 +9,7 @@ Options:
     -c --corr_threshold=FLOAT       Threshold from which trainvar is dropped [default: 0.8]
     -n --min_nr_trainvars=INT       Number trainvars to end up with [default: 10]
     -s --step_size=INT              Number of trainvars dropped per iteration [default: 5]
-    -a --analysis=STR               Options: 'hh-bbWW', 'hh-multilepton' [default:hh-multilepton]
+    -a --analysis=STR               Options: 'hh-bbWW', 'hh-multilepton' [default: HHmultilepton]
 
 """
 import os
@@ -27,14 +27,14 @@ def prepare_data(analysis):
     scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
     preferences = reader.parameters
-    if analysis == 'hh-multilepton':
+    if analysis == 'HHmultilepton':
         normalizer = hht.HHDataNormalizer
         loader = hht.HHDataLoader(
          normalizer,
          preferences,
          global_settings
         )
-    elif analysis == 'hh-bbWW':
+    elif analysis == 'HHbbWW':
         normalizer = bbwwt.bbWWDataNormalizer
         loader = bbwwt.bbWWLoader(
             normalizer,
@@ -86,7 +86,7 @@ if __name__ == '__main__':
         corr_threshold = float(arguments['--corr_threshold'])
         min_nr_trainvars = int(arguments['--min_nr_trainvars'])
         step_size = int(arguments['--step_size'])
-        analysis = int(arguments['--analysis'])
+        analysis = arguments['--analysis']
         main(corr_threshold, min_nr_trainvars, step_size, analysis)
     except docopt.DocoptExit as e:
         print(e)
