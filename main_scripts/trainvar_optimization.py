@@ -54,6 +54,7 @@ def prepare_data(analysis):
     )
     with open(hyperparameters_file, 'rt') as in_file:
         preferences['hyperparameters'] = json.load(in_file)
+    preferences['trainvars'] = preferences['all_trainvar_info'].keys()
     return data, preferences, global_settings
 
 
