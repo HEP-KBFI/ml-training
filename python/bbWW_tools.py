@@ -1,18 +1,19 @@
-from machineLearning.machineLearning.hh_tools import HHDataLoader, HHDataNormalizer
 import os
+import numpy as np
+import pandas
+from machineLearning.machineLearning.hh_tools import HHDataLoader, HHDataNormalizer
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning.data_loader import DataLoader as dlt
-import numpy as np
-import pandas 
+
 
 class bbWWDataNormalizer(HHDataNormalizer):
-   def __init__(self, data, preferences, global_settings):
-      print("Using bbWWDataNormalizer")
-      super(bbWWDataNormalizer, self).__init__(
-         data, preferences, global_settings
-       )
+    def __init__(self, data, preferences, global_settings):
+        print("Using bbWWDataNormalizer")
+        super(bbWWDataNormalizer, self).__init__(
+            data, preferences, global_settings
+        )
 
-   def normalization_step1(self):
+    def normalization_step1(self):
         if 'nonres' in self.global_settings['scenario']:
             self.data.loc[(self.data['target'] == 1), [self.weight]] *= 1./float(
                 len(self.preferences['nonResScenarios']))
@@ -24,12 +25,12 @@ class bbWWDataNormalizer(HHDataNormalizer):
             self.data.loc[(self.data['target'] == 0), [self.weight]] *= 1./float(
                 len(self.preferences['masses']))
         if 'SUM_HH' in self.global_settings['bdtType']:
-         sample_normalizations = self.preferences['tauID_application']
-         for sample in sample_normalizations.keys():
-            sample_name = sample.replace('datacard', '')
-            sample_weights = self.data.loc[self.data['process'] == sample_name, [self.weight]]
-            sample_factor = sample_normalizations[sample]/sample_weights.sum()
-            self.data.loc[self.data['process'] == sample_name, [self.weight]] *= sample_factor
+            sample_normalizations = self.preferences['tauID_application']
+            for sample in sample_normalizations.keys():
+               sample_name = sample.replace('datacard', '')
+               sample_weights = self.data.loc[self.data['process'] == sample_name, [self.weight]]
+               sample_factor = sample_normalizations[sample]/sample_weights.sum()
+               self.data.loc[self.data['process'] == sample_name, [self.weight]] *= sample_factor
         sumall = self.data.loc[self.data["process"] == "TT"]["totalWeight"].sum() \
         + self.data.loc[self.data["process"] == "W"]["totalWeight"].sum() \
         + self.data.loc[self.data["process"] == "DY"]["totalWeight"].sum() \
@@ -96,7 +97,7 @@ class bbWWLoader(HHDataLoader):
     def get_ntuple_paths(self, input_path, folder_name, file_type='hadd*Tight.root'):
         paths = []
         background_catfile = os.path.join(
-             os.path.expandvars('$CMSSW_BASE'),
+            os.path.expandvars('$CMSSW_BASE'),
             'src/machineLearning/machineLearning/info',
             'HH',
             'background_categories.json'
@@ -149,12 +150,7 @@ class bbWWLoader(HHDataLoader):
         return total_data
 
     def load_data_from_tfile(
-        self,
-        process,
-        folder_name,
-        target,
-        path,
-        input_tree
+            self, process, folder_name, target, path, input_tree
     ):
         if 'TT' in folder_name:
             self.nr_events_per_file = 3000000
@@ -199,7 +195,7 @@ class bbWWLoader(HHDataLoader):
                     nodeWeight /= chunk_df_node['Weight_SM']
                     chunk_df_node['totalWeight'] *= nodeWeight
                 data = data.append(chunk_df_node, ignore_index=True, sort=False)
-        else :
+        else:
             chunk_df_node = chunk_df.copy()
             chunk_df_node['nodeXname'] = np.random.choice(
                 self.preferences['nonResScenarios'], size=len(chunk_df_node))
