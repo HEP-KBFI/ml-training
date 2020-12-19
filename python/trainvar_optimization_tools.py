@@ -325,7 +325,7 @@ class TrainvarOptimizer(object):
 
     # Add tracking and at which step dropped
 
-class XGBTrainvar_optimizer(TrainvarOptimizer):
+class XGBTrainvarOptimizer(TrainvarOptimizer):
     """ The XGBoost flavor wrapper for the TrainvarOptimizer"""
     def __init__(
             self, data, preferences, global_settings, hyperparameters,
@@ -419,8 +419,8 @@ class NNTrainvarOptimizer(TrainvarOptimizer):
 class LBNTrainvarOptimizer(TrainvarOptimizer):
     """ The Lorentz Boost Network flavor wrapper for the TrainvarOptimizer"""
     def __init__(
-            self, data, preferences, global_settings, hyperparameters,
-            particles, corr_threshold=0.8, min_nr_trainvars=10, step_size=5,
+            self, data, preferences, global_settings, particles,
+            corr_threshold=0.8, min_nr_trainvars=10, step_size=5,
             weight='totalWeight'
     ):
         """ Initializes the Lorentz Boost Network version of the trainvar
@@ -439,7 +439,7 @@ class LBNTrainvarOptimizer(TrainvarOptimizer):
             min_nr_trainvars, step_size, weight
         )
         self.particles = particles
-        self.hyperparameters = hyperparameters
+
 
     def get_feature_importances(self, data_dict):
         """ Stub for get_feature_importances
