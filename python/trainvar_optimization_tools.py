@@ -22,7 +22,7 @@ class TrainvarOptimizer(object):
         self.corr_threshold = corr_threshold
         self.min_nr_trainvars = min_nr_trainvars
         self.step_size = step_size
-        self.tracker = []
+        self.tracker = {}
         self.weight = weight
 
     def optimization(self, trainvars):
@@ -41,18 +41,22 @@ class TrainvarOptimizer(object):
                 requested size of 'min_nr_trainvars'
         """
         data_dict = {'train': self.data, 'trainvars': trainvars}
+        iteration = 0
         while len(trainvars) > self.min_nr_trainvars:
             feature_importances = self.get_feature_importances(data_dict)
             trainvars = self.drop_not_used_variables(
-                feature_importances, trainvars
+                feature_importances, trainvars, iteration
             )
             trainvars = self.drop_worst_performing_ones(
-                feature_importances, trainvars
+                feature_importances, trainvars, iteration
             )
+            iteration += 1
         del data_dict
         return trainvars
 
-    def drop_not_used_variables(self, feature_importances, trainvars):
+    def drop_not_used_variables(
+            self, feature_importances, trainvars, iteration
+    ):
         """ Drops the trainvars that weren't used in the training at all
 
         Args:
@@ -60,6 +64,8 @@ class TrainvarOptimizer(object):
                 Dictionary containing the feature importance of each trainvar
             trainvars: list
                 The list of trainvars that were used for creating the model
+            iteration: int
+                Number of the iteration
         """
         used_features = feature_importances.keys()
         for trainvar in trainvars:
@@ -69,10 +75,16 @@ class TrainvarOptimizer(object):
                         print(
                             'Removing  -- %s -- due to it not being used at \
                             all' %(trainvar))
+                        self.feature_drop_tracking(
+                            'optimization_%s' % iteration, trainvar,
+                            feature_importances[trainvar], feature_importances
+                        )
                         trainvars.remove(trainvar)
         return trainvars
 
-    def drop_worst_performing_ones(self, feature_importances, trainvars):
+    def drop_worst_performing_ones(
+            self, feature_importances, trainvars, iteration
+    ):
         """ Drops the least performing trainvars by the given step size
 
         Args:
@@ -80,6 +92,8 @@ class TrainvarOptimizer(object):
                 Dictionary containing the feature importance of each trainvar
             trainvars: list
                 The list of trainvars that were used for creating the model
+            iteration: int
+                Number of the iteration
         """
         if 'nonres' in self.global_settings['scenario']:
             BM_in_trainvars = False
@@ -99,8 +113,9 @@ class TrainvarOptimizer(object):
                 keys.append('sumBM')
                 feature_importances['sumBM'] = sumBM
                 values = [feature_importances[key] for key in keys]
-                if len(keys) < (min_nr_trainvars + step_size):
+                if len(keys) <= (min_nr_trainvars + step_size):
                     step_size = len(trainvars) - self.min_nr_trainvars
+                    finished = True
                 index = np.argpartition(values, self.step_size)[:step_size]
                 n_worst_performing = np.array(keys)[index]
                 for element in n_worst_performing:
@@ -108,19 +123,32 @@ class TrainvarOptimizer(object):
                         print('Removing benchmark scenarios')
                         for nonRes_scenario in preferences['nonResScenarios']:
                             trainvars.remove(nonRes_scenario)
+                        self.feature_drop_tracking(
+                            'optimization_%s' % iteration, element,
+                            feature_importances[element], feature_importances,
+
+                        )
                     else:
                         print('Removing ' + str(element))
+                        self.feature_drop_tracking(
+                            'optimization_%s' % iteration, element,
+                            feature_importances[element], feature_importances
+                        )
                         trainvars.remove(element)
             else:
                 trainvars = self.remove_nonBM_trainvars(
-                    trainvars, feature_importances
+                    trainvars, feature_importances, iteration
                 )
         else:
             trainvars = self.remove_nonBM_trainvars(
-                trainvars, feature_importances)
+                trainvars, feature_importances, iteration)
+        if finished:
+            self.feature_drop_tracking('', '', '', '', finished=True)
         return trainvars
 
-    def remove_nonBM_trainvars(self, trainvars, feature_importances):
+    def remove_nonBM_trainvars(
+            self, trainvars, feature_importances, iteration
+    ):
         """ Removes the least performing features from the list for the case
         if the trainvar does not belong to the nonResScenarios.
 
@@ -142,6 +170,10 @@ class TrainvarOptimizer(object):
         n_worst_performing = keys[index]
         for element in n_worst_performing:
             print('Removing ' + str(element))
+            self.feature_drop_tracking(
+                'optimization_%s' % iteration, element,
+                feature_importances[element], feature_importances
+            )
             trainvars.remove(element)
         return trainvars
 
@@ -171,6 +203,10 @@ class TrainvarOptimizer(object):
                     print(
                         "Removing " + str(item) + ". Correlation with "
                         + str(trainvar) + " is " + str(corr_value)
+                    )
+                    self.feature_drop_tracking(
+                        'optimization_%s' % iteration, item,
+                        {}, {}
                     )
         del correlations
         return trainvars
@@ -300,7 +336,10 @@ class TrainvarOptimizer(object):
         del data_dict
         return ordered_features
 
-    def feature_drop_tracking(self, step_name, feature, value, finished=False):
+    def feature_drop_tracking(
+            self, step_name, feature, value, feature_importances,
+            finished=False
+    ):
         """ Tracks the dropping of the features & saves the trackinginfo to
         a file when the optimization is finished
 
@@ -314,8 +353,26 @@ class TrainvarOptimizer(object):
             finished: bool
                 [default: False] Whether the optimization is finished
         """
-        print('foobar')
-
+        if not finished:
+            tracking= {
+                'feature': feature,
+                'feature_importance': value
+            }
+            if step_name not in self.tracker.keys():
+                self.tracker[step_name] = {
+                    'feature_importances': feature_importances,
+                    'dropped': [tracking]
+                }
+            else:
+                self.tracker[step_name]['dropped'].append(tracking)
+        else:
+            tracking_file = os.path.join(
+                os.path.expandvars(self.global_settings['output_dir']),
+                'trainvarOpt_tracking.log'
+            )
+            with open(tracking_file, 'wt') as out_file:
+                for track in self.tracker:
+                    out_file.write(track + '\n')
 
     def optimization_collector(self):
         """ Collects all the necessary components of the trainvar optimization
@@ -327,7 +384,6 @@ class TrainvarOptimizer(object):
         trainvars_file = self.set_outfile_path()
         self.save_optimized_trainvars(trainvars_file)
 
-    # Add tracking and at which step dropped
 
 class XGBTrainvarOptimizer(TrainvarOptimizer):
     """ The XGBoost flavor wrapper for the TrainvarOptimizer"""
