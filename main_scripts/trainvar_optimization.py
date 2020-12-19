@@ -27,6 +27,7 @@ def prepare_data(analysis):
     scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
     preferences = reader.parameters
+    preferences['trainvars'] = preferences['all_trainvar_info'].keys()
     if analysis == 'HHmultilepton':
         normalizer = hht.HHDataNormalizer
         loader = hht.HHDataLoader(
@@ -54,7 +55,6 @@ def prepare_data(analysis):
     )
     with open(hyperparameters_file, 'rt') as in_file:
         preferences['hyperparameters'] = json.load(in_file)
-    preferences['trainvars'] = preferences['all_trainvar_info'].keys()
     return data, preferences, global_settings
 
 
