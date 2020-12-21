@@ -31,6 +31,13 @@ from machineLearning.machineLearning import multiclass_tools as mt
 from machineLearning.machineLearning.visualization import hh_visualization_tools as hhvt
 import cmsml
 
+tf.config.threading.set_intra_op_parallelism_threads(4)
+tf.config.threading.set_inter_op_parallelism_threads(4)
+
+PARTICLE_INFO = low_level_object = {
+    'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "lep"],
+    'bb2l': ["bjet1", "bjet2", "lep1", "lep2"]
+}
 
 def plot_confusion_matrix(cm, class_names, output_dir):
     figure = plt.figure(figsize=(4, 4))
@@ -91,13 +98,24 @@ def main(output_dir, save_model):
     if global_settings['ml_method'] != 'lbn' and global_settings['feature_importance'] == 1:
         trainvars = preferences['trainvars']
         data = data_dict['odd_data']
-        score_dict = nt.custom_permutation_importance(
-            even_model, data[trainvars], data['evtWeight'],
-            trainvars, data['multitarget']
+        importance_calculator = nt.NNFeatureImportances(
+            even_model, data, trainvars, weight='evtWeight',
+            target='multitarget'
         )
-    else:
-        score_dict = nt.lbn_feature_importances(
-            even_model, data_dict, preferences['trainvars'])
+        score_dict = importance_calculator.permutation_importance()
+    elif global_settings['feature_importance'] == 1:
+        raise NotImplementedError(
+            'Please implement the LBN part to be used with the LBN feature'
+            'importances'
+        )
+        trainvars = preferences['trainvars']
+        data = data_dict['odd_data']
+        particles = PARTICLE_INFO[global_settings['channel']]
+        importance_calculator = nt.LBNFeatureImportances(
+            even_model, data, particles, trainvars, weight='evtWeight',
+            target='multitarget'
+        )
+        score_dict = importance_calculator.permutation_importance()
     hhvt.plot_feature_importances_from_dict(
         score_dict, global_settings['output_dir'])
     hhvt.plotROC(

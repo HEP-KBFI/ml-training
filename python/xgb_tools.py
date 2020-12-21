@@ -148,3 +148,6 @@ def model_evaluation_main(
     score, train, test = evaluate_model(
         data_dict, global_settings, model)
     return score, train, test
+
+# Note: When loading the data to pass to the class, all_trainvars.json is
+#       needed to be used
