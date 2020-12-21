@@ -51,6 +51,7 @@ class TrainvarOptimizer(object):
                 feature_importances, trainvars, iteration
             )
             iteration += 1
+        self.feature_drop_tracking('', '', '', '', finished=True)
         del data_dict
         return trainvars
 
@@ -95,7 +96,6 @@ class TrainvarOptimizer(object):
             iteration: int
                 Number of the iteration
         """
-        finished = False
         if 'nonres' in self.global_settings['scenario']:
             BM_in_trainvars = False
             for nonRes_scenario in self.preferences['nonResScenarios']:
@@ -116,7 +116,6 @@ class TrainvarOptimizer(object):
                 values = [feature_importances[key] for key in keys]
                 if len(keys) <= (min_nr_trainvars + step_size):
                     step_size = len(trainvars) - self.min_nr_trainvars
-                    finished = True
                 index = np.argpartition(values, self.step_size)[:step_size]
                 n_worst_performing = np.array(keys)[index]
                 for element in n_worst_performing:
@@ -143,8 +142,6 @@ class TrainvarOptimizer(object):
         else:
             trainvars = self.remove_nonBM_trainvars(
                 trainvars, feature_importances, iteration)
-        if finished:
-            self.feature_drop_tracking('', '', '', '', finished=True)
         return trainvars
 
     def remove_nonBM_trainvars(
