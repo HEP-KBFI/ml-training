@@ -365,7 +365,7 @@ class TrainvarOptimizer(object):
                 self.tracker[step_name]['dropped'].append(tracking)
         else:
             output_dir = os.path.expandvars(self.global_settings['output_dir'])
-            if not os.path.exists:
+            if not os.path.exists(output_dir):
                 os.makedirs(output_dir)
             tracking_file = os.path.join(output_dir, 'trainvarOpt.log')
             with open(tracking_file, 'wt') as out_file:
