@@ -71,6 +71,7 @@ def main(corr_threshold, min_nr_trainvars, step_size, analysis):
             min_nr_trainvars, step_size, 'totalWeight'
         )
     elif global_settings['ml_method'] == 'lbn':
+        raise NotImplementedError('LBN particles still needed to be done')
         optimizer = tot.LBNTrainvarOptimizer(
             data, preferences, global_settings, particles, corr_threshold,
             min_nr_trainvars, step_size, 'totalWeight'
