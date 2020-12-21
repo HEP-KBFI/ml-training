@@ -369,7 +369,7 @@ class TrainvarOptimizer(object):
                 os.makedirs(output_dir)
             tracking_file = os.path.join(output_dir, 'trainvarOpt.log')
             with open(tracking_file, 'wt') as out_file:
-                json.dump(self.tracker, out_file)
+                json.dump(self.tracker, out_file, indent=4)
 
     def optimization_collector(self):
         """ Collects all the necessary components of the trainvar optimization
