@@ -205,7 +205,7 @@ class TrainvarOptimizer(object):
                         + str(trainvar) + " is " + str(corr_value)
                     )
                     self.feature_drop_tracking(
-                        'optimization_%s' % iteration, item,
+                        'correlations', item,
                         {}, {}
                     )
         del correlations
