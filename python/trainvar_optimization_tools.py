@@ -465,8 +465,10 @@ class NNTrainvarOptimizer(TrainvarOptimizer):
                 Dictionary containining the feature names as keys and the
                 importance score as the value for the feature.
         """
+        raise NotImplementedError('Please implement model creation')
+        model = 'Placeholder'
         importance_calculator = nt.NNFeatureImportances(
-            self.model, self.data, self.trainvars, self.weight,
+            model, self.data, self.trainvars, self.weight,
             self.target, permutations=self.permutations
         )
         feature_importances = importance_calculator.permutation_importance()
@@ -512,8 +514,10 @@ class LBNTrainvarOptimizer(TrainvarOptimizer):
                 Dictionary containining the feature names as keys and the
                 importance score as the value for the feature.
         """
+        raise NotImplementedError('Please implement model creation')
+        model = 'Placeholder'
         importance_calculator = nt.LBNFeatureImportances(
-            self.model, self.data, self.trainvars, self.weight,
+            model, self.data, self.trainvars, self.weight,
             self.target, self.particles,
             permutations=self.permutations
         )
