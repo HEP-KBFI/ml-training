@@ -95,6 +95,7 @@ class TrainvarOptimizer(object):
             iteration: int
                 Number of the iteration
         """
+        finished = False
         if 'nonres' in self.global_settings['scenario']:
             BM_in_trainvars = False
             for nonRes_scenario in self.preferences['nonResScenarios']:
