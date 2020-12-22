@@ -65,9 +65,9 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
     preferences = reader.parameters
     if not BM=='None': 
       preferences["nonResScenarios"]=[BM]
-      print ('BM point to be considered: ', BM)
+    print('BM point to be considered: ' + BM)
     if not era=='0': preferences['included_eras'] = [era.replace('20', '')]
-    print 'era=======', preferences['included_eras']
+    print('era: ' + preferences['included_eras'])
     preferences = define_trainvars(global_settings, preferences, info_dir)
     if hyperparameter_file == 'None':
         hyperparameter_file = os.path.join(info_dir, 'hyperparameters.json')

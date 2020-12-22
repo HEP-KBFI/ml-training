@@ -349,81 +349,117 @@ def create_hidden_net_structure(
     return hidden_net
 
 
-def custom_permutation_importance(
-        model, data, weights,
-        trainvars, labels, permutations=5
-):
-    print('Starting permutation importance')
-    score_dict = {}
-    prediction = model.predict(data)
-    original_score = calculate_acc_with_weights(prediction, labels, weights)
-    print('Reference score: ' + str(original_score))
-    for trainvar in trainvars:
-        print(trainvar)
-        data_copy = data.copy()
-        t_score = 0
-        for i in range(permutations):
-            print("Permutation nr: " + str(i))
-            data_copy[trainvar] = np.random.permutation(data_copy[trainvar])
-            prediction = model.predict(data_copy)
-            score = calculate_acc_with_weights(prediction, labels, weights)
-            print(score)
-            t_score += score
-        score_dict[trainvar] = abs(original_score - (t_score/permutations))
-    sorted_sd = sorted(score_dict.items(), key=lambda kv: kv[1], reverse=True)
-    print(sorted_sd)
-    return score_dict
+class NNFeatureImportances(object):
+    """ Class for finding the feature importances for NN or LBN models"""
+    def __init__(
+            self, model, data, trainvars, weight='evtWeight',
+            target='multitarget', permutations=5
+    ):
+        self.model = model
+        self.trainvars = trainvars
+        self.weight = weight
+        self.weights = data[weight]
+        self.target = target
+        self.labels = data[target]
+        self.data = data[trainvars]
+        self.data_dict = data_dict
+        self.permutations = permutations
+
+    def permutation_importance(self):
+        print('Starting permutation importance')
+        score_dict = {}
+        prediction = self.predict_from_model(self.data)
+        original_score = calculate_acc_with_weights(
+            prediction, self.labels, self.weights
+        )
+        print('Reference score: ' + str(original_score))
+        for trainvar in self.trainvars:
+            print(trainvar)
+            data_ = self.data.copy()
+            t_score = 0
+            for i in range(self.permutations):
+                print("Permutation nr: " + str(i))
+                data_[trainvar] = np.random.permutation(data_[trainvar])
+                prediction = self.predict_from_model(data_)
+                score = calculate_acc_with_weights(
+                    prediction, self.labels, self.weights
+                )
+                print(score)
+                t_score += score
+            score_dict[trainvar] = abs(
+                original_score - (t_score/self.permutations))
+        sorted_sd = sorted(
+            score_dict.items(), key=lambda kv: kv[1], reverse=True)
+        print(sorted_sd)
+        return score_dict
+
+    def calculate_acc_with_weights(self, prediction, labels, weights):
+        num_classes = len(prediction[0])
+        pred_labels = [np.argmax(event) for event in prediction]
+        true_positives = 0
+        true_negatives = 0
+        total_positive = sum(self.weights)
+        total_negative = sum(self.weights)
+        for pred, true, weight in zip(pred_labels, self.labels, self.weights):
+            if pred == true:
+                true_positives += weight
+                true_negatives += num_classes * weight
+            else:
+                true_negatives += (num_classes - 1) * weight
+        true_negatives /= num_classes
+        accuracy = (true_positives + true_negatives) / (total_positive + total_negative)
+        return accuracy
+
+    def predict_from_model(self, data_):
+        prediction = self.model.predict(data_)
+        return prediction
 
 
-def calculate_acc_with_weights(prediction, labels, weights):
-    num_classes = len(prediction[0])
-    pred_labels = [np.argmax(event) for event in prediction]
-    true_positives = 0
-    true_negatives = 0
-    total_positive = sum(weights)
-    total_negative = sum(weights)
-    for pred, true, weight in zip(pred_labels, labels, weights):
-        if pred == true:
-            true_positives += weight
-            true_negatives += num_classes * weight
-        else:
-            true_negatives += (num_classes - 1) * weight
-    true_negatives /= num_classes
-    accuracy = (true_positives + true_negatives) / (total_positive + total_negative)
-    return accuracy
+class LBNFeatureImportances(NNFeatureImportances):
+    def __init__(
+        self, model, data, trainvars, weight='evtWeight',
+        target='multitarget', ml_method='lbn', particles=None,
+        permutations=5
+    ):
+        super(LBNFeatureImportances, self).__init__(
+            model, data, trainvars, weight, target, permutations
+        )
+        self.particles = particles
 
+    def predict_from_model(self, data_):
+        ll = dlt.get_low_level(data_, self.particles)
+        hl = dlt.get_high_level(data_, self.particles, self.trainvars)
+        prediction = model.predict([ll, hl])
+        return prediction
 
-def lbn_feature_importances(
-        model, data_dict, trainvars,
-        permutations=5, case='even'
-):
-    labels = data_dict[case + '_data']['multitarget']
-    weights = data_dict[case + '_data']['evtWeight']
-    ll_names = ['b1jets', 'b2jets', 'w1jets', 'w2jets', 'leptons']
-    high_level = data_dict['hl_' + case]
-    low_level = data_dict['ll_' + case]
-    reference_prediction = model.predict(
-        [low_level, high_level], batch_size=1024)
-    reference_score = calculate_acc_with_weights(
-        reference_prediction, labels, weights)
-    print(reference_prediction)
-    score_dict = {}
-    for i, feature in enumerate(ll_names):
-        print(feature)
-        t_score = 0
-        for permutation in range(permutations):
-            print('Permutation: ' + str(i))
-            shuffled_low_level = shuffle_low_level(low_level, i)
-            prediction = model.predict(
-                [shuffled_low_level, high_level], batch_size=1024)
-            score = calculate_acc_with_weights(prediction, labels, weights)
-            t_score += score
-        score_dict[feature] = abs(reference_score - (t_score/permutations))
-    return score_dict
+    def lbn_feature_importances(self, data_dict, case='even'):
+        labels = data_dict[case + '_data'][self.target]
+        weights = data_dict[case + '_data'][self.weight]
+        ll_names = ['b1jets', 'b2jets', 'w1jets', 'w2jets', 'leptons']
+        high_level = data_dict['hl_' + case]
+        low_level = data_dict['ll_' + case]
+        reference_prediction = self.model.predict(
+            [low_level, high_level], batch_size=1024)
+        reference_score = calculate_acc_with_weights(
+            reference_prediction, labels, weights)
+        print(reference_prediction)
+        score_dict = {}
+        for i, feature in enumerate(ll_names):
+            print(feature)
+            t_score = 0
+            for permutation in range(self.permutations):
+                print('Permutation: ' + str(i))
+                shuffled_low_level = shuffle_low_level(low_level, i)
+                prediction = self.model.predict(
+                    [shuffled_low_level, high_level], batch_size=1024)
+                score = calculate_acc_with_weights(prediction, labels, weights)
+                t_score += score
+            score_dict[feature] = abs(reference_score - (t_score/permutations))
+        return score_dict
 
+    def shuffle_low_level(self, low_level, i):
+        low_level_ = low_level.copy()
+        shuffled_elements = np.random.permutation(low_level_[:, i])
+        low_level_[:, i] = shuffled_elements
+        return low_level_
 
-def shuffle_low_level(low_level, i):
-    low_level_ = low_level.copy()
-    shuffled_elements = np.random.permutation(low_level_[:, i])
-    low_level_[:, i] = shuffled_elements
-    return low_level_
