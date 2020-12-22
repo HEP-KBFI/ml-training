@@ -129,11 +129,11 @@ class bbWWLoader(HHDataLoader):
          data = data.append(era_data, ignore_index=True, sort=False)
       if self.global_settings['dataCuts'] != 0:
          total_data = self.data_cutting(data)
-      TT = total_data.loc[total_data["process"] == "TT"].head(200000)
-      ST = total_data.loc[total_data["process"] == "ST"].head(200000)
-      Other = total_data.loc[total_data["process"] == "Other"].head(200000)
-      W = total_data.loc[total_data["process"] == "W"].head(200000)
-      DY = total_data.loc[total_data["process"] == "DY"].head(200000)
+      TT = total_data.loc[total_data["process"] == "TT"].head(100000)
+      ST = total_data.loc[total_data["process"] == "ST"].head(100000)
+      Other = total_data.loc[total_data["process"] == "Other"].head(100000)
+      W = total_data.loc[total_data["process"] == "W"].head(100000)
+      DY = total_data.loc[total_data["process"] == "DY"].head(100000)
       HH = total_data.loc[total_data["target"] == 1]
       alldata = [TT, ST, Other, W, DY, HH]
       total_data = pandas.concat(alldata)
@@ -158,6 +158,10 @@ class bbWWLoader(HHDataLoader):
     ):
         if 'TT' in folder_name:
           self.nr_events_per_file = 3000000 
+        elif 'ggf' in folder_name:
+            self.nr_events_per_file = -1
+        else:
+            self.nr_events_per_file = -1
         return dlt.load_data_from_tfile(
             self,
             process,
@@ -181,6 +185,7 @@ class bbWWLoader(HHDataLoader):
         else:
             process = folder_name.replace('_' + folder_name.split('_')[-1], '')
         return process, target
+
     def nonresonant_data_imputer(
             self, chunk_df, folder_name, target, data
     ):
@@ -205,5 +210,5 @@ class bbWWLoader(HHDataLoader):
                 chunk_df_node.loc[chunk_df_node['nodeXname'] == node, node] = 1
                 chunk_df_node.loc[chunk_df_node['nodeXname'] != node, node] = 0
                 chunk_df_node.loc[chunk_df_node['nodeXname'] == node, 'nodeX'] = idx
-            data = data.append(chunk_df_node, ignore_index=True, sort=False)
+          data = data.append(chunk_df_node, ignore_index=True, sort=False)
        return data
