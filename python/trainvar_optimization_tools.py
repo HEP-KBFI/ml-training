@@ -78,7 +78,7 @@ class TrainvarOptimizer(object):
                             all' %(trainvar))
                         self.feature_drop_tracking(
                             'optimization_%s' % iteration, trainvar,
-                            feature_importances[trainvar], feature_importances
+                            0, feature_importances
                         )
                         trainvars.remove(trainvar)
         return trainvars
@@ -114,9 +114,9 @@ class TrainvarOptimizer(object):
                 keys.append('sumBM')
                 feature_importances['sumBM'] = sumBM
                 values = [feature_importances[key] for key in keys]
-                if len(keys) <= (min_nr_trainvars + step_size):
-                    step_size = len(trainvars) - self.min_nr_trainvars
-                index = np.argpartition(values, self.step_size)[:step_size]
+                if len(keys) <= (self.min_nr_trainvars + self.step_size):
+                    self.step_size = len(trainvars) - self.min_nr_trainvars
+                index = np.argpartition(values, self.step_size)[:self.step_size]
                 n_worst_performing = np.array(keys)[index]
                 for element in n_worst_performing:
                     if element == 'sumBM':
@@ -161,7 +161,7 @@ class TrainvarOptimizer(object):
                 The list of trainvars that were used for creating the model
         """
         if len(trainvars) < (self.min_nr_trainvars + self.step_size):
-            step_size = len(trainvars) - self.min_nr_trainvars
+            self.step_size = len(trainvars) - self.min_nr_trainvars
         keys = np.array(feature_importances.keys())
         values = np.array(feature_importances.values())
         index = np.argpartition(values, self.step_size)[:self.step_size]
