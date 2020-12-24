@@ -65,13 +65,14 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
     preferences = reader.parameters
     if not BM=='None': 
       preferences["nonResScenarios"]=[BM]
-    print('BM point to be considered: ' + BM)
+    print('BM point to be considered: ' + str(preferences["nonResScenarios"]))
     if not era=='0': preferences['included_eras'] = [era.replace('20', '')]
-    print('era: ' + preferences['included_eras'])
+    print('era: ' + str(preferences['included_eras']))
     preferences = define_trainvars(global_settings, preferences, info_dir)
     if hyperparameter_file == 'None':
         hyperparameter_file = os.path.join(info_dir, 'hyperparameters.json')
     hyperparameters = ut.read_json_cfg(hyperparameter_file)
+    print('hyperparametrs ' + str(hyperparameters))
     evaluation_main(global_settings, preferences, hyperparameters, debug)
 
 
@@ -87,6 +88,10 @@ def split_data(global_settings, preferences):
              global_settings
          )
         data = loader.data
+    hhvt.plot_trainvar_multi_distributions(
+        data, preferences['trainvars'],
+        global_settings['output_dir']
+    )
     hhvt.plot_correlations(data, preferences['trainvars'], global_settings)
     keysNotToSplit = []
     if '3l_1tau' in global_settings['channel']:
@@ -159,7 +164,6 @@ def save_xmlFile(global_settings, model, addition):
     bdtModel = ct.BDTxgboost(model, features, ['Background', 'Signal'])
     bdtModel.to_tmva(xmlFile)
     print('.xml BDT model saved to ' + str(xmlFile))
-
 
 def nodeWise_modelPredictions(
         odd_data, even_data,
