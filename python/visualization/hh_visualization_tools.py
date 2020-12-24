@@ -214,25 +214,29 @@ def plot_nodeWise_roc(global_settings, roc_infos, mode):
             roc_info['even_fpr_test'],
             roc_info['even_tpr_test'],
             lw=2, ls='--', color=color[0],
-            label='node_' + str(node) + '_evenTrain_oddTest'
+            label='node_' + str(node) + '_evenTrain_oddTest_' + \
+            str('%0.3f' %roc_info['even_auc_test'])
         )
         plt.plot(
             roc_info['even_fpr_train'],
             roc_info['even_tpr_train'],
             lw=2, ls='-', color=color[0],
-            label='node_' + str(node) + '_evenTrain_evenTest'
+            label='node_' + str(node) + '_evenTrain_evenTest_' + \
+            str('%0.3f' %roc_info['even_auc_train'])
         )
         plt.plot(
             roc_info['odd_fpr_test'],
             roc_info['odd_tpr_test'],
             lw=2, ls='--', color=color[1],
-            label='node_' + str(node) + '_oddTrain_oddTest'
+            label='node_' + str(node) + '_oddTrain_oddTest_' + \
+            str('%0.3f' %roc_info['odd_auc_test'])
         )
         plt.plot(
             roc_info['odd_fpr_train'],
             roc_info['odd_tpr_train'],
             lw=2, ls='-', color=color[1],
-            label='node_' + str(node) + '_oddTrain_evenTest'
+            label='node_' + str(node) + '_oddTrain_evenTest_' + \
+            str('%0.3f' %roc_info['odd_auc_train'])
         )
     plot_out = os.path.join(output_dir, 'nodeWiseROC_performance.png')
     plt.grid()
@@ -259,6 +263,7 @@ def plot_trainvar_multi_distributions(data, trainvars, output_dir):
         os.makedirs(plot_dir)
     for trainvar in trainvars:
         trainvar_distribs = {}
+        weight_distribs = {}
         all_data = data[trainvar]
         minimum_value = min(all_data)
         maximum_value = max(all_data)
@@ -266,14 +271,16 @@ def plot_trainvar_multi_distributions(data, trainvars, output_dir):
         for process in set(data['process']):
             distrib = data.loc[data['process'] == process, trainvar]
             trainvar_distribs[process] = distrib
-        plot_single_distrib(trainvar_distribs, plot_dir, trainvar, bins)
+            weight_distribs[process] = data.loc[data['process'] == process, "totalWeight"]
+        plot_single_distrib(trainvar_distribs, weight_distribs, plot_dir, trainvar, bins)
 
 
-def plot_single_distrib(trainvar_distribs, output_dir, trainvar, bins):
+def plot_single_distrib(trainvar_distribs, weight_distribs, output_dir, trainvar, bins):
     keys = trainvar_distribs.keys()
     for key in keys:
-        plt.hist(trainvar_distribs[key], label=key, bins=bins)
-    plt.legend()
+        plt.hist(trainvar_distribs[key],  weights=weight_distribs[key], histtype='step', \
+            label=key, bins=bins)
+    plt.legend(loc='best', title=trainvar)
     plt.yscale('log')
     out_file = os.path.join(output_dir, trainvar + '_distribution.png')
     plt.savefig(out_file, bbox_inches='tight')
