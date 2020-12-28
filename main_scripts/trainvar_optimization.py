@@ -3,211 +3,82 @@ Call with 'python'
 
 Usage:
     trainvar_optimization.py
-    trainvar_optimization.py [--corr_threshold=FLOAT --min_nr_trainvars=INT --step_size=INT]
+    trainvar_optimization.py [--corr_threshold=FLOAT --min_nr_trainvars=INT --step_size=INT --analysis=STR]
 
 Options:
     -c --corr_threshold=FLOAT       Threshold from which trainvar is dropped [default: 0.8]
     -n --min_nr_trainvars=INT       Number trainvars to end up with [default: 10]
     -s --step_size=INT              Number of trainvars dropped per iteration [default: 5]
+    -a --analysis=STR               Options: 'hh-bbWW', 'hh-multilepton' [default: HHmultilepton]
 
 """
-import shutil
 import os
 import json
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_parameter_reader as hpr
 from machineLearning.machineLearning import hh_tools as hht
-from machineLearning.machineLearning import data_loader as dl
-from machineLearning.machineLearning import xgb_tools as xt
-import numpy as np
+from machineLearning.machineLearning import bbWW_tools as bbwwt
+from machineLearning.machineLearning import trainvar_optimization_tools as tot
 import docopt
 
 
-def prepare_data():
+def prepare_data(analysis):
     channel_dir, info_dir, global_settings = ut.find_settings()
-    trainvars_path = os.path.join(info_dir, 'trainvars.json')
-    all_trainvars_path = os.path.join(channel_dir, 'all_trainvars.json')
-    shutil.copy(all_trainvars_path, trainvars_path)
     scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
-    normalizer = hht.HHDataNormalizer
-    loader = hht.HHDataLoader(
-        normalizer,
-        preferences,
-        global_settings
-    )
+    preferences = reader.parameters
+    preferences['trainvars'] = preferences['all_trainvar_info'].keys()
+    if analysis == 'HHmultilepton':
+        normalizer = hht.HHDataNormalizer
+        loader = hht.HHDataLoader(
+            normalizer,
+            preferences,
+            global_settings
+        )
+    elif analysis == 'HHbbWW':
+        normalizer = bbwwt.bbWWDataNormalizer
+        loader = bbwwt.bbWWLoader(
+            normalizer,
+            preferences,
+            global_settings
+        )
     data = loader.data
-    return data, preferences, global_settings, trainvars_path
-
-
-def optimization(
-        data, hyperparameters, trainvars, global_settings,
-        min_nr_trainvars, step_size, preferences
-):
-    data_dict = {'train': data, 'trainvars': trainvars}
-    while len(trainvars) > min_nr_trainvars:
-        model = xt.create_model(
-            hyperparameters, data_dict, global_settings['nthread'],
-            'auc', 'totalWeight'
-        )
-        trainvars = drop_not_used_variables(model, trainvars, preferences)
-        trainvars = drop_worst_performing_ones(
-            model, trainvars, step_size, min_nr_trainvars, global_settings,
-            preferences
-        )
-    return trainvars
-
-
-def drop_not_used_variables(model, trainvars, preferences):
-    booster = model.get_booster()
-    feature_importances = list((booster.get_fscore()).keys())
-    for trainvar in trainvars:
-        if trainvar not in feature_importances:
-            if trainvar not in preferences['nonResScenarios']:
-                print(
-                    'Removing  -- %s -- due to it not being used at \
-                    all' %(trainvar))
-                trainvars.remove(trainvar)
-    return trainvars
-
-
-def drop_worst_performing_ones(
-        model, trainvars, step_size, min_nr_trainvars,
-        global_settings, preferences
-):
-    booster = model.get_booster()
-    feature_importances = booster.get_fscore()
-    if 'nonres' in global_settings['scenario']:
-        BM_in_trainvars = False
-        for nonRes_scenario in preferences['nonResScenarios']:
-            if nonRes_scenario in trainvars:
-                BM_in_trainvars = True
-                break
-        if BM_in_trainvars:
-            keys = list(feature_importances.keys())
-            sumBM = 0
-            for nonRes_scenario in preferences['nonResScenarios']:
-                try:
-                    sumBM += feature_importances[nonRes_scenario]
-                    keys.remove(nonRes_scenario)
-                except KeyError:
-                    continue
-            keys.append('sumBM')
-            feature_importances['sumBM'] = sumBM
-            values = [feature_importances[key] for key in keys]
-            if len(keys) < (min_nr_trainvars + step_size):
-                step_size = len(trainvars) - min_nr_trainvars
-            index = np.argpartition(values, step_size)[:step_size]
-            n_worst_performing = np.array(keys)[index]
-            for element in n_worst_performing:
-                if element == 'sumBM':
-                    print('Removing benchmark scenarios')
-                    for nonRes_scenario in preferences['nonResScenarios']:
-                        trainvars.remove(nonRes_scenario)
-                else:
-                    print('Removing ' + str(element))
-                    trainvars.remove(element)
-        else:
-            trainvars = remove_nonBM_trainvars(
-                trainvars, min_nr_trainvars, step_size, feature_importances)
-    else:
-        trainvars = remove_nonBM_trainvars(
-            trainvars, min_nr_trainvars, step_size, feature_importances)
-    return trainvars
-
-
-def remove_nonBM_trainvars(
-        trainvars, min_nr_trainvars, step_size, feature_importances
-):
-    if len(trainvars) < (min_nr_trainvars + step_size):
-        step_size = len(trainvars) - min_nr_trainvars
-    keys = np.array(feature_importances.keys())
-    values = np.array(feature_importances.values())
-    index = np.argpartition(values, step_size)[:step_size]
-    n_worst_performing = keys[index]
-    for element in n_worst_performing:
-        print('Removing ' + str(element))
-        trainvars.remove(element)
-    return trainvars
-
-
-def drop_highly_currelated_variables(data, trainvars_initial, corr_threshold):
-    correlations = data[trainvars_initial].corr()
-    trainvars = list(trainvars_initial)
-    for trainvar in trainvars:
-        trainvars_copy = list(trainvars)
-        trainvars_copy.remove(trainvar)
-        for item in trainvars_copy:
-            corr_value = abs(correlations[trainvar][item])
-            if corr_value > corr_threshold:
-                trainvars.remove(item)
-                print(
-                    "Removing " + str(item) + ". Correlation with "
-                    + str(trainvar) + " is " + str(corr_value)
-                )
-    return trainvars
-
-
-def main(corr_threshold, min_nr_trainvars, step_size):
-    data, preferences, global_settings, trainvars_path = prepare_data()
-    cmssw_base = os.path.expandvars('$CMSSW_BASE')
-    hyperparameter_file = os.path.join(
-        cmssw_base,
-        'src/machineLearning/machineLearning/info/default_hyperparameters.json'
+    scenario = global_settings['scenario']
+    scenario = scenario if 'nonres' in scenario else 'res/' + scenario
+    hyperparameters_file = os.path.join(
+        os.path.expandvars('$CMSSW_BASE'),
+        'src/machineLearning/machineLearning/info/',
+        global_settings['process'],
+        global_settings['channel'],
+        scenario,
+        'hyperparameters.json'
     )
-    hyperparameters = ut.read_json_cfg(hyperparameter_file)
-    print("Optimizing training variables")
-    trainvars = list(preferences['trainvars'])
-    trainvars, preferences = check_trainvars_integrity(
-        trainvars, preferences, global_settings)
-    trainvars = drop_highly_currelated_variables(
-        data, trainvars, corr_threshold=corr_threshold)
-    trainvars = optimization(
-        data, hyperparameters, trainvars, global_settings,
-        min_nr_trainvars, step_size, preferences
-    )
-    trainvars = update_trainvars(trainvars, preferences, global_settings)
-    save_optimized_trainvars(trainvars, preferences, trainvars_path)
+    with open(hyperparameters_file, 'rt') as in_file:
+        preferences['hyperparameters'] = json.load(in_file)
+    return data, preferences, global_settings
 
 
-def update_trainvars(trainvars, preferences, global_settings):
-    if 'nonres' in global_settings['scenario']:
-        for scenario in preferences['nonResScenarios']:
-            if scenario not in trainvars:
-                trainvars.append(scenario)
+def main(corr_threshold, min_nr_trainvars, step_size, analysis):
+    data, preferences, global_settings = prepare_data(analysis)
+    if global_settings['ml_method'] == 'xgb':
+        optimizer = tot.XGBTrainvarOptimizer(
+            data, preferences, global_settings, preferences['hyperparameters'],
+            corr_threshold, min_nr_trainvars, step_size, 'totalWeight'
+        )
+    elif global_settings['ml_method'] == 'nn':
+        optimizer = tot.NNTrainvarOptimizer(
+            data, preferences, global_settings, corr_threshold,
+            min_nr_trainvars, step_size, 'totalWeight'
+        )
+    elif global_settings['ml_method'] == 'lbn':
+        raise NotImplementedError('LBN particles still needed to be done')
+        optimizer = tot.LBNTrainvarOptimizer(
+            data, preferences, global_settings, particles, corr_threshold,
+            min_nr_trainvars, step_size, 'totalWeight'
+        )
     else:
-        if 'gen_mHH' not in trainvars:
-            trainvars.append('gen_mHH')
-    return trainvars
-
-
-def check_trainvars_integrity(trainvars, preferences, global_settings):
-    if 'nonres' in global_settings['scenario']:
-        for nonRes_scenario in preferences['nonResScenarios']:
-            if nonRes_scenario not in trainvars:
-                trainvars.append(nonRes_scenario)
-                preferences['trainvar_info'].update(
-                    {nonRes_scenario: 1}
-                )
-    else:
-        if 'gen_mHH' not in trainvars:
-            trainvars.append('gen_mHH')
-            preferences['trainvar_info'].update(
-                {'gen_mHH': 1}
-            )
-    return trainvars, preferences
-
-
-def save_optimized_trainvars(trainvars, preferences, outpath):
-    with open(outpath, 'wt') as outfile:
-        for trainvar in trainvars:
-            trainvar_info = preferences['trainvar_info']
-            trainvar_dict = {
-                'key': trainvar,
-                'true_int': trainvar_info[trainvar]
-            }
-            json.dump(trainvar_dict, outfile)
-            outfile.write('\n')
+        raise NotImplementedError('Given ml_method is not implemented')
+    optimizer.optimization_collector()
 
 
 if __name__ == '__main__':
@@ -216,6 +87,7 @@ if __name__ == '__main__':
         corr_threshold = float(arguments['--corr_threshold'])
         min_nr_trainvars = int(arguments['--min_nr_trainvars'])
         step_size = int(arguments['--step_size'])
-        main(corr_threshold, min_nr_trainvars, step_size)
+        analysis = arguments['--analysis']
+        main(corr_threshold, min_nr_trainvars, step_size, analysis)
     except docopt.DocoptExit as e:
         print(e)

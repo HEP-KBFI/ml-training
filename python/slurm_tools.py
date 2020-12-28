@@ -124,7 +124,7 @@ def prepare_job_file(
         'slurm', global_settings['ml_method'], global_settings['process']])
     batch_job_file = file_title + '.py'
     run_script = os.path.join(main_dir, 'evaluation_scripts', batch_job_file)
-    with open(job_file, 'a') as filehandle:
+    with open(job_file, 'wt') as filehandle:
         filehandle.writelines(dedent(
             """
                 #!/bin/bash

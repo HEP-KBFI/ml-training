@@ -102,6 +102,7 @@
         "TTWJets_LO_ext1": "TTW"
     },
     "DY": {
+        "DYToLL_2J": "DY",
         "DYJetsToLL_M-10to50": "DY",
         "DYJetsToLL_M-10to50_ext1": "DY",
         "DYJetsToLL_M-4to50_HT-100to200": "DY",

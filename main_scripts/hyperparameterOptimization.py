@@ -3,11 +3,12 @@ Hyperparameter optimization with Particle Swarm Optimization for HH/ttH analysis
 Call with 'python'
 
 Usage:
-    hyperparameterOptimization.py [--continue=BOOL --opt_dir=STR]
+    hyperparameterOptimization.py [--continue=BOOL --opt_dir=STR --bbww=STR]
 
 Options:
     -c --continue=BOOL      Whether to continue from a previous optimization [default: 0]
     -o --opt_dir=STR        Directory of the previous iteration steps [default: None]
+    -bbww --bbww=INT                it is for bbww or multilepton channel [default: 0]
 '''
 import os
 import numpy as np
@@ -20,10 +21,11 @@ from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_parameter_reader as hpr
 from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import data_loader as dl
+from machineLearning.machineLearning import bbWW_tools as bbwwt
 np.random.seed(1)
 
 
-def main(to_continue, opt_dir):
+def main(to_continue, opt_dir, bbww):
     if not to_continue:
         settings_dir = os.path.join(
             os.path.expandvars('$CMSSW_BASE'),
@@ -57,17 +59,24 @@ def main(to_continue, opt_dir):
     scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
     preferences = reader.parameters
-    normalizer = hht.HHDataNormalizer
+    normalizer = hht.HHDataNormalizer if not bbww else bbwwt.bbWWDataNormalizer
     if os.path.exists(preferences['data_csv']):
         print(':::::::: Loading data from .csv file ::::::::')
         data = pandas.read_csv(preferences['data_csv'])
     else:
         print('::::::: Loading data to be saved to pandas.DataFrame :::::::')
-        loader = hht.HHDataLoader(
+        if not bbww:
+          loader = hht.HHDataLoader(
             normalizer,
             preferences,
             global_settings
-        )
+           )
+        else:
+          loader = bbwwt.bbWWLoader(
+            normalizer,
+            preferences,
+            global_settings
+           )
         data = loader.data
         loader.save_to_csv()
     print("\n============ Starting hyperparameter optimization ==========\n")
@@ -131,6 +140,7 @@ if __name__ == '__main__':
         arguments = docopt.docopt(__doc__)
         to_continue = bool(int(arguments['--continue']))
         opt_dir = arguments['--opt_dir']
-        main(to_continue, opt_dir)
+        bbww = int(arguments['--bbww'])
+        main(to_continue, opt_dir, bbww)
     except docopt.DocoptExit as e:
         print(e)
