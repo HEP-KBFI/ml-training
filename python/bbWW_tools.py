@@ -25,8 +25,6 @@ class bbWWDataNormalizer(HHDataNormalizer):
                 len(self.preferences['masses']))
             self.data.loc[(self.data['target'] == 0), [self.weight]] *= 1./float(
                 len(self.preferences['masses']))
-        #self.merge_processes()
-        self.print_event_yield()
         if 'SUM_HH' in self.global_settings['bdtType']:
             sample_normalizations = self.preferences['tauID_application']
             for sample in sample_normalizations.keys():
@@ -34,6 +32,8 @@ class bbWWDataNormalizer(HHDataNormalizer):
                sample_weights = self.data.loc[self.data['process'] == sample_name, [self.weight]]
                sample_factor = sample_normalizations[sample]/sample_weights.sum()
                self.data.loc[self.data['process'] == sample_name, [self.weight]] *= sample_factor
+        #self.merge_processes()
+        self.print_event_yield()
         sumall = self.data.loc[self.data["process"] == "TT"]["totalWeight"].sum() \
         + self.data.loc[self.data["process"] == "W"]["totalWeight"].sum() \
         + self.data.loc[self.data["process"] == "DY"]["totalWeight"].sum() \
