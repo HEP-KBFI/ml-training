@@ -1,9 +1,11 @@
 import os
 import numpy as np
 import pandas
+import ROOT
+from root_numpy import tree2array
 from machineLearning.machineLearning.hh_tools import HHDataLoader, HHDataNormalizer
 from machineLearning.machineLearning import universal_tools as ut
-from machineLearning.machineLearning.data_loader import DataLoader as dlt
+
 
 class bbWWDataNormalizer(HHDataNormalizer):
     def __init__(self, data, preferences, global_settings):
@@ -23,6 +25,8 @@ class bbWWDataNormalizer(HHDataNormalizer):
                 len(self.preferences['masses']))
             self.data.loc[(self.data['target'] == 0), [self.weight]] *= 1./float(
                 len(self.preferences['masses']))
+        #self.merge_processes()
+        self.print_event_yield()
         if 'SUM_HH' in self.global_settings['bdtType']:
             sample_normalizations = self.preferences['tauID_application']
             for sample in sample_normalizations.keys():
@@ -42,6 +46,18 @@ class bbWWDataNormalizer(HHDataNormalizer):
             + ":" + str(self.data.loc[self.data["process"] == "DY"]["totalWeight"].sum()/sumall) \
             + ":" + str(self.data.loc[self.data["process"] == 'ST']["totalWeight"].sum()/sumall)
         )
+    def print_event_yield(self):
+        sumall = 0
+        for process in set(self.data['process']):
+            sumall += self.data.loc[self.data["process"] == process]["totalWeight"].sum()
+        for process in set(self.data['process']):
+            print(process + ':' + str(self.data.loc[self.data["process"] == process]["totalWeight"].sum()/sumall))
+
+    def merge_processes(self):
+        for process in set(self.data['process']):
+            if 'TTTo' in process:
+                self.data.loc[self.data['process'] == process, 'process'] = 'TT'
+
 class bbWWLoader(HHDataLoader):
     def __init__(
             self, data_normalizer, preferences, global_settings,
@@ -51,7 +67,7 @@ class bbWWLoader(HHDataLoader):
     ):
         print('Using bbWW flavor of the HHDataLoader')
         super(bbWWLoader, self).__init__(
-            data_normalizer, preferences, global_settings, nr_TT_events_per_file,
+            data_normalizer, preferences, global_settings, nr_events_per_file,
             weight, cancelled_trainvars, normalize, reweigh,
             remove_negative_weights
         )
@@ -68,6 +84,8 @@ class bbWWLoader(HHDataLoader):
                     self.to_be_loaded.append('Weight_SM')
                 else:
                     self.to_be_loaded.extend(self.nonres_weights)
+                    if 'Weight_SM' not in self.to_be_loaded:
+                        self.to_be_loaded.append('Weight_SM')
             self.to_be_dropped.extend(
                 list(self.preferences['nonResScenarios']))
             self.to_be_dropped.extend(['nodeX'])
@@ -129,26 +147,21 @@ class bbWWLoader(HHDataLoader):
             data = data.append(era_data, ignore_index=True, sort=False)
         if self.global_settings['dataCuts'] != 0:
             total_data = self.data_cutting(data)
-        TT = total_data.loc[total_data["process"] == "TT"].head(100000)
-        ST = total_data.loc[total_data["process"] == "ST"].head(100000)
-        Other = total_data.loc[total_data["process"] == "Other"].head(100000)
-        W = total_data.loc[total_data["process"] == "W"].head(100000)
-        DY = total_data.loc[total_data["process"] == "DY"].head(100000)
-        HH = total_data.loc[total_data["target"] == 1]
-        alldata = [TT, ST, Other, W, DY, HH]
-        total_data = pandas.concat(alldata)
-        print(
-            "DY: ", len(total_data.loc[total_data["process"] == "DY"]),\
-            "W: ", len(total_data.loc[total_data["process"] == "W"]), \
-            "TT: ", len(total_data.loc[total_data["process"] == "TT"]), \
-            'ST: ', len(total_data.loc[total_data["process"] == "ST"]), \
-            'Other:', len(total_data.loc[total_data["process"] == "Other"]), \
-            'HH', len(total_data.loc[total_data["target"] == 1])
-        )
-        self.print_nr_signal_bkg(total_data)
-        total_data.loc[total_data['process'].str.contains('signal_ggf_nonresonant_hh'), "process"] = "signal_HH"
-        total_data.loc[total_data['process'].str.contains('signal_vbf'), "process"] = "signal_HH"
-        return total_data
+        return self.final_data(total_data)
+
+    def final_data(self, data):
+        finalData = pandas.DataFrame({})
+        for process in set(data['process']):
+            if (data.loc[data['process'] == process]['target'] == 1).all():
+                finalData = finalData.append(data.loc[data['process'] == process])
+                print('process: ', process, len(finalData.loc[finalData['process'] == process]))
+            else:
+                finalData = finalData.append(data.loc[data['process'] == process].head(100000))
+                print('process: ', process, len(finalData.loc[finalData['process'] == process]))
+        self.print_nr_signal_bkg(finalData)
+        finalData.loc[finalData['process'].str.contains('signal_ggf_nonresonant_hh'), "process"] = "signal_HH"
+        finalData.loc[finalData['process'].str.contains('signal_vbf'), "process"] = "signal_HH"
+        return finalData   
 
     def load_data_from_tfile(
             self, process, folder_name, target, path, input_tree
@@ -159,18 +172,29 @@ class bbWWLoader(HHDataLoader):
             self.nr_events_per_file = -1
         else:
             self.nr_events_per_file = -1
-        return dlt.load_data_from_tfile(
-            self,
-            process,
-            folder_name,
-            target,
-            path,
-            input_tree
-        )
+        tfile = ROOT.TFile(path)
+        try:
+            tree = tfile.Get(input_tree)
+            self.set_variables_to_be_loaded(process)
+            chunk_arr = tree2array(
+                tree, branches=self.to_be_loaded,
+                stop=self.nr_events_per_file
+            )
+            chunk_df = pandas.DataFrame(chunk_arr)
+            tfile.Close()
+            if 'TT' in folder_name:
+                process = path.split('/')[-2]
+            data = self.data_imputer(
+                chunk_df, process, folder_name, target)
+            return data
+        except TypeError:
+            print('Incorrect input_tree: ' + str(input_tree))
 
     def set_background_sample_info(self, path):
         if 'ST' in path:
             return 'ST', 0
+        if 'TTToHadronic' in path:
+            return '', 0
         else:
             return HHDataLoader.set_background_sample_info(self, path)
 
@@ -216,6 +240,3 @@ class bbWWLoader(HHDataLoader):
         else:
             return chunk_df
         return data
-
-    def get_ntuple_paths(self, input_path, folder_name, file_type='hadd*Tight.root'):
-        return HHDataLoader.get_ntuple_paths(self, input_path, folder_name, file_type)
