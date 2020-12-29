@@ -32,31 +32,26 @@ class bbWWDataNormalizer(HHDataNormalizer):
                sample_weights = self.data.loc[self.data['process'] == sample_name, [self.weight]]
                sample_factor = sample_normalizations[sample]/sample_weights.sum()
                self.data.loc[self.data['process'] == sample_name, [self.weight]] *= sample_factor
-        #self.merge_processes()
-        self.print_event_yield()
-        sumall = self.data.loc[self.data["process"] == "TT"]["totalWeight"].sum() \
-        + self.data.loc[self.data["process"] == "W"]["totalWeight"].sum() \
-        + self.data.loc[self.data["process"] == "DY"]["totalWeight"].sum() \
-        + self.data.loc[self.data["process"] == "ST"]["totalWeight"].sum() \
-        + self.data.loc[self.data["process"] == "Other"]["totalWeight"].sum()
-        print(
-            "TT:W:DY:ST \t" \
-            + str(self.data.loc[self.data["process"] == "TT"]["totalWeight"].sum()/sumall) \
-            + ":" + str(self.data.loc[self.data["process"] == "W"]["totalWeight"].sum()/sumall) \
-            + ":" + str(self.data.loc[self.data["process"] == "DY"]["totalWeight"].sum()/sumall) \
-            + ":" + str(self.data.loc[self.data["process"] == 'ST']["totalWeight"].sum()/sumall)
-        )
-    def print_event_yield(self):
+        self.merge_processes()
+        self.print_background_yield()
+
+    def print_background_yield(self):
+        print('Fraction of each Background process')
         sumall = 0
+        condition_bkg = self.data["target"] == 0
         for process in set(self.data['process']):
-            sumall += self.data.loc[self.data["process"] == process]["totalWeight"].sum()
+            sumall += self.data.loc[(self.data["process"] == process) & (condition_bkg)]["totalWeight"].sum()
         for process in set(self.data['process']):
-            print(process + ':' + str(self.data.loc[self.data["process"] == process]["totalWeight"].sum()/sumall))
+            print(process + ': ' + str('%0.3f' %(self.data.loc[(self.data["process"] == process) & (condition_bkg)]\
+                 ["totalWeight"].sum()/sumall)))
 
     def merge_processes(self):
+        Other = ["TTW", "TTWW", "WW", "WZ", "ZZ", "TTH", "TH", "VH", "Other", "XGamma", "TTZ"] #TTH sample missing from bdt ntuple???
         for process in set(self.data['process']):
-            if 'TTTo' in process:
+            if process in ['TTTo2L2Nu', 'TTToSemiLeptonic']:
                 self.data.loc[self.data['process'] == process, 'process'] = 'TT'
+            elif process in Other:
+                self.data.loc[self.data['process'] == process, 'process'] = 'Other'
 
 class bbWWLoader(HHDataLoader):
     def __init__(
@@ -96,9 +91,9 @@ class bbWWLoader(HHDataLoader):
     def process_data_imputer(
             self, chunk_df, folder_name, target, data
     ):
-        chunk_df.loc[chunk_df["process"].isin(
+        '''chunk_df.loc[chunk_df["process"].isin(
             ["TTW", "TTWW", "WW", "WZ", "ZZ", "TTH", "TH", "VH", "Other"]
-        ), "process"] = "Other"
+        ), "process"] = "Other"'''
         #chunk_df.loc[
          #   chunk_df["process"].str.contains('signal'),
           #  "process"
@@ -154,10 +149,10 @@ class bbWWLoader(HHDataLoader):
         for process in set(data['process']):
             if (data.loc[data['process'] == process]['target'] == 1).all():
                 finalData = finalData.append(data.loc[data['process'] == process])
-                print('process: ', process, len(finalData.loc[finalData['process'] == process]))
+                print(process + ': ' + len(finalData.loc[finalData['process'] == process]))
             else:
                 finalData = finalData.append(data.loc[data['process'] == process].head(100000))
-                print('process: ', process, len(finalData.loc[finalData['process'] == process]))
+                print(process, + ': ' + len(finalData.loc[finalData['process'] == process]))
         self.print_nr_signal_bkg(finalData)
         finalData.loc[finalData['process'].str.contains('signal_ggf_nonresonant_hh'), "process"] = "signal_HH"
         finalData.loc[finalData['process'].str.contains('signal_vbf'), "process"] = "signal_HH"
@@ -182,7 +177,7 @@ class bbWWLoader(HHDataLoader):
             )
             chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
-            if 'TT' in folder_name:
+            if 'TTTo2L2Nu' in folder_name or 'TTToSemiLeptonic' in folder_name:
                 process = path.split('/')[-2]
             data = self.data_imputer(
                 chunk_df, process, folder_name, target)
