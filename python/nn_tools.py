@@ -18,7 +18,7 @@ from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import evaluation_tools as et
 from machineLearning.machineLearning.lbn import LBN, LBNLayer
 from machineLearning.machineLearning import multiclass_tools as mt
-
+from machineLearning.machineLearning import data_loading_tools as dlt
 
 def model_evaluation_main(nn_hyperparameters, data_dict, global_settings):
     """ Collected functions for CGB model evaluation
@@ -74,6 +74,7 @@ def create_nn_model(
         num_class,
         input_var,
         categorical_var_index,
+        n_particles=0,
         lbn=False
 ):
     """ Creates the neural network model. The normalization used is
@@ -102,7 +103,7 @@ def create_nn_model(
         Sequential keras neural network model created.
     """
     if lbn:
-        ll_inputs = tf.keras.Input(shape=(5, 4), name="LL")
+        ll_inputs = tf.keras.Input(shape=(n_particles, 4), name="LL")
         hl_inputs = tf.keras.Input(shape=(nr_trainvars,), name="HL")
         lbn_layer = LBNLayer(
             ll_inputs.shape, 16,
@@ -127,7 +128,7 @@ def create_nn_model(
         model.compile(
             optimizer=tf.keras.optimizers.Adam(lr=0.0003),
             loss='sparse_categorical_crossentropy',
-            metrics=["accuracy"]
+            weighted_metrics=["accuracy"]
         )
     else:
         inputs = tf.keras.Input(shape=(nr_trainvars,), name="input_var")
@@ -146,7 +147,8 @@ def create_nn_model(
         model.compile(
             optimizer=tf.keras.optimizers.Adam(lr=0.0003),
             loss='sparse_categorical_crossentropy',
-            metrics=["accuracy"]
+            metrics=["accuracy"],
+            weighted_metrics=[tf.keras.metrics.CategoricalAccuracy(name="accuracy")]
         )
     return model
 
@@ -352,7 +354,7 @@ def create_hidden_net_structure(
 class NNFeatureImportances(object):
     """ Class for finding the feature importances for NN or LBN models"""
     def __init__(
-            self, model, data, trainvars, weight='evtWeight',
+            self, model, data, trainvars, weight='totalWeight',
             target='multitarget', permutations=5
     ):
         self.model = model
@@ -362,7 +364,6 @@ class NNFeatureImportances(object):
         self.target = target
         self.labels = data[target]
         self.data = data[trainvars]
-        self.data_dict = data_dict
         self.permutations = permutations
 
     def permutation_importance(self):
@@ -417,8 +418,8 @@ class NNFeatureImportances(object):
 
 class LBNFeatureImportances(NNFeatureImportances):
     def __init__(
-        self, model, data, trainvars, weight='evtWeight',
-        target='multitarget', ml_method='lbn', particles=None,
+        self, model, data, trainvars, particles, weight='totalWeight',
+        target='multitarget', ml_method='lbn',
         permutations=5
     ):
         super(LBNFeatureImportances, self).__init__(
@@ -429,8 +430,32 @@ class LBNFeatureImportances(NNFeatureImportances):
     def predict_from_model(self, data_):
         ll = dlt.get_low_level(data_, self.particles)
         hl = dlt.get_high_level(data_, self.particles, self.trainvars)
-        prediction = model.predict([ll, hl])
+        prediction = self.model.predict([ll, hl])
         return prediction
+
+    def custom_permutation_importance(
+        self
+):
+        print('Starting permutation importance')
+        score_dict = {}
+        prediction = self.predict_from_model(self.data)
+        original_score = self.calculate_acc_with_weights(prediction, self.labels, self.weights)
+        print('Reference score: ' + str(original_score))
+        for trainvar in self.trainvars:
+            print(trainvar)
+            data_copy = self.data.copy()
+            t_score = 0
+            for i in range(self.permutations):
+                print("Permutation nr: " + str(i))
+                data_copy[trainvar] = np.random.permutation(data_copy[trainvar])
+                prediction = self.predict_from_model(data_copy)
+                score = self.calculate_acc_with_weights(prediction, self.labels, self.weights)
+                print(score)
+                t_score += score
+            score_dict[trainvar] = abs(original_score - (t_score/self.permutations))
+        sorted_sd = sorted(score_dict.items(), key=lambda kv: kv[1], reverse=True)
+        print(sorted_sd)
+        return score_dict
 
     def lbn_feature_importances(self, data_dict, case='even'):
         labels = data_dict[case + '_data'][self.target]
