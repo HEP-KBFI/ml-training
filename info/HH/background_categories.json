@@ -95,7 +95,11 @@
     },
     "TTZ": {
         "TTZJets_LO": "TTZ",
-        "TTZJets_LO_ext1": "TTZ"
+        "TTZJets_LO_ext1": "TTZ",
+        "TTZToLL_M-1to10":  "TTZ",
+        "TTZToLL_M10_ext2": "TTZ",
+        "TTZToLL_M10_ext3": "TTZ",
+        "TTZToQQ": "TTZ"
     },
     "TTW": {
         "TTWJets_LO": "TTW",
