@@ -20,7 +20,12 @@ from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import bbWW_tools as bbwwt
 from machineLearning.machineLearning import trainvar_optimization_tools as tot
 import docopt
+from datetime import datetime
 
+PARTICLE_INFO = low_level_object = {
+    'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "lep"],
+    'bb2l': ["bjet1", "bjet2", "lep1", "lep2"]
+}
 
 def prepare_data(analysis):
     channel_dir, info_dir, global_settings = ut.find_settings()
@@ -28,6 +33,8 @@ def prepare_data(analysis):
     reader = hpr.HHParameterReader(channel_dir, scenario)
     preferences = reader.parameters
     preferences['trainvars'] = preferences['all_trainvar_info'].keys()
+    startTime = datetime.now()
+    print('data loading is started: ' + str(startTime))
     if analysis == 'HHmultilepton':
         normalizer = hht.HHDataNormalizer
         loader = hht.HHDataLoader(
@@ -43,6 +50,8 @@ def prepare_data(analysis):
             global_settings
         )
     data = loader.data
+    print('data loading is finished')
+    print(datetime.now() - startTime)
     scenario = global_settings['scenario']
     scenario = scenario if 'nonres' in scenario else 'res/' + scenario
     hyperparameters_file = os.path.join(
@@ -71,7 +80,7 @@ def main(corr_threshold, min_nr_trainvars, step_size, analysis):
             min_nr_trainvars, step_size, 'totalWeight'
         )
     elif global_settings['ml_method'] == 'lbn':
-        raise NotImplementedError('LBN particles still needed to be done')
+        particles = PARTICLE_INFO[global_settings['channel']]
         optimizer = tot.LBNTrainvarOptimizer(
             data, preferences, global_settings, particles, corr_threshold,
             min_nr_trainvars, step_size, 'totalWeight'
