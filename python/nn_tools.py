@@ -70,11 +70,10 @@ def Normal(ref, const=None, ignore_zeros=False, name=None, **kwargs):
 
 
 def create_nn_model(
-        nr_trainvars,
-        num_class,
-        input_var,
-        categorical_var_index,
-        n_particles=0,
+        train_data,
+        val_data,
+        trainvars,
+        particles=[],
         lbn=False
 ):
     """ Creates the neural network model. The normalization used is
@@ -102,8 +101,25 @@ def create_nn_model(
     model : keras.engine.sequential.Sequential
         Sequential keras neural network model created.
     """
+    reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
+        monitor='val_loss', factor=0.1, patience=3, min_lr=0.00001
+    )
+    early_stopping = tf.keras.callbacks.EarlyStopping(
+        monitor='val_loss', patience=5, min_delta=0.001,
+        restore_best_weights=True)
+    num_class = max((train_data['multitarget'])) + 1
+    nr_trainvars = len(trainvars)
+    categorical_var_index = None
+    categorical_vars = ["SM", "BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"]
     if lbn:
-        ll_inputs = tf.keras.Input(shape=(n_particles, 4), name="LL")
+        low_level_var = ["%s_%s" %(part, var) for part in particles
+                    for var in ["e", "px", "py", "pz"]]
+        nr_trainvars -= len(low_level_var)
+        hl_var = [var for var in trainvars if var not in low_level_var]
+        input_var = np.array([train_data[var] for var in hl_var])
+        categorical_var_index = [hl_var.index(categorical_var) for categorical_var in categorical_vars \
+                                 if categorical_var in hl_var]
+        ll_inputs = tf.keras.Input(shape=(len(particles), 4), name="LL")
         hl_inputs = tf.keras.Input(shape=(nr_trainvars,), name="HL")
         lbn_layer = LBNLayer(
             ll_inputs.shape, 16,
@@ -114,8 +130,8 @@ def create_nn_model(
         normalized_lbn_features = tf.keras.layers.BatchNormalization()(lbn_features)
         normalized_hl_inputs = Normal(ref=input_var, const=categorical_var_index, axis=1)(hl_inputs)
         x = tf.keras.layers.concatenate([normalized_lbn_features, normalized_hl_inputs])
-        for layer in range(0, 6):
-            x = tf.keras.layers.Dense(1024, activation="softplus",
+        for layer in range(0, 3):
+            x = tf.keras.layers.Dense(256, activation="softplus",
                                       kernel_regularizer=tf.keras.regularizers.l2(0.0003))(x)
             x = tf.keras.layers.BatchNormalization()(x)
             x = tf.keras.layers.Dropout(0.0)(x)
@@ -128,9 +144,28 @@ def create_nn_model(
         model.compile(
             optimizer=tf.keras.optimizers.Adam(lr=0.0003),
             loss='sparse_categorical_crossentropy',
-            weighted_metrics=["accuracy"]
+            weighted_metrics = ["accuracy"]
         )
+        history = model.fit(
+            [dlt.get_low_level(train_data, particles),
+             dlt.get_high_level(train_data, particles, trainvars)],
+            train_data['multitarget'].values,
+            epochs=13,
+            batch_size=1024,
+            sample_weight=train_data['totalWeight'].values,
+            validation_data=(
+                [dlt.get_low_level(val_data, particles),
+                 dlt.get_high_level(val_data, particles, trainvars)],
+                val_data["multitarget"].values,
+                val_data["totalWeight"].values
+            ),
+            callbacks=[reduce_lr, early_stopping]
+        )
+
     else:
+        input_var = np.array([train_data[var] for var in trainvars])
+        categorical_var_index = [var.index(categorical_var) for categorical_var in categorical_vars \
+                                 if categorical_var in trainvars]
         inputs = tf.keras.Input(shape=(nr_trainvars,), name="input_var")
         normalized_vars = Normal(ref=input_var, const=categorical_var_index, axis=1)(inputs)
         x = tf.keras.layers.Layer()(normalized_vars)
@@ -150,8 +185,7 @@ def create_nn_model(
             metrics=["accuracy"],
             weighted_metrics=[tf.keras.metrics.CategoricalAccuracy(name="accuracy")]
         )
-    return model
-
+    return history, model
 
 def parameter_evaluation(
         nn_hyperparameters,
