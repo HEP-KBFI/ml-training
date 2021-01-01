@@ -146,7 +146,14 @@
         "DYJetsToLL_M50_HT1200to2500": "DY",
         "DYJetsToLL_M50_HT1200to2500_PSweights": "DY",
         "DYJetsToLL_M50_HT2500toInf": "DY",
-        "DYJetsToLL_M50_HT2500toInf_PSweights": "DY"
+        "DYJetsToLL_M50_HT2500toInf_PSweights": "DY",
+        "DYToLL_0J_backup": "DY",
+        "DYToLL_0J_backup": "DY",
+        "DYToLL_1J_backup"    : "DY",
+        "DYToLL_2J_ext1": "DY",
+        "DYToLL_0J_ext1"           : "DY",
+        "DYToLL_1J_ext1": "DY",
+        "DYJetsToLL_M-50_amcatnloFXFX_ext2": "DY"
     },
     "ZZ_all": {
         "ZZTo4L": "qqZZ",
