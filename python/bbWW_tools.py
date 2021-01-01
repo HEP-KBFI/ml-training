@@ -55,8 +55,6 @@ class bbWWDataNormalizer(HHDataNormalizer):
         for process in set(data['process']):
             sumall += data.loc[(data["process"] == process)]["totalWeight"].sum()
         for process in set(data['process']):
-            print process, '\t', data.loc[(data["process"] == process)]\
-                 ["totalWeight"].sum()
             print(process + ': ' + str('%0.3f' %(data.loc[(data["process"] == process)]\
                  ["totalWeight"].sum()/sumall)))
 
