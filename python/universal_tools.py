@@ -123,9 +123,7 @@ def read_json_cfg(path):
     info : dict
         The json dict that was loaded
     """
-    print 'path========== ', path
     with open(path, 'rt') as jsonFile:
-        print 'json========== ', jsonFile
         info = json.load(jsonFile)
     return info
 
