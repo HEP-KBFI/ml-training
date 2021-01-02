@@ -19,6 +19,7 @@ from machineLearning.machineLearning import evaluation_tools as et
 from machineLearning.machineLearning.lbn import LBN, LBNLayer
 from machineLearning.machineLearning import multiclass_tools as mt
 from machineLearning.machineLearning import data_loading_tools as dlt
+from machineLearning.machineLearning.visualization import hh_visualization_tools as hhvt
 
 def model_evaluation_main(nn_hyperparameters, data_dict, global_settings):
     """ Collected functions for CGB model evaluation
@@ -48,144 +49,182 @@ def model_evaluation_main(nn_hyperparameters, data_dict, global_settings):
     )
     return score, pred_train, pred_test
 
-def Normal(ref, const=None, ignore_zeros=False, name=None, **kwargs):
-    """
-    Normalizing layer according to ref.
-    If given, variables at the indices const will not be normalized.
-    """
-    if ignore_zeros:
-        mean = np.nanmean(np.where(ref == 0, np.ones_like(ref) * np.nan, ref), **kwargs)
-        std = np.nanstd(np.where(ref == 0, np.ones_like(ref) * np.nan, ref), **kwargs)
-    else:
-        mean = ref.mean(**kwargs)
-        std = ref.std(**kwargs)
-    print(mean)
-    if const is not None:
-        mean[const] = 0
-        std[const] = 1
-    std = np.where(std == 0, 1, std)
-    mul = 1.0 / std
-    add = -mean / std
-    return tf.keras.layers.Lambda((lambda x: (x * mul) + add), name=name)
+class NNmodel(object):
+    def __init__(
+            self,
+            train_data,
+            val_data,
+            trainvars,
+            parameters,
+            plot_history = True,
+            output_dir = '',
+            addition = ''
+    ):
+        self.train_data = train_data
+        self.val_data = val_data
+        self.trainvars = trainvars
+        self.nr_trainvars = len(trainvars)
+        self.dropout = parameters['dropout']
+        self.lr = parameters['lr']
+        self.l2 = parameters['l2']
+        self.epoch = parameters['epoch']
+        self.batch_size = parameters['batch_size']
+        self.layer = parameters['layer']
+        self.node = parameters['node']
 
+        self.reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
+            monitor='val_loss', factor=0.1, patience=3, min_lr=0.00001
+        )
+        self.early_stopping = tf.keras.callbacks.EarlyStopping(
+            monitor='val_loss', patience=5, min_delta=0.001,
+            restore_best_weights=True
+        )
+        self.num_class = max((self.train_data['multitarget'])) + 1
+        self.nr_trainvars = len(self.trainvars)
+        self.categorical_var_index = None
+        self.categorical_vars = ["SM", "BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"]
+        self.plot_history = plot_history
+        self.output_dir = output_dir
+        self.addition = addition
 
-def create_nn_model(
-        train_data,
-        val_data,
-        trainvars,
-        particles=[],
-        lbn=False
-):
-    """ Creates the neural network model. The normalization used is
-    batch normalization. Kernel is initialized by the Kaiming initializer
-    called 'he_uniform'
+    def Normal(self, ref, const=None, ignore_zeros=False, name=None, **kwargs):
+        """
+        Normalizing layer according to ref.
+        If given, variables at the indices const will not be normalized.
+        """
+        if ignore_zeros:
+            mean = np.nanmean(np.where(ref == 0, np.ones_like(ref) * np.nan, ref), **kwargs)
+            std = np.nanstd(np.where(ref == 0, np.ones_like(ref) * np.nan, ref), **kwargs)
+        else:
+            mean = ref.mean(**kwargs)
+            std = ref.std(**kwargs)
+        if const is not None:
+            mean[const] = 0
+            std[const] = 1
+        std = np.where(std == 0, 1, std)
+        mul = 1.0 / std
+        add = -mean / std
+        return tf.keras.layers.Lambda((lambda x: (x * mul) + add), name=name)
 
-    Parameters:
-    ----------
-    nn_hyperparameters : dict
-        Dictionary containing the hyperparameters for the neural network. The
-        keys contained are ['dropout_rate', 'learning_rate', 'schedule_decay',
-        'nr_hidden_layers']
-    nr_trainvars : int
-        Number of training variables, will define the number of inputs for the
-        input layer of the model
-    num_class : int
-        Default: 3 Number of categories one wants the data to be classified.
-    number_samples : int
-        Number of samples in the training data
-    metrics : ['str']
-        What metrics to use for model compilation
+    def normalize_inputs(self, trainvars, inputs):
+        input_var = np.array([self.train_data[var] for var in trainvars])
+        categorical_var_index = [trainvars.index(categorical_var) for categorical_var in self.categorical_vars \
+            if categorical_var in trainvars]
+        self.normalized_vars = self.Normal(ref=input_var, const=categorical_var_index, axis=1)(inputs)
 
-    Returns:
-    -------
-    model : keras.engine.sequential.Sequential
-        Sequential keras neural network model created.
-    """
-    reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
-        monitor='val_loss', factor=0.1, patience=3, min_lr=0.00001
-    )
-    early_stopping = tf.keras.callbacks.EarlyStopping(
-        monitor='val_loss', patience=5, min_delta=0.001,
-        restore_best_weights=True)
-    num_class = max((train_data['multitarget'])) + 1
-    nr_trainvars = len(trainvars)
-    categorical_var_index = None
-    categorical_vars = ["SM", "BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"]
-    if lbn:
-        low_level_var = ["%s_%s" %(part, var) for part in particles
+    def make_hidden_layer(self, x):
+        for layer in range(0, self.layer):
+            x = tf.keras.layers.Dense(self.node, activation="softplus",
+                kernel_regularizer=tf.keras.regularizers.l2(self.l2))(x)
+            x = tf.keras.layers.BatchNormalization()(x)
+            x = tf.keras.layers.Dropout(self.dropout)(x)
+        return tf.keras.layers.Dense(self.num_class, activation='softmax')(x)
+
+    def compile_model(self):
+        self.model.compile(
+            optimizer=tf.keras.optimizers.Adam(lr=self.lr),
+            loss='sparse_categorical_crossentropy',
+            weighted_metrics=["accuracy"]
+        )
+
+    def create_model(self):
+        self.inputs = tf.keras.Input(shape=(self.nr_trainvars,), name="input_var")
+        self.normalize_inputs(self.trainvars, self.inputs)
+        x = tf.keras.layers.Layer()(self.normalized_vars)
+        self.make_hidden_layer(x)
+        self.model = tf.keras.Model(
+            inputs=[self.inputs],
+            outputs=self.outputs
+        )
+        self.compile_model()
+        self.fit_model()
+        return self.model
+
+    def fit_model(self):
+        history = self.model.fit(
+            self.train_data[self.trainvars].values,
+            self.train_data['multitarget'].astype(np.int),
+            epochs=self.epoch,
+            batch_size=self.batch_size,
+            sample_weight=self.train_data['totalWeight'].values,
+            validation_data=(
+                self.val_data[self.trainvars],
+                self.val_data['multitarget'].astype(np.int),
+                self.val_data['totalWeight'].values
+            ),
+            callbacks=[self.reduce_lr, self.early_stopping]
+        )
+        if self.plot_history:
+            hhvt.plot_loss_accuracy(history, self.output_dir, self.addition)
+
+class LBNmodel(NNmodel):
+    def __init__(
+            self,
+            train_data,
+            val_data,
+            trainvars,
+            particles,
+            parameters,
+            plot_history=True,
+            output_dir = '',
+            addition = ''
+    ):
+        super(LBNmodel, self).__init__(
+            train_data,
+            val_data,
+            trainvars,
+            parameters,
+            plot_history,
+            output_dir,
+            addition
+        )
+        self.particles = particles
+
+    def fit_model(self):
+        history = self.model.fit(
+            [dlt.get_low_level(self.train_data, self.particles),
+             dlt.get_high_level(self.train_data, self.particles, self.trainvars)],
+            self.train_data['multitarget'].values,
+            epochs=self.epoch,
+            batch_size=self.batch_size,
+            sample_weight=self.train_data['totalWeight'].values,
+            validation_data=(
+                [dlt.get_low_level(self.val_data, self.particles),
+                 dlt.get_high_level(self.val_data, self.particles, self.trainvars)],
+                self.val_data["multitarget"].values,
+                self.val_data["totalWeight"].values
+            ),
+            callbacks=[self.reduce_lr, self.early_stopping]
+        )
+        if self.plot_history:
+            hhvt.plot_loss_accuracy(history, self.output_dir, self.addition)
+
+    def create_model(self):
+        self.low_level_var = ["%s_%s" %(part, var) for part in self.particles
                     for var in ["e", "px", "py", "pz"]]
-        nr_trainvars -= len(low_level_var)
-        hl_var = [var for var in trainvars if var not in low_level_var]
-        input_var = np.array([train_data[var] for var in hl_var])
-        categorical_var_index = [hl_var.index(categorical_var) for categorical_var in categorical_vars \
-                                 if categorical_var in hl_var]
-        ll_inputs = tf.keras.Input(shape=(len(particles), 4), name="LL")
-        hl_inputs = tf.keras.Input(shape=(nr_trainvars,), name="HL")
+        self.nr_trainvars -= len(self.low_level_var)
+        ll_inputs = tf.keras.Input(shape=(len(self.particles), 4), name="LL")
+        hl_inputs = tf.keras.Input(shape=(self.nr_trainvars,), name="HL")
         lbn_layer = LBNLayer(
             ll_inputs.shape, 16,
             boost_mode=LBN.PAIRS,
             features=["E", "pt", "eta", "phi", "m", "pair_cos"]
         )
         lbn_features = lbn_layer(ll_inputs)
-        normalized_lbn_features = tf.keras.layers.BatchNormalization()(lbn_features)
-        normalized_hl_inputs = Normal(ref=input_var, const=categorical_var_index, axis=1)(hl_inputs)
-        x = tf.keras.layers.concatenate([normalized_lbn_features, normalized_hl_inputs])
-        for layer in range(0, 3):
-            x = tf.keras.layers.Dense(256, activation="softplus",
-                                      kernel_regularizer=tf.keras.regularizers.l2(0.0003))(x)
-            x = tf.keras.layers.BatchNormalization()(x)
-            x = tf.keras.layers.Dropout(0.0)(x)
-        outputs = tf.keras.layers.Dense(num_class, activation='softmax')(x)
-        model = tf.keras.Model(
+        self.normalized_lbn_features = tf.keras.layers.BatchNormalization()(lbn_features)
+        hl_var = [var for var in self.trainvars if var not in self.low_level_var]
+        self.normalize_inputs(hl_var, hl_inputs)
+        x = tf.keras.layers.concatenate([self.normalized_lbn_features, self.normalized_vars])
+        outputs = self.make_hidden_layer(x)
+        self.model = tf.keras.Model(
             inputs=[ll_inputs, hl_inputs],
             outputs=outputs,
             name='lbn_dnn'
         )
-        model.compile(
-            optimizer=tf.keras.optimizers.Adam(lr=0.0003),
-            loss='sparse_categorical_crossentropy',
-            weighted_metrics = ["accuracy"]
-        )
-        history = model.fit(
-            [dlt.get_low_level(train_data, particles),
-             dlt.get_high_level(train_data, particles, trainvars)],
-            train_data['multitarget'].values,
-            epochs=13,
-            batch_size=1024,
-            sample_weight=train_data['totalWeight'].values,
-            validation_data=(
-                [dlt.get_low_level(val_data, particles),
-                 dlt.get_high_level(val_data, particles, trainvars)],
-                val_data["multitarget"].values,
-                val_data["totalWeight"].values
-            ),
-            callbacks=[reduce_lr, early_stopping]
-        )
+        self.compile_model()
+        self.fit_model()
 
-    else:
-        input_var = np.array([train_data[var] for var in trainvars])
-        categorical_var_index = [var.index(categorical_var) for categorical_var in categorical_vars \
-                                 if categorical_var in trainvars]
-        inputs = tf.keras.Input(shape=(nr_trainvars,), name="input_var")
-        normalized_vars = Normal(ref=input_var, const=categorical_var_index, axis=1)(inputs)
-        x = tf.keras.layers.Layer()(normalized_vars)
-        for layer in range(0, 6):
-            x = tf.keras.layers.Dense(1024, activation="softplus",
-                                      kernel_regularizer=tf.keras.regularizers.l2(0.0003))(x)
-            x = tf.keras.layers.BatchNormalization()(x)
-            x = tf.keras.layers.Dropout(0.0)(x)
-        outputs = tf.keras.layers.Dense(num_class, activation='softmax')(x)
-        model = tf.keras.Model(
-            inputs=[inputs],
-            outputs=outputs
-        )
-        model.compile(
-            optimizer=tf.keras.optimizers.Adam(lr=0.0003),
-            loss='sparse_categorical_crossentropy',
-            metrics=["accuracy"],
-            weighted_metrics=[tf.keras.metrics.CategoricalAccuracy(name="accuracy")]
-        )
-    return history, model
+        return self.model
 
 def parameter_evaluation(
         nn_hyperparameters,
