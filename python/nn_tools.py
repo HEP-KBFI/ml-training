@@ -56,9 +56,9 @@ class NNmodel(object):
             val_data,
             trainvars,
             parameters,
-            plot_history = True,
-            output_dir = '',
-            addition = ''
+            plot_history=True,
+            output_dir='',
+            addition=''
     ):
         self.train_data = train_data
         self.val_data = val_data
@@ -82,7 +82,8 @@ class NNmodel(object):
         self.num_class = max((self.train_data['multitarget'])) + 1
         self.nr_trainvars = len(self.trainvars)
         self.categorical_var_index = None
-        self.categorical_vars = ["SM", "BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"]
+        self.categorical_vars = ["SM", "BM1", "BM2", "BM3", "BM4", "BM5", "BM6",\
+             "BM7", "BM8", "BM9", "BM10", "BM11", "BM12"]
         self.plot_history = plot_history
         self.output_dir = output_dir
         self.addition = addition
@@ -115,7 +116,7 @@ class NNmodel(object):
     def make_hidden_layer(self, x):
         for layer in range(0, self.layer):
             x = tf.keras.layers.Dense(self.node, activation="softplus",
-                kernel_regularizer=tf.keras.regularizers.l2(self.l2))(x)
+                     kernel_regularizer=tf.keras.regularizers.l2(self.l2))(x)
             x = tf.keras.layers.BatchNormalization()(x)
             x = tf.keras.layers.Dropout(self.dropout)(x)
         return tf.keras.layers.Dense(self.num_class, activation='softmax')(x)
@@ -166,8 +167,8 @@ class LBNmodel(NNmodel):
             particles,
             parameters,
             plot_history=True,
-            output_dir = '',
-            addition = ''
+            output_dir='',
+            addition=''
     ):
         super(LBNmodel, self).__init__(
             train_data,
@@ -200,8 +201,8 @@ class LBNmodel(NNmodel):
             hhvt.plot_loss_accuracy(history, self.output_dir, self.addition)
 
     def create_model(self):
-        self.low_level_var = ["%s_%s" %(part, var) for part in self.particles
-                    for var in ["e", "px", "py", "pz"]]
+        self.low_level_var = ["%s_%s" %(part, var) for part in self.particles \
+             for var in ["e", "px", "py", "pz"]]
         self.nr_trainvars -= len(self.low_level_var)
         ll_inputs = tf.keras.Input(shape=(len(self.particles), 4), name="LL")
         hl_inputs = tf.keras.Input(shape=(self.nr_trainvars,), name="HL")
