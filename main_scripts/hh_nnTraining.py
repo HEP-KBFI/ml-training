@@ -210,13 +210,13 @@ def create_model(
             preferences['trainvars'],
             particles,
             parameters,
+            True,
             global_settings['output_dir'],
             choose_data
         )
     model = modeltype.create_model()
     if save_model:
         savemodel(model, global_settings)
-        #hhvt.plot_loss_accuracy(history, global_settings['output_dir'], choose_data)
 
     return model
 
