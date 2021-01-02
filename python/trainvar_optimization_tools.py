@@ -7,7 +7,8 @@ import os
 from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import xgb_tools as xt
 from machineLearning.machineLearning import nn_tools as nt
-
+from machineLearning.machineLearning import multiclass_tools as mt
+from datetime import datetime
 
 class TrainvarOptimizer(object):
     """ The base class used for feature selection optimization """
@@ -493,12 +494,82 @@ class LBNTrainvarOptimizer(TrainvarOptimizer):
             global_settings: dict
                 Dictionary containing the preferences for the given run
         """
-        super(XGBTrainvar_optimizer, self).__init__(
+        super(LBNTrainvarOptimizer, self).__init__(
             data, preferences, global_settings, corr_threshold,
             min_nr_trainvars, step_size, weight
         )
         self.particles = particles
+        self.data = mt.multiclass_encoding(self.data)
+        self.train_data = self.data.sample(frac=0.70)
+        self.val_data = self.data.drop(self.train_data.index)
+        self.low_level_var = ['%s_%s' %(part, var) for part in self.particles\
+            for var in ['e', 'px', 'py', 'pz']]
+        self.low_level_var_importance = True
 
+    def drop_highly_currelated_variables(self, trainvars_initial):
+        """ Since having two highly correlated variables doesn't benefit
+        the model, one of them should be removed. The one to be removed is
+        chosen to be the one which performes more poorly
+        Args:
+            trainvars_initial: list
+                List of trainvars whose correlations will be checked and
+                highly correlated ones will be removed.
+        Returns:
+            trainvars: list
+                List of trainvars with the highest correlated ones removed.
+        """
+        correlations = self.data[trainvars_initial].corr()
+        trainvars = list(trainvars_initial)
+        for trainvar in trainvars:
+            trainvars_copy = list(trainvars)
+            trainvars_copy.remove(trainvar)
+            for item in trainvars_copy:
+                corr_value = abs(correlations[trainvar][item])
+                if corr_value > self.corr_threshold:
+                    if item not in self.low_level_var:
+                        trainvars.remove(item)
+                        print(
+                            "Removing " + str(item) + ". Correlation with "
+                             + str(trainvar) + " is " + str(corr_value)
+                        )
+                        self.feature_drop_tracking(
+                            'correlations', item,
+                            {}, {}
+                        )
+                    else:
+                        trainvars.remove(trainvar)
+                        print(
+                            "Removing " + str(trainvar) + ". Correlation with "
+                             + str(item) + " is " + str(corr_value)
+                        )
+                        self.feature_drop_tracking(
+                            'correlations', trainvar,
+                            {}, {}
+                        )
+        del correlations
+        return trainvars
+
+    def update_trainvars(self, trainvars):
+        """ If the trainvars used for the parametrization are not in the list
+        of trainvars after optimization, these will be appended to the end of
+        the list - otherwise a parametrized training will be impossible
+        Args:
+            trainvars: list
+                List of trainvars where the features needed for parametrization
+                are added if missing
+        """
+        for ll_var in self.low_level_var:
+            if ll_var not in trainvars:
+                trainvars.append(ll_var)
+
+        if 'nonres' in self.global_settings['scenario']:
+            for scenario in self.preferences['nonResScenarios']:
+                if scenario not in trainvars:
+                    trainvars.append(scenario)
+        else:
+            if 'gen_mHH' not in trainvars:
+                trainvars.append('gen_mHH')
+        return trainvars
 
     def get_feature_importances(self, data_dict):
         """ Stub for get_feature_importances
@@ -514,13 +585,34 @@ class LBNTrainvarOptimizer(TrainvarOptimizer):
                 Dictionary containining the feature names as keys and the
                 importance score as the value for the feature.
         """
-        raise NotImplementedError('Please implement model creation')
-        model = 'Placeholder'
-        importance_calculator = nt.LBNFeatureImportances(
-            model, self.data, self.trainvars, self.weight,
-            self.target, self.particles,
-            permutations=self.permutations
+        # don't want to reject ll variables as it is required for lbn
+        if self.low_level_var_importance:
+            trainvars_for_fimp = data_dict['trainvars']
+        else:
+            trainvars_for_fimp = [trainvar for trainvar in data_dict['trainvars'] if trainvar not in self.low_level_var]
+        startTime = datetime.now()
+        print(':::::model fitting is started: ' + str(startTime) + ':::::')
+        parameters = {'epoch':20, 'batch_size':1024, 'lr':0.0003, 'l2':0.0003, 'dropout':0, 'layer':3, 'node':256}
+        LBNmodel = nt.LBNmodel(
+            self.train_data,
+            self.val_data,
+            data_dict['trainvars'],
+            self.particles,
+            parameters,
+            plot_history=False
         )
-        feature_importances = importance_calculator.permutation_importance()
+        model = LBNmodel.create_model()
+        print(':::::model fitting is done::::::')
+        print(datetime.now() - startTime)
+        importance_calculator = nt.LBNFeatureImportances(
+            model, self.val_data, data_dict['trainvars'], self.particles,
+        )
+        importance_calculator.trainvars = trainvars_for_fimp
+        startTime = datetime.now()
+        print(':::::feature importance is started: ' + str(startTime) + ':::::')
+        feature_importances = importance_calculator.custom_permutation_importance()
+        print(':::::feature importance is finished:::::')
+        print(datetime.now() - startTime)
+        self.low_level_var_importance = False
+        del model
         return feature_importances
-
