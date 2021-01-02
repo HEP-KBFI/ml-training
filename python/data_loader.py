@@ -4,7 +4,6 @@ import ROOT
 from root_numpy import tree2array
 from machineLearning.machineLearning import universal_tools as ut
 
-
 class DataLoader(object):
     def __init__(
             self,
@@ -12,14 +11,14 @@ class DataLoader(object):
             global_settings,
             normalize=True,
             remove_negative_weights=True,
-            nr_TT_events_per_file=-1,
+            nr_events_per_file=-1,
             weight='totalWeight'
     ):
         print('In DataLoader')
         self.data = pandas.DataFrame(columns=preferences['trainvars'])
         self.global_settings = global_settings
         self.preferences = preferences
-        self.nr_TT_events_per_file = nr_TT_events_per_file
+        self.nr_events_per_file = nr_events_per_file
         self.remove_neg_weights = remove_negative_weights
         self.weight = weight
         self.normalize = normalize
@@ -82,10 +81,9 @@ class DataLoader(object):
         try:
             tree = tfile.Get(input_tree)
             self.set_variables_to_be_loaded(process)
-            stop = self.nr_TT_events_per_file if 'TT' in folder_name else None
             chunk_arr = tree2array(
                 tree, branches=self.to_be_loaded,
-                stop=stop
+                stop=self.nr_events_per_file
             )
             chunk_df = pandas.DataFrame(chunk_arr)
             tfile.Close()
@@ -95,7 +93,7 @@ class DataLoader(object):
         except TypeError:
             print('Incorrect input_tree: ' + str(input_tree))
 
-    def signal_background_calc(self, folder_name):
+    def signal_background_calc(self, data, folder_name):
         """Calculates the signal and background
 
         Parameters:
@@ -108,26 +106,26 @@ class DataLoader(object):
         Nothing
         """
         try:
-            key_condition = self.data.key.values == folder_name
+            key_condition = data.key.values == folder_name
             n_signal = len(
-                self.data.loc[(self.data.target.values == 1) & key_condition])
+                data.loc[(data.target.values == 1) & key_condition])
             n_background = len(
-                self.data.loc[(self.data.target.values == 0) & key_condition])
+                data.loc[(data.target.values == 0) & key_condition])
             n_neg_weights = len(
-                self.data.loc[
-                    (self.data['totalWeight'].values < 0) & key_condition
+                data.loc[
+                    (data['totalWeight'].values < 0) & key_condition
                 ]
             )
             print('Signal: ' + str(n_signal))
             print('Background: ' + str(n_background))
-            print('Event weight: ' + str(self.data.loc[
-                    (self.data.key.values == folder_name)]['evtWeight'].sum()))
-            print('Total self.data weight: ' + str(self.data.loc[
-                    (self.data.key.values == folder_name)]['totalWeight'].sum()))
+            print('Event weight: ' + str(data.loc[
+                    (data.key.values == folder_name)]['evtWeight'].sum()))
+            print('Total self.data weight: ' + str(data.loc[
+                    (data.key.values == folder_name)]['totalWeight'].sum()))
             print('Events with negative weights: ' + str(n_neg_weights))
             print(':::::::::::::::::')
         except:
-            if len(self.data) == 0:
+            if len(data) == 0:
                 print('Error: No data (!!!)')
 
     def load_data(self):
@@ -138,11 +136,11 @@ class DataLoader(object):
                     data[trainvar] = data[trainvar].astype(int)
                 except:
                     continue
-        if self.normalize:
-            data = self.prepare_data(data)
         if self.remove_neg_weights:
             print('Removing events with negative weights')
             data = data.loc[data[self.weight] >= 0]
+        if self.normalize:
+            data = self.prepare_data(data)
         return data
 
     def load_from_sample_paths(self, folder_name, path):
@@ -176,7 +174,6 @@ class DataLoader(object):
             era_data = self.load_data_from_one_era()
             era_data['era'] = era
             data = data.append(era_data, ignore_index=True, sort=False)
-        self.data = data
         if self.global_settings['dataCuts'] != 0:
             data = self.data_cutting(data)
         self.print_nr_signal_bkg(data)
@@ -193,6 +190,7 @@ class DataLoader(object):
             for path in paths:
                 folder_data = self.load_from_sample_paths(folder, path)
                 data = data.append(folder_data, ignore_index=True, sort=False)
+            self.signal_background_calc(data, folder)
         return data
 
     def data_cutting(self, data):
