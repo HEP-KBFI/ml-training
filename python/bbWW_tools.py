@@ -27,17 +27,17 @@ class bbWWDataNormalizer(HHDataNormalizer):
         if 'SUM_HH' in self.global_settings['bdtType']:
             sample_normalizations = self.preferences['tauID_application']
             for sample in sample_normalizations.keys():
-               sample_name = sample.replace('datacard', '')
-               sample_weights = self.data.loc[self.data['process'] == sample_name, [self.weight]]
-               sample_factor = sample_normalizations[sample]/sample_weights.sum()
-               self.data.loc[self.data['process'] == sample_name, [self.weight]] *= sample_factor
+                sample_name = sample.replace('datacard', '')
+                sample_weights = self.data.loc[self.data['process'] == sample_name, [self.weight]]
+                sample_factor = sample_normalizations[sample]/sample_weights.sum()
+                self.data.loc[self.data['process'] == sample_name, [self.weight]] *= sample_factor
 
     def flatten_nonres_distributions(self):
         if not self.multiclass:
             HHDataNormalizer.flatten_nonres_distributions(self)
         else:
             for node in set(self.data['nodeXname'].astype(str)):
-                for process in set(self.data["process"]) :
+                for process in set(self.data["process"]):
                     condition_node = self.data['nodeXname'].astype(str) == str(node)
                     condition_sig = self.data['process'].astype(str) == process
                     node_sig_weight = self.data.loc[
@@ -153,15 +153,16 @@ class bbWWLoader(HHDataLoader):
             if (data.loc[data['process'] == process]['target'] == 1).all():
                 finalData = finalData.append(data.loc[data['process'] == process])
             else:
-                if len(data.loc[data['process'] == process]) >100000:
-                    finalData = finalData.append(data.loc[data['process'] == process].sample(n=100000))
+                if len(data.loc[data['process'] == process]) > 100000:
+                    finalData = finalData.append(data.loc[data['process'] == process].\
+                         sample(n=100000))
                 else:
                     finalData = finalData.append(data.loc[data['process'] == process])
             print(process + ': ' + str(len(finalData.loc[finalData['process'] == process])))
         self.print_nr_signal_bkg(finalData)
         finalData.loc[finalData['process'].str.contains('signal_ggf_nonresonant_hh'), "process"] = "signal_HH"
-        finalData.loc[finalData['process'].str.contains('signal_vbf'), "process"] = "signal_HH"
-        return finalData   
+        finalData.loc[finalData['process'].str.contains('signal_vbf'), "process"] = 'signal_HH'
+        return finalData
 
     def load_data_from_tfile(
             self, process, folder_name, target, path, input_tree
@@ -186,8 +187,7 @@ class bbWWLoader(HHDataLoader):
             return 'ST', 0
         if 'TTToHadronic' in path:
             return '', 0
-        else:
-            return HHDataLoader.set_background_sample_info(self, path)
+        return HHDataLoader.set_background_sample_info(self, path)
 
     def set_signal_sample_info(self, folder_name):
         target = 1
@@ -231,6 +231,4 @@ class bbWWLoader(HHDataLoader):
                     chunk_df_node.loc[chunk_df_node['nodeXname'] != node, node] = 0
                     chunk_df_node.loc[chunk_df_node['nodeXname'] == node, 'nodeX'] = idx
             data = data.append(chunk_df_node, ignore_index=True, sort=False)
-        '''else:
-            return chunk_df'''
         return data
