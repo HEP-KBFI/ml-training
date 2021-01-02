@@ -164,7 +164,7 @@ class LBNmodel(NNmodel):
             train_data,
             val_data,
             trainvars,
-            particles,
+            channel,
             parameters,
             plot_history=True,
             output_dir='',
@@ -179,19 +179,25 @@ class LBNmodel(NNmodel):
             output_dir,
             addition
         )
-        self.particles = particles
+        self.particles = {
+            'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "lep"],
+            'bb2l': ["bjet1", "bjet2", "lep1", "lep2"]
+        }
+        self.channel = channel
+        assert self.channel in self.particles.keys(), 'channel %s is absent in self.particles %s'\
+            %(self.channel, self.particles)
 
     def fit_model(self):
         history = self.model.fit(
-            [dlt.get_low_level(self.train_data, self.particles),
-             dlt.get_high_level(self.train_data, self.particles, self.trainvars)],
+            [dlt.get_low_level(self.train_data, self.particles[self.channel]),
+             dlt.get_high_level(self.train_data, self.particles[self.channel], self.trainvars)],
             self.train_data['multitarget'].values,
             epochs=self.epoch,
             batch_size=self.batch_size,
             sample_weight=self.train_data['totalWeight'].values,
             validation_data=(
-                [dlt.get_low_level(self.val_data, self.particles),
-                 dlt.get_high_level(self.val_data, self.particles, self.trainvars)],
+                [dlt.get_low_level(self.val_data, self.particles[self.channel]),
+                 dlt.get_high_level(self.val_data, self.particles[self.channel], self.trainvars)],
                 self.val_data["multitarget"].values,
                 self.val_data["totalWeight"].values
             ),
@@ -201,10 +207,10 @@ class LBNmodel(NNmodel):
             hhvt.plot_loss_accuracy(history, self.output_dir, self.addition)
 
     def create_model(self):
-        self.low_level_var = ["%s_%s" %(part, var) for part in self.particles \
+        self.low_level_var = ["%s_%s" %(part, var) for part in self.particles[self.channel] \
              for var in ["e", "px", "py", "pz"]]
         self.nr_trainvars -= len(self.low_level_var)
-        ll_inputs = tf.keras.Input(shape=(len(self.particles), 4), name="LL")
+        ll_inputs = tf.keras.Input(shape=(len(self.particles[self.channel]), 4), name="LL")
         hl_inputs = tf.keras.Input(shape=(self.nr_trainvars,), name="HL")
         lbn_layer = LBNLayer(
             ll_inputs.shape, 16,
@@ -492,18 +498,24 @@ class NNFeatureImportances(object):
 
 class LBNFeatureImportances(NNFeatureImportances):
     def __init__(
-        self, model, data, trainvars, particles, weight='totalWeight',
+        self, model, data, trainvars, channel, weight='totalWeight',
         target='multitarget', ml_method='lbn',
         permutations=5
     ):
         super(LBNFeatureImportances, self).__init__(
             model, data, trainvars, weight, target, permutations
         )
-        self.particles = particles
+        self.particles = {
+            'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "lep"],
+            'bb2l': ["bjet1", "bjet2", "lep1", "lep2"]
+        }
+        self.channel = channel
+        assert self.channel in self.particles.keys(), 'channel %s is absent in self.particles %s'\
+            %(self.channel, self.particles)
 
     def predict_from_model(self, data_):
-        ll = dlt.get_low_level(data_, self.particles)
-        hl = dlt.get_high_level(data_, self.particles, self.trainvars)
+        ll = dlt.get_low_level(data_, self.particles[self.channel])
+        hl = dlt.get_high_level(data_, self.particles[self.channel], self.trainvars)
         prediction = self.model.predict([ll, hl])
         return prediction
 

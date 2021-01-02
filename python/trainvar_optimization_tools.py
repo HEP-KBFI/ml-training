@@ -479,7 +479,7 @@ class NNTrainvarOptimizer(TrainvarOptimizer):
 class LBNTrainvarOptimizer(TrainvarOptimizer):
     """ The Lorentz Boost Network flavor wrapper for the TrainvarOptimizer"""
     def __init__(
-            self, data, preferences, global_settings, particles,
+            self, data, preferences, global_settings,
             corr_threshold=0.8, min_nr_trainvars=10, step_size=5,
             weight='totalWeight'
     ):
@@ -498,11 +498,15 @@ class LBNTrainvarOptimizer(TrainvarOptimizer):
             data, preferences, global_settings, corr_threshold,
             min_nr_trainvars, step_size, weight
         )
-        self.particles = particles
+        self.particles = {
+            'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "lep"],
+            'bb2l': ["bjet1", "bjet2", "lep1", "lep2"]
+        }
         self.data = mt.multiclass_encoding(self.data)
         self.train_data = self.data.sample(frac=0.70)
         self.val_data = self.data.drop(self.train_data.index)
-        self.low_level_var = ['%s_%s' %(part, var) for part in self.particles\
+        self.channel = global_settings['channel']
+        self.low_level_var = ['%s_%s' %(part, var) for part in self.particles[self.channel]\
             for var in ['e', 'px', 'py', 'pz']]
         self.low_level_var_importance = True
 
@@ -597,7 +601,7 @@ class LBNTrainvarOptimizer(TrainvarOptimizer):
             self.train_data,
             self.val_data,
             data_dict['trainvars'],
-            self.particles,
+            self.channel,
             parameters,
             plot_history=False
         )
@@ -605,7 +609,7 @@ class LBNTrainvarOptimizer(TrainvarOptimizer):
         print(':::::model fitting is done::::::')
         print(datetime.now() - startTime)
         importance_calculator = nt.LBNFeatureImportances(
-            model, self.val_data, data_dict['trainvars'], self.particles,
+            model, self.val_data, data_dict['trainvars'], self.channel,
         )
         importance_calculator.trainvars = trainvars_for_fimp
         startTime = datetime.now()

@@ -22,11 +22,6 @@ from machineLearning.machineLearning import trainvar_optimization_tools as tot
 import docopt
 from datetime import datetime
 
-PARTICLE_INFO = low_level_object = {
-    'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "lep"],
-    'bb2l': ["bjet1", "bjet2", "lep1", "lep2"]
-}
-
 def prepare_data(analysis):
     channel_dir, info_dir, global_settings = ut.find_settings()
     scenario = global_settings['scenario']
@@ -80,9 +75,8 @@ def main(corr_threshold, min_nr_trainvars, step_size, analysis):
             min_nr_trainvars, step_size, 'totalWeight'
         )
     elif global_settings['ml_method'] == 'lbn':
-        particles = PARTICLE_INFO[global_settings['channel']]
         optimizer = tot.LBNTrainvarOptimizer(
-            data, preferences, global_settings, particles, corr_threshold,
+            data, preferences, global_settings, corr_threshold,
             min_nr_trainvars, step_size, 'totalWeight'
         )
     else:
