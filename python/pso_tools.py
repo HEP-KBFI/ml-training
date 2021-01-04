@@ -82,6 +82,12 @@ class Particle:
             if self.hyperparameter_info[key]['exp'] == 1:
                 max_value = np.exp(self.hyperparameter_info[key]['max'])
                 min_value = np.exp(self.hyperparameter_info[key]['min'])
+            elif self.hyperparameter_info[key]['log'] == 1:
+                max_value = np.log(self.hyperparameter_info[key]['max'])
+                min_value = np.log(self.hyperparameter_info[key]['min'])
+            elif self.hyperparameter_info[key]['power'] == 1:
+                max_value = np.power(2, self.hyperparameter_info[key]['max'])
+                min_value = np.power(2, self.hyperparameter_info[key]['min'])
             else:
                 max_value = self.hyperparameter_info[key]['max']
                 min_value = self.hyperparameter_info[key]['min']
@@ -109,7 +115,9 @@ class Particle:
     def initialize_hyperparameters(self):
         self.hyperparameters = {}
         for key in self.hyperparameter_info.keys():
-            if bool(self.hyperparameter_info[key]['int']):
+            if bool(self.hyperparameter_info[key]['int'] or \
+                    self.hyperparameter_info[key]['power']
+            ):
                 value = np.random.randint(
                     low=self.hyperparameter_info[key]['min'],
                     high=self.hyperparameter_info[key]['max']
@@ -121,6 +129,10 @@ class Particle:
                 )
             if bool(self.hyperparameter_info[key]['exp']):
                 value = np.exp(value)
+            elif bool(self.hyperparameter_info[key]['log']):
+                value = np.log(value)
+            elif bool(self.hyperparameter_info[key]['power']):
+                value = np.power(2, value)
             self.hyperparameters[key] = value
 
     def next_iteration(self):
