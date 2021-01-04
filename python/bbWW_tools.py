@@ -68,7 +68,7 @@ class bbWWLoader(HHDataLoader):
         print('Using bbWW flavor of the HHDataLoader')
         self.use_NLO = use_NLO
         super(bbWWLoader, self).__init__(
-            data_normalizer, preferences, global_settings, nr_TT_events_per_file,
+            data_normalizer, preferences, global_settings, nr_events_per_file,
             weight, cancelled_trainvars, normalize, reweigh,
             remove_negative_weights
         )
@@ -232,6 +232,3 @@ class bbWWLoader(HHDataLoader):
                     chunk_df_node.loc[chunk_df_node['nodeXname'] == node, 'nodeX'] = idx
             data = data.append(chunk_df_node, ignore_index=True, sort=False)
         return data
-
-    def get_ntuple_paths(self, input_path, folder_name, file_type='hadd*Tight.root'):
-        return HHDataLoader.get_ntuple_paths(self, input_path, folder_name, file_type)

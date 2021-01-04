@@ -1,6 +1,6 @@
 '''
 Call with 'python'
-Usage: 
+Usage:
     bbWW_bdtTraining.py
     bbWW_bdtTraining.py [--output_dir=DIR --settings_dir=DIR --hyperparameter_file=PTH --debug=BOOL --channel=STR --res_nonres=XGB --mode=STR --era=INT --BM=INT]
 
@@ -15,25 +15,23 @@ Options:
     -era --era=INT                  era to be processed [default: 2016]
     -BM --BM=STR                    BM point to be considered  [default: None]
 '''
-#-ml_method  --ml_method=XGB     name of ml_method  [default: xgb]                                             
- #   -scenario   --scenario=nonres   which scenario to be considered [default: nonres] 
+#-ml_method  --ml_method=XGB     name of ml_method  [default: xgb]
+ #   -scenario   --scenario=nonres   which scenario to be considered [default: nonres]
 import os
+import json
+import subprocess
+from datetime import datetime
 import docopt
-from machineLearning.machineLearning import universal_tools as ut
-from machineLearning.machineLearning.visualization import hh_visualization_tools as hhvt
-from machineLearning.machineLearning import hh_parameter_reader as hpr
-from machineLearning.machineLearning import hh_tools as hht
-from machineLearning.machineLearning import data_loader as dl
-from machineLearning.machineLearning import xgb_tools as xt
-from machineLearning.machineLearning import converter_tools as ct
-from machineLearning.machineLearning import bbWW_tools as bbwwt
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
 import pandas
 import numpy as np
-import json
-import subprocess
-from datetime import datetime
+from machineLearning.machineLearning import universal_tools as ut
+from machineLearning.machineLearning.visualization import hh_visualization_tools as hhvt
+from machineLearning.machineLearning import hh_parameter_reader as hpr
+from machineLearning.machineLearning import xgb_tools as xt
+from machineLearning.machineLearning import converter_tools as ct
+from machineLearning.machineLearning import bbWW_tools as bbwwt
 try:
     import cPickle as pickle
 except ModuleNotFoundError:
@@ -47,7 +45,7 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
         )
     global_settings = settings_dir+'/'+'global_%s_%s_%s_settings.json' %(channel, mode, res_nonres)
     command = 'rsync %s ~/machineLearning/CMSSW_11_2_0_pre1/src/machineLearning/machineLearning/settings/global_settings.json' %global_settings
-    p = subprocess.Popen(command, shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     global_settings = ut.read_settings(settings_dir, 'global')
     if output_dir == 'None':
         output_dir = global_settings['channel']+'/'+global_settings['ml_method']+'/'+\
@@ -63,10 +61,11 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
     scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
     preferences = reader.parameters
-    if not BM=='None': 
-      preferences["nonResScenarios"]=[BM]
+    if not BM == 'None':
+        preferences["nonResScenarios"] = [BM]
     print('BM point to be considered: ' + str(preferences["nonResScenarios"]))
-    if not era=='0': preferences['included_eras'] = [era.replace('20', '')]
+    if not era == '0':
+        preferences['included_eras'] = [era.replace('20', '')]
     print('era: ' + str(preferences['included_eras']))
     preferences = define_trainvars(global_settings, preferences, info_dir)
     if hyperparameter_file == 'None':
@@ -83,10 +82,10 @@ def split_data(global_settings, preferences):
     else:
         normalizer = bbwwt.bbWWDataNormalizer
         loader = bbwwt.bbWWLoader(
-             normalizer,
-             preferences,
-             global_settings
-         )
+            normalizer,
+            preferences,
+            global_settings
+        )
         data = loader.data
     hhvt.plot_trainvar_multi_distributions(
         data, preferences['trainvars'],
@@ -259,14 +258,14 @@ def performance_prediction(
         addition, preferences, debug
 ):
     test_predicted_probabilities = model.predict_proba(
-        test_data[preferences['trainvars']])[:,1]
+        test_data[preferences['trainvars']])[:, 1]
     test_fpr, test_tpr, test_thresholds = roc_curve(
         test_data['target'].astype(int),
         test_predicted_probabilities,
         sample_weight=test_data['totalWeight'].astype(float)
     )
     train_predicted_probabilities = model.predict_proba(
-        train_data[preferences['trainvars']])[:,1]
+        train_data[preferences['trainvars']])[:, 1]
     train_fpr, train_tpr, train_thresholds = roc_curve(
         train_data['target'].astype(int),
         train_predicted_probabilities,
@@ -343,21 +342,21 @@ def create_rle_str(data):
     return data
 
 def define_trainvars(global_settings, preferences, info_dir):
-     if global_settings["dataCuts"].find("boosted") != -1 :
+    if global_settings["dataCuts"].find("boosted") != -1:
         trainvars_path = os.path.join(info_dir, 'trainvars_boosted.json')
-     try:
+    try:
         trainvar_info = dlt.read_trainvar_info(trainvars_path)
         preferences['trainvars'] = []
         with open(trainvars_path, 'rt') as infile:
             for line in infile:
                 info = json.loads(line)
                 preferences['trainvars'].append(str(info['key']))
-     except:
+    except:
         print("Using trainvars from trainvars.json")
-     return preferences
+    return preferences
 
 if __name__ == '__main__':
-    startTime = datetime.now()
+    start_time = datetime.now()
     try:
         arguments = docopt.docopt(__doc__)
         output_dir = arguments['--output_dir']
@@ -372,4 +371,4 @@ if __name__ == '__main__':
         main('None', settings_dir, hyperparameter_file, debug)
     except docopt.DocoptExit as e:
         print(e)
-    print(datetime.now() - startTime)
+    print(datetime.now() - start_time)

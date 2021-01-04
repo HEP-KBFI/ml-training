@@ -211,8 +211,7 @@ def create_model(
         )
     model = modeltype.create_model()
     if save_model:
-        savemodel(model, global_settings)
-
+        savemodel(model, preferences['trainvars'], global_settings)
     return model
 
 def nodewise_performance(odd_data, even_data,
@@ -314,7 +313,7 @@ def evaluate_model(model, train_data, test_data, trainvars, \
     }
     return train_info, test_info
 
-def savemodel(model_structure, global_settings):
+def savemodel(model_structure, trainvars, global_settings):
     if 'nonres' in global_settings["bdtType"]:
         res_nonres = 'nonres'
     else:
@@ -326,6 +325,10 @@ def savemodel(model_structure, global_settings):
         %(global_settings["ml_method"], global_settings["channel"], \
           global_settings["mode"], choose_data, res_nonres))
     cmsml.tensorflow.save_graph(pb_filename, model_structure, variables_to_constants=True)
+    ll_var = ['%s_%s' %(part, var) for part in PARTICLE_INFO[global_settings['channel']]\
+              for var in ['e', 'px', 'py', 'pz']
+              ]
+    hl_var = [trainvar for trainvar in trainvars if trainvar not in ll_var]
     file = open(log_filename, "w")
     file.write(str(hl_var))
     file.close()
