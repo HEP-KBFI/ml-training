@@ -1,8 +1,4 @@
 import numpy as np
-import uproot_methods
-
-TLorentzVectorArray = uproot_methods.classes.TLorentzVector.TLorentzVectorArray
-
 
 def tree_to_lorentz(data, name="Jet"):
     return TLorentzVectorArray.from_ptetaphim(
@@ -12,34 +8,25 @@ def tree_to_lorentz(data, name="Jet"):
         np.array(data["%s_mass" % name]).astype(np.float64)
     )
 
-
 def tree_to_array(data, name="Jet"):
-    lorentz = tree_to_lorentz(data, name=name)
-    array = np.array([
-        lorentz.E[:],
-        lorentz.x[:],
-        lorentz.y[:],
-        lorentz.z[:],
-    ])
+    array = np.array([data[var] for var in ["%s_%s" %(name, ll_var) for ll_var in ["e", "px", "py", "pz"]]])
     array = np.moveaxis(array, 0, 1)
     return array
 
-
-def get_low_level(data):
-    b1jets = tree_to_array(data, name="bjet1")
-    b2jets = tree_to_array(data, name="bjet2")
-    w1jets = tree_to_array(data, name="wjet1")
-    w2jets = tree_to_array(data, name="wjet2")
-    leptons = tree_to_array(data, name="lep")
-    events = np.stack([b1jets, b2jets, w1jets, w2jets, leptons], axis=1)
+def get_low_level(data, particles):
+    ll_variables = []
+    for part in particles:
+         ll_variables.append(tree_to_array(data, name=part))
+    events = np.stack([ll_var for ll_var in ll_variables], axis=1)
     return events
 
 
-def get_high_level(tree, variables):
-    output = np.array([np.array(tree[variable].astype(np.float32)) for variable in variables])
+def get_high_level(tree, particles, variables):
+    low_level_var = ["%s_%s" %(part, var) for part in particles
+                    for var in ["e", "px", "py", "pz"]]
+    output = np.array([np.array(tree[variable].astype(np.float32)) for variable in variables if variable not in low_level_var])
     output = np.moveaxis(output, 0, 1)
     return output
-
 
 def find_correct_dict(key, value, list_of_dicts):
     """Finds the correct dictionary based on the requested key
