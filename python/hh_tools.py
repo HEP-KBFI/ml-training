@@ -85,14 +85,14 @@ class HHDataNormalizer(object):
 class HHDataLoader(DataLoader):
     def __init__(
             self, data_normalizer, preferences, global_settings,
-            nr_events_per_file=-1, weight='totalWeight',
+            nr_TT_events_per_file=-1, weight='totalWeight',
             cancelled_trainvars=['gen_mHH'], normalize=True,
             reweigh=True, remove_negative_weights=True
     ):
         print("Using HHDataLoader")
         super(HHDataLoader, self).__init__(
             preferences, global_settings, normalize, remove_negative_weights,
-            nr_events_per_file, weight
+            nr_TT_events_per_file, weight
         )
         self.reweigh = reweigh
         self.data_normalizer = data_normalizer
@@ -136,14 +136,14 @@ class HHDataLoader(DataLoader):
             bkg_elements = background_categories[folder_name]
             for bkg_element in bkg_elements:
                 bkg_element_paths = self.find_paths_both_conventions(
-                    input_path, bkg_element, file_type=file_type + '.root')
+                    input_path, bkg_element, file_type=file_type)
                 print('--------------')
                 print(bkg_element)
                 print(bkg_element_paths)
                 paths.extend(bkg_element_paths)
         else:
             paths = self.find_paths_both_conventions(
-                input_path, folder_name + '*', file_type=file_type + '.root')
+                input_path, folder_name + '*', file_type=file_type)
         return paths
 
     def find_paths_both_conventions(
@@ -247,7 +247,7 @@ class HHDataLoader(DataLoader):
                         node_weight = chunk_df_node['Weight_' + scenario]
                     node_weight /= chunk_df_node['Weight_SM']
                     chunk_df_node['totalWeight'] *= node_weight
-        data = data.append(chunk_df_node, ignore_index=True, sort=False)
+            data = data.append(chunk_df_node, ignore_index=True, sort=False)
         return data
 
     def data_reweighing(

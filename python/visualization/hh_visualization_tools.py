@@ -7,7 +7,7 @@ from collections import OrderedDict
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
-
+import itertools
 
 def plot_sampleWise_bdtOutput(
         model_odd,
@@ -348,3 +348,80 @@ def plot_nn_sampleWise_bdtOutput(
     plt.savefig(output_path, bbox_inches='tight')
     plt.yscale('log')
     plt.close('all')
+
+def  plot_loss_accuracy(fitted_model, output_dir, addition):
+    fig1, ax = plt.subplots()
+    epochs = range(1, len(fitted_model.history["loss"])+1)
+    plt.figure(figsize=(9, 4))
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs, fitted_model.history["loss"], "o-", label="Training")
+    plt.plot(epochs, fitted_model.history["val_loss"], "o-", label="Validation")
+    plt.xlabel("Epochs"), plt.ylabel("Loss")
+    plt.ylim(0.0, 1.2*max(max(fitted_model.history["loss"]), max(fitted_model.history["val_loss"])))
+    plt.grid()
+    plt.legend()
+
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs, fitted_model.history["accuracy"], "o-", label="Training")
+    plt.plot(epochs, fitted_model.history["val_accuracy"], "o-", label="Validation")
+    plt.xlabel("Epochs"), plt.ylabel("Accuracy")
+    plt.ylim(0.0,1.0)
+    plt.grid()
+    plt.legend(loc="best");
+
+    loss_vs_epoch = os.path.join(output_dir, "loss_vs_epoch_%s.png" \
+                                 %(addition))
+    plt.savefig(loss_vs_epoch)
+    plt.close('all')
+
+def plot_confusion_matrix(cm, class_names, output_dir, addition):
+    figure = plt.figure(figsize=(4, 4))
+    plt.imshow(cm, interpolation='nearest', cmap="summer")
+    plt.title("Confusion matrix")
+    plt.colorbar()
+    tick_marks = np.arange(len(class_names))
+    plt.xticks(tick_marks, class_names, fontsize=5, rotation=70)
+    plt.yticks(tick_marks, class_names, fontsize=5)
+    cm = np.moveaxis(
+        np.around(
+            cm.astype('float') / cm.sum(axis=1)[:, np.newaxis],
+            decimals=2),
+        0, 1
+    )
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(i, j, cm[i, j], horizontalalignment="center", size=5)
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    outfile = os.path.join(output_dir, 'confusion_matrix_%s.png' %addition)
+    plt.savefig(outfile, bbox_inches='tight')
+    plt.close('all')
+
+def plot_DNNScore(data, output_dir, addition):
+    color = ['b', 'g', 'y', 'r', 'magenta', 'orange', 'c']
+    for node in sorted(set(data["multitarget"])):
+        fig1, ax = plt.subplots()
+        values = []
+        weights = []
+        labels = []
+        colors = []
+        for i, process in enumerate(set(data["process"])):
+            if len(data.loc[((data["max_node_pos"] == node) & \
+                (data["process"] == process))]):
+                values.append(data.loc[((data["max_node_pos"] == node) & \
+                    (data["process"] == process)), ["max_node_val"]].values.tolist())
+                weights.append(data.loc[((data["max_node_pos"] == node) & \
+                    (data["process"] == process)), ["evtWeight"]].values.tolist())
+                labels.append('HH') if 'signal' in process else labels.append(process)
+                colors.append(color[i])
+        plt.hist(values, weights=weights,
+            label=labels, color=colors,
+            histtype='bar', stacked=True, range=(0, 1), bins=20)
+        nodeName = list(set(data.loc[data["multitarget"] == node]["process"]))[0]
+        plt.legend(loc='best', title=nodeName+"_node")
+        plt.yscale('log')
+        outfile = os.path.join(output_dir, 'DNNScore_'+nodeName+\
+            '_node_'+addition+'.png')
+        plt.savefig(outfile)
+        plt.clf()
+
