@@ -22,6 +22,7 @@ from machineLearning.machineLearning import hh_parameter_reader as hpr
 from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import data_loader as dl
 from machineLearning.machineLearning import bbWW_tools as bbwwt
+from machineLearning.machineLearning import multiclass_tools as mt
 np.random.seed(1)
 
 
@@ -46,10 +47,16 @@ def main(to_continue, opt_dir, bbww):
             ut.save_info_dir(output_dir)
     # use_scratch_for_data(global_settings)
     print("::::::: Reading parameters :::::::")
-    param_file = os.path.join(
-        settings_dir,
-        'xgb_parameters.json'
-    )
+    if global_settings['ml_method'] == 'xgb':
+        param_file = os.path.join(
+            settings_dir,
+            'xgb_parameters.json'
+        )
+    else:
+        param_file = os.path.join(
+            settings_dir,
+            'nn_parameters.json'
+        )
     hyperparameter_info = ut.read_json_cfg(param_file)
     pso_settings = ut.read_settings(settings_dir, 'pso')
     pso_settings.update(global_settings)
@@ -78,6 +85,11 @@ def main(to_continue, opt_dir, bbww):
             global_settings
            )
         data = loader.data
+        if global_settings['ml_method'] in ['lbn', 'nn']:
+            use_Wjets = True
+            if 'bb2l' in global_settings['channel']:
+                use_Wjets = False
+            data = mt.multiclass_encoding(data, use_Wjets)
         loader.save_to_csv()
     print("\n============ Starting hyperparameter optimization ==========\n")
     swarm = pt.ParticleSwarm(
