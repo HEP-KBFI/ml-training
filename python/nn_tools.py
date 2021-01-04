@@ -21,33 +21,10 @@ from machineLearning.machineLearning import multiclass_tools as mt
 from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning.visualization import hh_visualization_tools as hhvt
 
-def model_evaluation_main(nn_hyperparameters, data_dict, global_settings):
-    """ Collected functions for CGB model evaluation
-
-    Parameters:
-    ----------
-    nn_hyperparamters : dict
-        hyperparameters for the model to be created
-    data_dict : dict
-        Contains all the necessary information for the evaluation.
-    global_settings : dict
-        Preferences for the optimization
-
-    Returns:
-    -------
-    score : float
-        The score calculated according to the fitness_fn
-    """
-    k_model = parameter_evaluation(
-        nn_hyperparameters,
-        data_dict,
-        global_settings['nthread'],
-        global_settings['num_classes'],
-    )
-    score, pred_train, pred_test = evaluate(
-        k_model, data_dict, global_settings
-    )
-    return score, pred_train, pred_test
+PARTICLE_INFO = low_level_object = {
+    'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "lep"],
+    'bb2l': ["bjet1", "bjet2", "lep1", "lep2"]
+}
 
 class NNmodel(object):
     def __init__(
@@ -64,19 +41,19 @@ class NNmodel(object):
         self.val_data = val_data
         self.trainvars = trainvars
         self.nr_trainvars = len(trainvars)
-        self.dropout = parameters['dropout']
+        self.dropout = 0#parameters['dropout']
         self.lr = parameters['lr']
         self.l2 = parameters['l2']
-        self.epoch = parameters['epoch']
+        self.epoch = 25#parameters['epoch']
         self.batch_size = parameters['batch_size']
         self.layer = parameters['layer']
         self.node = parameters['node']
 
         self.reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
-            monitor='val_loss', factor=0.1, patience=3, min_lr=0.00001
+            monitor='val_loss', factor=0.1, patience=3, min_lr=0.00001, min_delta=0.01
         )
         self.early_stopping = tf.keras.callbacks.EarlyStopping(
-            monitor='val_loss', patience=5, min_delta=0.001,
+            monitor='val_loss', patience=5, min_delta=0.01,
             restore_best_weights=True
         )
         self.num_class = max((self.train_data['multitarget'])) + 1
@@ -240,7 +217,6 @@ def parameter_evaluation(
         num_class,
 ):
     """Creates the NN model according to the given hyperparameters
-
     Parameters:
     ----------
     nn_hyperparameters : dict
@@ -280,6 +256,45 @@ def parameter_evaluation(
     )
     return k_model
 
+def evaluate_model(data_dict, global_settings, model):
+    """Evaluates the model for the XGBoost method
+    Parameters:
+    ----------
+    data_dict : dict
+        Contains all the necessary information for the evaluation.
+    global_settings : dict
+        Preferences for the optimization
+    model : XGBoost Booster?
+        Model created by the xgboost.
+    Returns:
+    -------
+    score : float
+        The score calculated according to the fitness_fn
+    """
+    trainvars = data_dict['trainvars']
+    train_data = data_dict['train']
+    test_data = data_dict['test']
+    particles = PARTICLE_INFO[global_settings['channel']]
+    pred_train = model.predict(
+        [dlt.get_low_level(train_data, particles),
+          dlt.get_high_level(train_data, particles, trainvars)],
+        batch_size=1024)
+    pred_test = model.predict(
+        [dlt.get_low_level(test_data, particles),
+         dlt.get_high_level(test_data, particles, trainvars)],
+        batch_size=1024)
+    kappa = global_settings['kappa']
+    if global_settings['fitness_fn'] == 'd_roc':
+        return et.calculate_d_roc(
+            data_dict, pred_train, pred_test, kappa=kappa, multiclass=True)
+    elif global_settings['fitness_fn'] == 'd_ams':
+        return et.calculate_d_ams(
+            data_dict, pred_train, pred_test, kappa=kappa)
+    else:
+        raise ValueError(
+            'The' + str(global_settings['fitness_fn'])
+            + ' fitness_fn is not implemented'
+        )
 
 def evaluate(k_model, data_dict, global_settings):
     """Evaluates the nn k_model
@@ -574,3 +589,40 @@ class LBNFeatureImportances(NNFeatureImportances):
         low_level_[:, i] = shuffled_elements
         return low_level_
 
+def model_evaluation_main(hyperparameters, data_dict, global_settings):
+    """ Collected functions for CGB model evaluation
+    Parameters:
+    ----------
+    nn_hyperparamters : dict
+        hyperparameters for the model to be created
+    data_dict : dict
+        Contains all the necessary information for the evaluation.
+    global_settings : dict
+        Preferences for the optimization
+    Returns:
+    -------
+    score : flot
+        The score calculated according to the fitness_fn
+    """
+    '''k_model = parameter_evaluation(
+        nn_hyperparameters,
+        data_dict,
+        global_settings['nthread'],
+        global_settings['num_classes'],
+    )
+    score, pred_train, pred_test = evaluate(
+        k_model, data_dict, global_settings
+    )
+    return score, pred_train, pred_test'''
+    LBNmodel_ = LBNmodel(
+        data_dict['train'],
+        data_dict['test'],
+        data_dict['trainvars'],
+        global_settings['channel'],
+        hyperparameters,
+        False
+    )
+    model = LBNmodel_.create_model()
+    score, train, test = evaluate_model(
+        data_dict, global_settings, model)
+    return score, train, test
