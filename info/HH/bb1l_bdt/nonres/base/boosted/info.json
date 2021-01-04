@@ -1,0 +1,69 @@
+{
+    "masses": [260, 270, 300, 350, 400, 450, 500, 550, 600, 700, 800, 900, 1000],
+    "masses_test": [300, 500, 800],
+    "masses_low": [260, 270, 300, 350, 400],
+    "masses_test_low": [300],
+    "masses_high": [450, 500, 550, 600, 700, 800, 900, 1000],
+    "masses_test_high": [500, 800],
+    "channelInTree": "hh_bb1l_Tight",
+    "default_tauID_application": "deepVSjMedium",
+    "included_eras": ["16"],
+    "nonResScenarios": ["SM"],
+    "nonResScenarios_test": ["SM"],
+    "tauID_training_key": "deepVSjVVVLoose",
+    "tauID_application": {
+        "deepVSjMedium": {
+            "TTdatacard": 0.752,
+            "DYdatacard": 0.026,
+            "Wdatacard":0.147,
+            "ST": 0.075
+        }
+    },
+    "tauID_training": {
+        "deepVSjVVVLoose": {
+	    "inputPath16": "/hdfs/local/snandan/hhAnalysis/2016/bdt_jpa_all_v8/histograms/hh_bb1l/Tight/",
+            "inputPath18": "/hdfs/local/snandan/hhAnalysis/2018/bdt_jpa_all_v8/histograms/hh_bb1l/Tight/",
+	    "inputPath17": "/hdfs/local/snandan/hhAnalysis/2017/bdt_jpa_all_v8/histograms/hh_bb1l/Tight/"
+        }
+    },
+    "data_csv": "/path/to/data",
+    "keys": {
+        "TTTo": [16],
+        "DY_bbWW": [16],
+        "WJets": [16],
+        "ST": [16],
+	"signal_ggf_nonresonant_node_sm_hh_2b2v_sl_PSWeights": [16],
+	"signal_ggf_nonresonant_node_sm_hh_2b2v_sl": [16],
+        "signal_ggf_nonresonant_node_1_hh_2b2v_sl_PSWeights": [16],
+	"signal_ggf_nonresonant_node_1_hh_2b2v_sl": [16],
+        "signal_ggf_nonresonant_node_2_hh_2b2v_sl_PSWeights": [16],
+	"signal_ggf_nonresonant_node_2_hh_2b2v_sl": [16],
+        "signal_ggf_nonresonant_node_3_hh_2b2v_sl_PSWeights": [16],
+	"signal_ggf_nonresonant_node_3_hh_2b2v_sl": [16],
+        "signal_ggf_nonresonant_node_4_hh_2b2v_sl_PSWeights": [16],
+	"signal_ggf_nonresonant_node_4_hh_2b2v_sl": [16],
+        "signal_ggf_nonresonant_node_5_hh_2b2v_sl": [16],
+	"signal_ggf_nonresonant_node_5_hh_2b2v_sl_PSWeights": [16],
+        "signal_ggf_nonresonant_node_6_hh_2b2v_sl_PSWeights": [16],
+	"signal_ggf_nonresonant_node_6_hh_2b2v_sl": [16],
+        "signal_ggf_nonresonant_node_7_hh_2b2v_sl": [16],
+	"signal_ggf_nonresonant_node_7_hh_2b2v_sl_PSWeights": [16],
+        "signal_ggf_nonresonant_node_8_hh_2b2v_sl_PSWeights": [16],
+	"signal_ggf_nonresonant_node_8_hh_2b2v_sl": [16],
+	"signal_ggf_nonresonant_node_9_hh_2b2v_sl": [16],
+        "signal_ggf_nonresonant_node_9_hh_2b2v_sl_PSWeights": [16],
+        "signal_ggf_nonresonant_node_10_hh_2b2v_sl_PSWeights": [16],
+        "signal_ggf_nonresonant_node_10_hh_2b2v_sl": [16],
+        "signal_ggf_nonresonant_node_11_hh_2b2v_sl": [16],
+        "signal_ggf_nonresonant_node_11_hh_2b2v_sl_PSWeights": [16],
+        "signal_ggf_nonresonant_node_12_hh_2b2v_sl_PSWeights": [16],
+	"signal_ggf_nonresonant_node_12_hh_2b2v_sl": [16],
+	"signal_vbf_nonresonant_1_1_2_hh_2b2v_sl_dipoleRecoilOff": [16],
+        "signal_vbf_nonresonant_0p5_1_1_hh_2b2v_sl_dipoleRecoilOff": [16],
+        "signal_vbf_nonresonant_1_1_1_hh_2b2v_sl_dipoleRecoilOff": [16],
+        "signal_vbf_nonresonant_1_0_1_hh_2b2v_sl_dipoleRecoilOff": [16],
+        "signal_vbf_nonresonant_1_2_1_hh_2b2v_sl_dipoleRecoilOff": [16],
+        "signal_vbf_nonresonant_1p5_1_1_hh_2b2v_sl_dipoleRecoilOff": [16],
+        "signal_vbf_nonresonant_1_1_0_hh_2b2v_sl_dipoleRecoilOff": [16]
+    }
+}
