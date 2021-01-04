@@ -4,7 +4,7 @@ import pandas
 from sklearn.model_selection import KFold
 from sklearn.model_selection import train_test_split
 import sklearn.metrics as skm
-
+from machineLearning.machineLearning import multiclass_tools as mt
 
 def kfold_cv(
         evaluation,
@@ -135,7 +135,7 @@ def calculate_d_score(train_score, test_score, kappa=1.5):
     return d_score
 
 
-def calculate_auc(data_dict, prediction, data_class, weights):
+def calculate_auc(data_dict, prediction, data_class, weights, multiclass):
     """ Calculates the ROC curve AUC using sklearn.metrics package.
 
     Parameters:
@@ -149,13 +149,23 @@ def calculate_auc(data_dict, prediction, data_class, weights):
     [weights] : str
         [Default: 'totalWeight'] data label to be used as the weight.
     """
-    labels = np.array(data_dict[data_class]['target']).astype(int)
+    if multiclass:
+        labels = np.array(data_dict[data_class]['multitarget']).astype(int)
+    else:
+        labels = np.array(data_dict[data_class]['target']).astype(int)
     weights = np.array(data_dict[data_class]['totalWeight']).astype(float)
-    fpr, tpr, thresholds_train = skm.roc_curve(
-        labels,
-        prediction,
-        sample_weight=weights
-    )
+    if multiclass:
+        fpr, tpr = mt.roc_curve(
+            labels,
+            prediction,
+            sample_weight=weights
+        )
+    else:
+        fpr, tpr, thresholds_train = skm.roc_curve(
+            labels,
+            prediction,
+            sample_weight=weights
+        )
     auc_score = skm.auc(fpr, tpr, reorder=True)
     return auc_score
 
@@ -165,7 +175,8 @@ def calculate_d_roc(
         pred_train,
         pred_test,
         weights='totalWeight',
-        kappa=1.5
+        kappa=1.5,
+        multiclass=False
 ):
     """Calculates the d_roc score
 
@@ -184,8 +195,8 @@ def calculate_d_roc(
     d_roc : float
         the AUC calculated using the d_score function
     """
-    test_auc = calculate_auc(data_dict, pred_test, 'test', weights)
-    train_auc = calculate_auc(data_dict, pred_train, 'train', weights)
+    test_auc = calculate_auc(data_dict, pred_test, 'test', weights, multiclass)
+    train_auc = calculate_auc(data_dict, pred_train, 'train', weights, multiclass)
     d_roc = calculate_d_score(train_auc, test_auc, kappa)
     return d_roc, test_auc, train_auc
 
