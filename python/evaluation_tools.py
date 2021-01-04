@@ -158,7 +158,7 @@ def calculate_auc(data_dict, prediction, data_class, weights, multiclass):
         fpr, tpr = mt.roc_curve(
             labels,
             prediction,
-            sample_weight=weights
+            weights
         )
     else:
         fpr, tpr, thresholds_train = skm.roc_curve(
