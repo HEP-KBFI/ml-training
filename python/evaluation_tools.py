@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 import sklearn.metrics as skm
 from machineLearning.machineLearning import multiclass_tools as mt
 
+
 def kfold_cv(
         evaluation,
         prepared_data,
@@ -54,7 +55,7 @@ def kfold_cv(
             'train': train_set,
             'test': test_set
         }
-        score, train, test = evaluation(hyperparameters, data_dict, global_settings)
+        score, test, train = evaluation(hyperparameters, data_dict, global_settings)
         del train_set, test_set, data_dict
         scores.append(score)
         tests.append(test)
@@ -94,10 +95,10 @@ def get_evaluation(
     -------
     score : float
         The score corresponding to the fitness_fn
-    pred_train : list of lists
-        Predicted labels of the training dataset
     pred_test : list of lists
         Predicted labels of the testing dataset
+    pred_train : list of lists
+        Predicted labels of the training dataset
     """
     train, test = train_test_split(
         prepared_data, test_size=0.2, random_state=1)
@@ -106,7 +107,7 @@ def get_evaluation(
         'train': train,
         'test': test,
     }
-    score, pred_train, pred_test = evaluation(
+    score, pred_test, pred_train = evaluation(
         hyperparameters, data_dict, global_settings)
     return score, pred_train, pred_test
 
