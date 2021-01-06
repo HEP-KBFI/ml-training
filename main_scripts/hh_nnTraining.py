@@ -20,6 +20,7 @@ import docopt
 import numpy as np
 import tensorflow as tf
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import auc
 import matplotlib
 matplotlib.use('agg')
 import cmsml

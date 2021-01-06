@@ -87,7 +87,10 @@
        "ST_tW_antitop_5f_inclusiveDecays_PSweights": "ST",
        "ST_tW_top_5f_inclusiveDecays": "ST",
        "ST_tW_top_5f_inclusiveDecays_PSweights": "ST",
-       "ST_tWll_PSweights_ext1": "ST"
+       "ST_tWll_PSweights_ext1": "ST",
+       "ST_tWll": "ST",
+       "ST_tW_antitop_5f_inclusiveDecays_ext1": "ST",
+       "ST_tW_top_5f_inclusiveDecays_ext1": "ST"
      },
     "WW": {
         "WWTo2L2Nu": "WW",
