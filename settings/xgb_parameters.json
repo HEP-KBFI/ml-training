@@ -1,7 +1,7 @@
 {
     "n_estimators": {
         "min": 1,
-        "max": 800,
+        "max": 500,
         "int": 1,
         "exp": 0,
         "log": 0
@@ -15,14 +15,14 @@
     },
     "max_depth": {
         "min": 1,
-        "max": 10,
+        "max": 6,
         "int": 1,
         "exp": 0,
         "log": 0
     },
     "gamma": {
         "min": 0,
-        "max": 8,
+        "max": 5,
         "int": 0,
         "exp": 0,
         "log": 0
