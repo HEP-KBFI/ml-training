@@ -198,7 +198,7 @@ def calculate_d_roc(
     test_auc = calculate_auc(data_dict, pred_test, 'test', weights, multiclass)
     train_auc = calculate_auc(data_dict, pred_train, 'train', weights, multiclass)
     d_roc = calculate_d_score(train_auc, test_auc, kappa)
-    return d_roc, train_auc, test_auc
+    return d_roc, test_auc, train_auc
 
 
 def ams(s, b):
