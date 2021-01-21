@@ -75,17 +75,18 @@ def plot_DNNScore(data, model, lbn, output_dir, trainvars, particles, addition):
             data.loc[data['process'] == process, "max_node_val"] = np.amax(value, axis=1)
     hhvt.plot_DNNScore(data, output_dir, addition)
 
-def main(output_dir, save_model, channel, mode, era, BM):
+def main(output_dir, channel, mode, era, BM, save_model=True):
     settings_dir = os.path.join(
         os.path.expandvars('$CMSSW_BASE'),
         'src/machineLearning/machineLearning/settings'
     )
     global_settings = ut.read_settings(settings_dir, 'global')
-    global_settings['ml_method'] = 'lbn'
-    global_settings['channel'] = 'bb1l'
+    create_global_settings(global_settings, channel, res_nonres, mode)
+    print('global settings ' + str(global_settings))
     if output_dir == 'None':
         output_dir = global_settings['channel']+'/'+global_settings['ml_method']+'/'+\
-                     res_nonres + '/' + mode +'/' + era
+                     res_nonres + '/' + mode +'/' + BM + '/' + era
+                     #res_nonres + '/' + mode +'/' + BM + '/' + era
         global_settings['output_dir'] = output_dir
     else:
         global_settings['output_dir'] = output_dir
@@ -93,7 +94,7 @@ def main(output_dir, save_model, channel, mode, era, BM):
         global_settings['output_dir'])
     if not os.path.exists(global_settings['output_dir']):
         os.makedirs(global_settings['output_dir'])
-    channel_dir, info_dir, _ = ut.find_settings()
+    channel_dir, info_dir, _ = ut.find_settings(global_settings)
     scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
     preferences = reader.parameters
@@ -104,6 +105,7 @@ def main(output_dir, save_model, channel, mode, era, BM):
         preferences['included_eras'] = [era.replace('20', '')]
     print('era: ' + str(preferences['included_eras']))
     preferences = define_trainvars(global_settings, preferences, info_dir)
+    check_trainvar(preferences)
     particles = PARTICLE_INFO[global_settings['channel']]
     data_dict = create_data_dict(preferences, global_settings)
     classes = set(data_dict["even_data"]["process"])
@@ -198,7 +200,7 @@ def create_model(
     train_data = data_dict['odd_data'] if choose_data == "odd_data" else data_dict['even_data']
     val_data = data_dict['even_data']  if choose_data == "odd_data" else data_dict['odd_data']
     lbn = global_settings['ml_method'] == 'lbn'
-    parameters = {'epoch':20, 'batch_size':1024, 'lr':0.0003, 'l2':0.0003, 'dropout':0, 'layer':3, 'node':256}
+    parameters = {'epoch':25, 'batch_size':601, 'lr':0.00781838825015861, 'l2':0.0, 'dropout':0, 'layer':5, 'node':212}
     if lbn:
         modeltype = nt.LBNmodel(
             train_data,
@@ -212,7 +214,8 @@ def create_model(
         )
     model = modeltype.create_model()
     if save_model:
-        savemodel(model, preferences['trainvars'], global_settings)
+        savemodel(model, preferences['trainvars'], global_settings, choose_data, \
+                  preferences["nonResScenarios"][0], '20%s' %preferences['included_eras'][0])
     return model
 
 def nodewise_performance(odd_data, even_data,
@@ -314,17 +317,18 @@ def evaluate_model(model, train_data, test_data, trainvars, \
     }
     return train_info, test_info
 
-def savemodel(model_structure, trainvars, global_settings):
+def savemodel(model_structure, trainvars, global_settings, addition, BM, era):
     if 'nonres' in global_settings["bdtType"]:
         res_nonres = 'nonres'
+        mode = global_settings['scenario'].split('/')[2]
     else:
         res_nonres = 'res_%s' %global_settings['spinCase']
-    pb_filename = os.path.join(global_settings["output_dir"], "multiclass_DNN_w%s_for_%s_%s_%s_%s.pb"\
+    pb_filename = os.path.join(global_settings["output_dir"], "multiclass_DNN_w%s_for_%s_%s_%s_%s_%s_%s.pb"\
         %(global_settings["ml_method"], global_settings["channel"], \
-          global_settings["mode"], choose_data, res_nonres))
+          mode, addition, res_nonres, BM, era))
     log_filename = os.path.join(global_settings["output_dir"], "multiclass_DNN_w%s_for_%s_%s_%s_%s.log"\
         %(global_settings["ml_method"], global_settings["channel"], \
-          global_settings["mode"], choose_data, res_nonres))
+          mode, addition, res_nonres))
     cmsml.tensorflow.save_graph(pb_filename, model_structure, variables_to_constants=True)
     ll_var = ['%s_%s' %(part, var) for part in PARTICLE_INFO[global_settings['channel']]\
               for var in ['e', 'px', 'py', 'pz']
@@ -354,6 +358,18 @@ def define_trainvars(global_settings, preferences, info_dir):
         print("Using trainvars from trainvars.json")
     return preferences
 
+def create_global_settings(global_settings, channel, res_nonres, mode):
+    channel = channel.replace('_bdt', '')
+    global_settings['channel'] = channel
+    global_settings['ml_method'] = 'lbn'
+    global_settings['scenario'] = '%s/base/%s' %(res_nonres, mode)
+    global_settings['dataCuts'] = 'cuts_%s.json' %mode
+
+def check_trainvar(preferences):
+    BMpoints = ['SM', 'BM1', 'BM2', 'BM3', 'BM4', 'BM5', 'BM6', 'BM7', 'BM8', 'BM9', 'BM10', 'BM11', 'BM12']
+    for BMpoint in BMpoints:
+        if BMpoint in preferences['trainvars']:
+            preferences['trainvars'].remove(BMpoint)
 
 if __name__ == '__main__':
     startTime = datetime.now()
@@ -366,7 +382,7 @@ if __name__ == '__main__':
         res_nonres = arguments['--res_nonres']
         era = arguments['--era']
         BM = arguments['--BM']
-        main('None', save_model, channel, mode, era, BM)
+        main('None', channel, mode, era, BM)
     except docopt.DocoptExit as e:
         print(e)
     print(datetime.now() - startTime)
