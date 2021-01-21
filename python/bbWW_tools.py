@@ -41,10 +41,10 @@ class bbWWDataNormalizer(HHDataNormalizer):
                     condition_node = self.data['nodeXname'].astype(str) == str(node)
                     condition_sig = self.data['process'].astype(str) == process
                     node_sig_weight = self.data.loc[
-                        self.condition_sig & condition_node, [self.weight]]
+                        condition_sig & condition_node, [self.weight]]
                     sig_node_factor = 100000./node_sig_weight.sum()
                     self.data.loc[
-                        self.condition_sig & condition_node,
+                        condition_sig & condition_node,
                         [self.weight]] *= sig_node_factor
         self.print_background_yield()
 
@@ -170,7 +170,7 @@ class bbWWLoader(HHDataLoader):
         if 'TT' in folder_name:
             self.nr_events_per_file = 2000000
         elif 'ggf' in folder_name:
-            self.nr_events_per_file = -1
+            self.nr_events_per_file = 20000#-1
         else:
             self.nr_events_per_file = -1
         return dlt.load_data_from_tfile(
