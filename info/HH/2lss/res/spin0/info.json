@@ -8,34 +8,38 @@
     "masses_test_high": [500, 800],
     "channelInTree": "hh_2lss_SS",
     "default_tauID_application": "deepVSjMedium",
-    "included_eras": ["17"],
-    "weight_dir": "$HOME/BDT_Output/gen_mHH_profiles/spin0",
+    "included_eras": ["16", "17", "18"],
+    "weight_dir": "/home/sbhowmik/BDT_Output/HH_Analysis/BDT2020Nov28/gen_mHH_profiles/spin0",
     "nonResScenarios": ["SM","BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"],
     "nonResScenarios_test": ["SM","BM4","BM7","BM12"],
     "tauID_training_key": "deepVSjVVVLoose",
     "tauID_application": {
         "deepVSjMedium": {
-            "TTdatacard": 258.26,
-            "WZdatacard": 135.08,
-            "DYdatacard": 111.54,
-            "TTWdatacard": 19.78,
-            "VHdatacard": 14.24,
-            "ZZdatacard": 6.22,
-            "TTZdatacard": 6.55,
-            "TTHdatacard": 6.32
+            "TTdatacard": 1022.3,
+            "WZdatacard": 534.3,
+            "XGammadatacard": 476.22,
+            "Otherdatacard": 473.42,
+            "DYdatacard": 471.98,
+            "TTWdatacard": 79.39,
+            "VHdatacard": 54.77,
+            "ZZdatacard": 24.51,
+            "TTZdatacard": 25.68,
+            "ttHdatacard": 27.56
         }
     },
     "tauID_training": {
         "deepVSjVVVLoose": {
-            "inputPath16": "/hdfs/local/sbhowmik/hhAnalysis/2016/2020Octo20/histograms/hh_2lss/forBDTtraining_SS/",
-            "inputPath17": "/hdfs/local/sbhowmik/hhAnalysis/2017/2020Octo20/histograms/hh_2lss/forBDTtraining_SS/",
-            "inputPath18": "/hdfs/local/sbhowmik/hhAnalysis/2018/2020Octo20/histograms/hh_2lss/forBDTtraining_SS/"
+            "inputPath16": "/hdfs/local/sbhowmik/hhAnalysis/2016/BDT2020Nov28/histograms/hh_2lss/forBDTtraining_SS/",
+            "inputPath17": "/hdfs/local/sbhowmik/hhAnalysis/2017/BDT2020Nov28/histograms/hh_2lss/forBDTtraining_SS/",
+            "inputPath18": "/hdfs/local/sbhowmik/hhAnalysis/2018/BDT2020Nov28/histograms/hh_2lss/forBDTtraining_SS/"
         }
     },
-    "data_csv": "/path/to/data",
+    "data_csv": "",
     "keys": {
-        "TT": [16, 17, 18],
+        "TTTo": [16, 17, 18],
         "WZ": [16, 17, 18],
+        "XGamma": [16, 17, 18],
+        "Other": [16, 17, 18],
         "DY": [16, 17, 18],
         "TTW": [16, 17, 18],
         "VH": [16, 17, 18],

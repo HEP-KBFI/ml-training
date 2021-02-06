@@ -1,5 +1,5 @@
 {
-    "output_dir": "$HOME/BDT_Output",
+    "output_dir": "$HOME/BDT_Output/training_2lss/BDTSandeep_wLeptonConept/nonres_default_wSandeepBestHyperparameters",
     "ml_method": "xgb",
     "feature_importance" : 0,
     "process": "HH",
@@ -10,7 +10,7 @@
     "use_kfold": 1,
     "nthread": 8,
     "kappa": 0.3,
-    "scenario": "spin0",
+    "scenario": "nonres/default",
     "dataCuts": 0,
     "debug": 0
 }

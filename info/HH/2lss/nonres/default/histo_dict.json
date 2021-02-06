@@ -29,4 +29,4 @@
 {"nbins": 3000, "fitFunc_HighMassTraining": "pol9", "min": 0.0, "max": 3000.0, "fitFunc_LowMassTraining": "pol9", "fitFunc_AllMassTraining": "pol9", "Variable": "dihiggsVisMass_sel"}
 {"nbins": 6, "fitFunc_HighMassTraining": "pol9", "min": -3.0, "max": 3.0, "fitFunc_LowMassTraining": "pol9", "fitFunc_AllMassTraining": "pol9", "Variable": "leptonPairCharge_sel"}
 {"nbins": 1000, "fitFunc_HighMassTraining": "pol9", "min": 0.0, "max": 1000.0, "fitFunc_LowMassTraining": "pol9", "fitFunc_AllMassTraining": "pol9", "Variable": "pT_llMEt"}
-{"nbins": 1100, "fitFunc_HighMassTraining": "pol1", "min": 0.0, "max": 1100.0, "fitFunc_LowMassTraining": "pol1", "fitFunc_AllMassTraining": "pol1", "Variable": "gen_mHH"}
+{"nbins": 12, "fitFunc_HighMassTraining": "pol9", "min": -12.0, "max": 0.0, "fitFunc_LowMassTraining": "pol9", "fitFunc_AllMassTraining": "pol1", "Variable": "BM"}
