@@ -1,51 +1,43 @@
 {
-    "class": "2lss_res",
+    "class": "2lss_leq1tau_res",
     "masses": [250, 260, 270, 280, 300, 320, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 1000],
     "masses_test": [300, 500, 800],
     "masses_low": [250,260,270,280,300,350,400],
     "masses_test_low": [300],
-    "masses_high": [450,500,550,600,650,700,750,800,850,900,1000],
+    "masses_high": [450,500,550,600,650,700,750,800,850,900,1000], 
     "masses_test_high": [500, 800],
-    "channelInTree": "hh_2lss_SS_forBDTtraining",
+    "channelInTree": "hh_2lss_leq1tau_SS_forBDTtraining",
     "default_tauID_application": "deepVSjMedium",
     "included_eras": ["16", "17", "18"],
-    "weight_dir": "/home/ssawant/MVA_fit_funcs/Run2/2lss_0tau_wUpdatedZveto_mTlepCap150/Resonant_Spin2",
+    "weight_dir": "/home/ssawant/MVA_fit_funcs/Run2/2lss_leq1tau_wUpdatedZveto_mTlepCap150/Resonant_Spin2",
     "nonResScenarios": ["SM","BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"],
     "nonResScenarios_test": ["SM","BM4","BM7","BM12"],
     "tauID_training_key": "deepVSjMedium",
     "tauID_application": {
         "deepVSjMedium": {
-            "TTdatacard": 995.62,
-            "WZdatacard": 521.71,
-            "XGammadatacard": 455.24,
-            "Otherdatacard": 464.74,
-            "DYdatacard": 212.82,
-            "TTWdatacard": 77.98,
-            "VHdatacard": 50.195,
-            "ZZdatacard": 24.015,
-            "TTZdatacard": 25.44,
-            "ttHdatacard": 27.06
+	    "WJetsdatacard": 2365.68, 
+	    "WZdatacard": 1987.67,
+	    "TTdatacard": 1912.57,
+	    "XGammadatacard": 1903.29,
+	    "Otherdatacard": 1084.24,
+	    "DYdatacard": 818.91
         }
     },
     "tauID_training": {
         "deepVSjMedium": {
-            "inputPath16": "/hdfs/local/ssawant/hhAnalysis/2016/20210205_hh_2lss_0tau_2016_BDTNTuples_wUpdatedZveto_mTlepCap150/histograms/hh_2lss/forBDTtraining_SS/",
-            "inputPath17": "/hdfs/local/ssawant/hhAnalysis/2017/20210205_hh_2lss_0tau_2017_BDTNTuples_wUpdatedZveto_mTlepCap150/histograms/hh_2lss/forBDTtraining_SS/",
-            "inputPath18": "/hdfs/local/ssawant/hhAnalysis/2018/20210205_hh_2lss_0tau_2018_BDTNTuples_wUpdatedZveto_mTlepCap150/histograms/hh_2lss/forBDTtraining_SS/"
+            "inputPath16": "/hdfs/local/ssawant/hhAnalysis/2016/20210209_hh_2lss_leq1tau_2016_BDTNTuples_wUpdatedZveto_mTlepCap150/histograms/hh_2lss_leq1tau/forBDTtraining_SS/",
+            "inputPath17": "/hdfs/local/ssawant/hhAnalysis/2017/20210209_hh_2lss_leq1tau_2017_BDTNTuples_wUpdatedZveto_mTlepCap150/histograms/hh_2lss_leq1tau/forBDTtraining_SS/",
+            "inputPath18": "/hdfs/local/ssawant/hhAnalysis/2018/20210209_hh_2lss_leq1tau_2018_BDTNTuples_wUpdatedZveto_mTlepCap150/histograms/hh_2lss_leq1tau/forBDTtraining_SS/"
         }
     },
-    "data_csv": "",
-    "keys": {
-        "TT_all": [16, 17, 18],
-        "WZ": [16, 17, 18],
-        "XGamma": [16, 17, 18],
-        "Other": [16, 17, 18],
-        "DY": [16, 17, 18],
-        "TTW": [16, 17, 18],
-        "VH": [16, 17, 18],
-        "ZZ": [16, 17, 18],
-        "TTZ": [16, 17, 18],
-        "ttH": [16, 17, 18],
+    "data_csv": "/path/to/data",
+    "keys": { 
+	"WJets": [16,17,18],
+	"WZ": [16,17,18],
+	"TT_all": [16,17,18],
+	"XGamma": [16,17,18],
+	"Other": [16,17,18],
+	"DY": [16,17,18],
         "signal_ggf_spin2_250_hh_4t": [16,17,18],
         "signal_ggf_spin2_260_hh_4t": [16,17,18],
         "signal_ggf_spin2_270_hh_4t": [16,17,18],
@@ -105,4 +97,3 @@
         "signal_ggf_spin2_1000_hh_4v": [16,17,18]
     }
 }
-
