@@ -1,0 +1,16 @@
+{
+    "output_dir": "$HOME/BDT_Output",
+    "ml_method": "xgb",
+    "feature_importance" : 0,
+    "process": "HH",
+    "bdtType": "evtLevelSUM_HH",
+    "bkg_mass_rand": "oversampling",
+    "channel": "2lss",
+    "fitness_fn": "d_roc",
+    "use_kfold": 1,
+    "nthread": 8,
+    "kappa": 0.3,
+    "scenario": "spin0",
+    "dataCuts": 0,
+    "debug": 0
+}
