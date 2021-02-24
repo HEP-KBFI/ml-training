@@ -1,1 +1,10 @@
-{"Variable": "diHiggsVisMass_sel", "nbins": 55, "min": 0.0, "max": 1100.0, "fitFunc_AllMassTraining": "pol1", "fitFunc_LowMassTraining": "pol4", "fitFunc_HighMassTraining": "pol4"}
+{"nbins": 55, "fitFunc_HighMassTraining": "pol1", "min": 0.0, "max": 1100.0, "fitFunc_LowMassTraining": "pol1", "fitFunc_AllMassTraining": "pol6", "Variable": "leptonPairMass_sel"}
+{"nbins": 55, "fitFunc_HighMassTraining": "pol1", "min": 0.0, "max": 1100.0, "fitFunc_LowMassTraining": "pol1", "fitFunc_AllMassTraining": "pol4", "Variable": "HT"}
+{"nbins": 55, "fitFunc_HighMassTraining": "pol1", "min": 0.0, "max": 1100.0, "fitFunc_LowMassTraining": "pol1", "fitFunc_AllMassTraining": "pol5", "Variable": "lep2_conePt"}
+{"nbins": 55, "fitFunc_HighMassTraining": "pol1", "min": 0.0, "max": 1100.0, "fitFunc_LowMassTraining": "pol1", "fitFunc_AllMassTraining": "pol4", "Variable": "mindr_lep2_jet"}
+{"nbins": 55, "fitFunc_HighMassTraining": "pol1", "min": 0.0, "max": 1100.0, "fitFunc_LowMassTraining": "pol1", "fitFunc_AllMassTraining": "pol5", "Variable": "mindr_lep1_jet"}
+{"nbins": 55, "fitFunc_HighMassTraining": "pol1", "min": 0.0, "max": 1100.0, "fitFunc_LowMassTraining": "pol1", "fitFunc_AllMassTraining": "pol6", "Variable": "lep1_conePt"}
+{"nbins": 55, "fitFunc_HighMassTraining": "pol1", "min": 0.0, "max": 1100.0, "fitFunc_LowMassTraining": "pol1", "fitFunc_AllMassTraining": "pol4", "Variable": "met"}
+{"nbins": 55, "fitFunc_HighMassTraining": "pol1", "min": 0.0, "max": 1100.0, "fitFunc_LowMassTraining": "pol1", "fitFunc_AllMassTraining": "pol5", "Variable": "dR_ll"}
+{"nbins": 55, "fitFunc_HighMassTraining": "pol1", "min": 0.0, "max": 1100.0, "fitFunc_LowMassTraining": "pol1", "fitFunc_AllMassTraining": "pol4", "Variable": "mht"}
+{"nbins": 55, "fitFunc_HighMassTraining": "pol1", "min": 0.0, "max": 1100.0, "fitFunc_LowMassTraining": "pol1", "fitFunc_AllMassTraining": "pol1", "Variable": "gen_mHH"}
