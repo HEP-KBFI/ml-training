@@ -374,9 +374,9 @@ def  plot_loss_accuracy(fitted_model, output_dir, addition):
     plt.savefig(loss_vs_epoch)
     plt.close('all')
 
-def plot_confusion_matrix(cm, class_names, output_dir, addition):
+def plot_confusion_matrix(cm_original, class_names, output_dir, addition):
     figure = plt.figure(figsize=(4, 4))
-    plt.imshow(cm, interpolation='nearest', cmap="summer")
+    plt.imshow(cm_original, interpolation='nearest', cmap="summer")
     plt.title("Confusion matrix")
     plt.colorbar()
     tick_marks = np.arange(len(class_names))
@@ -384,7 +384,7 @@ def plot_confusion_matrix(cm, class_names, output_dir, addition):
     plt.yticks(tick_marks, class_names, fontsize=5)
     cm = np.moveaxis(
         np.around(
-            cm.astype('float') / cm.sum(axis=1)[:, np.newaxis],
+            cm_original.astype('float') / cm_original.sum(axis=1)[:, np.newaxis],
             decimals=2),
         0, 1
     )
@@ -393,9 +393,32 @@ def plot_confusion_matrix(cm, class_names, output_dir, addition):
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
-    outfile = os.path.join(output_dir, 'confusion_matrix_%s.png' %addition)
+    outfile = os.path.join(output_dir, 'confusion_matrix_rownorm_%s.png' %addition)
     plt.savefig(outfile, bbox_inches='tight')
     plt.close('all')
+
+    figure = plt.figure(figsize=(4, 4))
+    plt.imshow(cm_original, interpolation='nearest', cmap="summer")
+    plt.title("Confusion matrix")
+    plt.colorbar()
+    tick_marks = np.arange(len(class_names))
+    plt.xticks(tick_marks, class_names, fontsize=5, rotation=70)
+    plt.yticks(tick_marks, class_names, fontsize=5)
+    cm = np.moveaxis(
+        np.around(
+            cm_original.astype('float') / cm_original.sum(axis=0)[:, np.newaxis],
+            decimals=2),
+        0, 1
+    )
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(i, j, cm[i, j], horizontalalignment="center", size=5)
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    outfile = os.path.join(output_dir, 'confusion_matrix_columnnorm_%s.png' %addition)
+    plt.savefig(outfile, bbox_inches='tight')
+    plt.close('all')
+
 
 def plot_DNNScore(data, output_dir, addition):
     color = ['b', 'g', 'y', 'r', 'magenta', 'orange', 'c']
