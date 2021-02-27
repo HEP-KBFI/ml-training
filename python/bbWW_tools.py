@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas
+import re
 from machineLearning.machineLearning.hh_tools import HHDataLoader, HHDataNormalizer
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning.data_loader import DataLoader as dlt
@@ -60,13 +61,14 @@ class bbWWDataNormalizer(HHDataNormalizer):
 
 class bbWWLoader(HHDataLoader):
     def __init__(
-            self, data_normalizer, preferences, global_settings, use_NLO=False,
+            self, data_normalizer, preferences, global_settings, mergeWjets=False, use_NLO=False,
             nr_events_per_file=-1, weight='totalWeight',
             cancelled_trainvars=['gen_mHH'], normalize=True,
             reweigh=True, remove_negative_weights=True
     ):
         print('Using bbWW flavor of the HHDataLoader')
         self.use_NLO = use_NLO
+        self.mergeWjets = mergeWjets
         super(bbWWLoader, self).__init__(
             data_normalizer, preferences, global_settings, nr_events_per_file,
             weight, cancelled_trainvars, normalize, reweigh,
@@ -79,7 +81,7 @@ class bbWWLoader(HHDataLoader):
                 str('Weight_') + scenario
                 for scenario in self.preferences['nonResScenarios']
             ]
-            if 'signal' in process and 'vbf' not in process and 'cHHH1' not in process:
+            if 'signal' in process and 'vbf' not in process and 'cHHH' not in process:
                 if 'Base' in self.preferences['nonResScenarios']:
                     self.to_be_dropped.append('Weight_Base')
                     self.to_be_loaded.append('Weight_SM')
@@ -97,8 +99,11 @@ class bbWWLoader(HHDataLoader):
     def process_data_imputer(
             self, chunk_df, folder_name, target, data
     ):
+        merge_process = ["TTW", "TTWW", "WW", "WZ", "ZZ", "TTH", "TH", "ZH", "WH", "Other", "XGamma", "TTZ", "ggH", "qqH", "qqZZ", "ggZZ"]
+        if self.mergeWjets:
+            merge_process.append("W")
         chunk_df.loc[chunk_df["process"].isin(
-            ["TTW", "TTWW", "WW", "WZ", "ZZ", "TTH", "TH", "VH", "Other", "XGamma", "TTZ"]
+            merge_process
         ), "process"] = "Other"
 
         if 'nonres' not in self.global_settings['scenario']:
@@ -192,15 +197,19 @@ class bbWWLoader(HHDataLoader):
     def set_signal_sample_info(self, folder_name):
         target = 1
         if 'ggf_nonresonant' in folder_name:
-            if 'cHHH1' not in folder_name:
+            if 'cHHH' not in folder_name:
                 process = 'signal_ggf_nonresonant_hh'
+            elif self.use_NLO:
+                cHHH = re.findall('(cHHH1|cHHH0|cHHH5|cHHH2p45)', folder_name)[0]
+                process = 'signal_ggf_nonresonant_%s_hh' %cHHH
             else:
-                if self.use_NLO:
-                    process = 'signal_ggf_nonresonant_cHHH1_hh'
-                else:
-                    process = ''
+                process = ''
         elif 'vbf_nonresonant' in folder_name:
             process = folder_name.replace('_2b2v_sl_dipoleRecoilOff', '')
+            '''if 'dipoleRecoilOff' in folder_name:
+                process = 'signal_vbf_nonresonant_1_1_1_hh'
+            else:
+                process = 'signal_vbf_nonresonant_1_1_1_hh_dipoleRecoilOn' '''
         else:
             process = folder_name.replace('_' + folder_name.split('_')[-1], '')
         return process, target
@@ -208,7 +217,7 @@ class bbWWLoader(HHDataLoader):
     def nonresonant_data_imputer(
             self, chunk_df, folder_name, target, data
     ):
-        if target == 1 and 'ggf' in folder_name and 'cHHH1' not in folder_name:
+        if target == 1 and 'ggf' in folder_name and 'cHHH' not in folder_name:
             for i in range(len(self.preferences['nonResScenarios'])):
                 chunk_df_node = chunk_df.copy()
                 scenario = self.preferences['nonResScenarios'][i]
@@ -221,7 +230,7 @@ class bbWWLoader(HHDataLoader):
                     nodeWeight /= chunk_df_node['Weight_SM']
                     chunk_df_node['totalWeight'] *= nodeWeight
                 data = data.append(chunk_df_node, ignore_index=True, sort=False)
-        else: # 'cHHH1' not in folder_name:
+        else:
             chunk_df_node = chunk_df.copy()
             chunk_df_node['nodeXname'] = np.random.choice(
                 self.preferences['nonResScenarios'], size=len(chunk_df_node))
