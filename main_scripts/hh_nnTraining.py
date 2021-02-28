@@ -3,7 +3,7 @@ Call with 'python'
 
 Usage:
     hh_nnTraining.py
-    hh_nnTraining.py [--save_model=INT --channel=STR --res_nonres=STR --mode=STR --era=INT --BM=INT]
+    hh_nnTraining.py [--save_model=INT --channel=STR --res_nonres=STR --mode=STR --era=INT --BM=INT --split_ggf_vbf=INT]
 
 Options:
     -s --save_model=INT             Whether or not to save the model [default: 0]
@@ -12,6 +12,7 @@ Options:
     -m --mode=INT                   whhether resolved or boosted catgory to be considered [default: resolved]
     -era --era=INT                era to be processed [default: 2016]
     -BM --BM=STR                    BM point to be considered  [default: None]
+    -split --split_ggf_vbf=INT    whether want to split ggf and vbf [default: 0]
 '''
 import os
 import json
@@ -75,7 +76,7 @@ def plot_DNNScore(data, model, lbn, output_dir, trainvars, particles, addition):
             data.loc[data['process'] == process, "max_node_val"] = np.amax(value, axis=1)
     hhvt.plot_DNNScore(data, output_dir, addition)
 
-def main(output_dir, channel, mode, era, BM, save_model=True):
+def main(output_dir, channel, mode, era, BM, split_ggf_vbf, save_model=True):
     settings_dir = os.path.join(
         os.path.expandvars('$CMSSW_BASE'),
         'src/machineLearning/machineLearning/settings'
@@ -84,8 +85,9 @@ def main(output_dir, channel, mode, era, BM, save_model=True):
     create_global_settings(global_settings, channel, res_nonres, mode)
     print('global settings ' + str(global_settings))
     if output_dir == 'None':
-        output_dir = global_settings['channel']+'/'+global_settings['ml_method']+'/'+\
+        output_dir = global_settings['channel']+ '_new/' + global_settings['ml_method']+'/'+\
                      res_nonres + '/' + mode +'/' + BM + '/' + era
+                     #global_settings['channel'] + '_all_sig/'+global_settings['ml_method']+'/'+\
                      #res_nonres + '/' + mode +'/' + BM + '/' + era
         global_settings['output_dir'] = output_dir
     else:
@@ -94,6 +96,7 @@ def main(output_dir, channel, mode, era, BM, save_model=True):
         global_settings['output_dir'])
     if not os.path.exists(global_settings['output_dir']):
         os.makedirs(global_settings['output_dir'])
+    print ('output dir :' + global_settings['output_dir'])
     channel_dir, info_dir, _ = ut.find_settings(global_settings)
     scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
@@ -105,9 +108,12 @@ def main(output_dir, channel, mode, era, BM, save_model=True):
         preferences['included_eras'] = [era.replace('20', '')]
     print('era: ' + str(preferences['included_eras']))
     preferences = define_trainvars(global_settings, preferences, info_dir)
+    if split_ggf_vbf:
+        preferences['trainvars'].append('vbf_m_jj')
+        preferences['trainvars'].append('vbf_dEta_jj')
     check_trainvar(preferences)
     particles = PARTICLE_INFO[global_settings['channel']]
-    data_dict = create_data_dict(preferences, global_settings)
+    data_dict = create_data_dict(preferences, global_settings, split_ggf_vbf)
     classes = set(data_dict["even_data"]["process"])
     for class_ in classes:
         multitarget = list(set(
@@ -117,7 +123,7 @@ def main(output_dir, channel, mode, era, BM, save_model=True):
         ))[0]
         print(str(class_) + '\t' + str(multitarget))
     even_model = create_model(
-        preferences, global_settings, data_dict, "even_data", save_model)
+        preferences, global_settings, data_dict, "even_data", split_ggf_vbf)
     if global_settings['feature_importance'] == 1:
         trainvars = preferences['trainvars']
         data = data_dict['odd_data']
@@ -127,11 +133,11 @@ def main(output_dir, channel, mode, era, BM, save_model=True):
         hhvt.plot_feature_importances_from_dict(
             score_dict, global_settings['output_dir'])
     odd_model = create_model(
-        preferences, global_settings, data_dict, "odd_data", save_model)
+        preferences, global_settings, data_dict, "odd_data", split_ggf_vbf)
     print(odd_model.summary())
-    nodewise_performance(data_dict['odd_data'], data_dict['even_data'],\
+    '''nodewise_performance(data_dict['odd_data'], data_dict['even_data'],\
         odd_model, even_model, data_dict['trainvars'], particles, \
-        global_settings, preferences)
+        global_settings, preferences)'''
     even_train_info, even_test_info = evaluate_model(
         even_model, data_dict['even_data'], data_dict['odd_data'],\
         data_dict['trainvars'], global_settings, "even_data", particles)
@@ -144,12 +150,15 @@ def main(output_dir, channel, mode, era, BM, save_model=True):
         global_settings
     )
 
-def create_data_dict(preferences, global_settings):
+def create_data_dict(preferences, global_settings, split_ggf_vbf):
     normalizer = bbwwt.bbWWDataNormalizer
+    mergeWjets = 'bb2l' in global_settings["channel"]
     loader = bbwwt.bbWWLoader(
         normalizer,
         preferences,
-        global_settings
+        global_settings,
+        split_ggf_vbf,
+        mergeWjets
     )
     data = loader.data
 
@@ -179,7 +188,7 @@ def create_data_dict(preferences, global_settings):
     use_Wjet = True
     if 'bb2l' in global_settings['channel']:
         use_Wjet = False
-    data = mt.multiclass_encoding(data, use_Wjet)
+    data = mt.multiclass_encoding(data, use_Wjet, split_ggf_vbf)
     hhvt.plot_correlations(data, preferences["trainvars"], global_settings)
     even_data = data.loc[(data['event'].values % 2 == 0)]
     odd_data = data.loc[~(data['event'].values % 2 == 0)]
@@ -195,7 +204,8 @@ def create_model(
         global_settings,
         data_dict,
         choose_data,
-        save_model
+        split_ggf_vbf,
+        save_model=True
 ):
     train_data = data_dict['odd_data'] if choose_data == "odd_data" else data_dict['even_data']
     val_data = data_dict['even_data']  if choose_data == "odd_data" else data_dict['odd_data']
@@ -209,6 +219,7 @@ def create_model(
             global_settings['channel'],
             parameters,
             True,
+            split_ggf_vbf,
             global_settings['output_dir'],
             choose_data
         )
@@ -272,8 +283,6 @@ def evaluate_model(model, train_data, test_data, trainvars, \
             [dlt.get_low_level(test_data, particles),
              dlt.get_high_level(test_data, particles, trainvars)],
             batch_size=1024)
-        #print test_var["ll"][0], 'hl==', test_var["hl"][0]
-        #print 'proba===', test_predicted_probabilities[0]
     else:
         train_predicted_probabilities = model.predict(
             train_data[trainvars].values)
@@ -281,13 +290,13 @@ def evaluate_model(model, train_data, test_data, trainvars, \
             test_data[trainvars].values)
     if not nodeWise:
         plot_confusion_matrix(test_data, test_predicted_probabilities, \
-           global_settings["output_dir"], choose_data+'_test')
+            global_settings["output_dir"], choose_data+'_test')
         plot_confusion_matrix(train_data, train_predicted_probabilities, \
-           global_settings["output_dir"], choose_data+'_train')
-        plot_DNNScore(train_data, model, global_settings['ml_method'], \
-           global_settings['output_dir'], trainvars, particles, choose_data+'_train')
+            global_settings["output_dir"], choose_data+'_train')
+        '''plot_DNNScore(train_data, model, global_settings['ml_method'], \
+             global_settings['output_dir'], trainvars, particles, choose_data+'_train')
         plot_DNNScore(test_data, model, global_settings['ml_method'], \
-           global_settings['output_dir'], trainvars, particles, choose_data+'_test')
+             global_settings['output_dir'], trainvars, particles, choose_data+'_test')'''
 
     test_fpr, test_tpr = mt.roc_curve(
         test_data['multitarget'].astype(int),
@@ -326,6 +335,7 @@ def savemodel(model_structure, trainvars, global_settings, addition, BM, era):
     pb_filename = os.path.join(global_settings["output_dir"], "multiclass_DNN_w%s_for_%s_%s_%s_%s_%s_%s.pb"\
         %(global_settings["ml_method"], global_settings["channel"], \
           mode, addition, res_nonres, BM, era))
+          #mode, addition, res_nonres, 'all', era))
     log_filename = os.path.join(global_settings["output_dir"], "multiclass_DNN_w%s_for_%s_%s_%s_%s.log"\
         %(global_settings["ml_method"], global_settings["channel"], \
           mode, addition, res_nonres))
@@ -364,6 +374,7 @@ def create_global_settings(global_settings, channel, res_nonres, mode):
     global_settings['ml_method'] = 'lbn'
     global_settings['scenario'] = '%s/base/%s' %(res_nonres, mode)
     global_settings['dataCuts'] = 'cuts_%s.json' %mode
+    #global_settings['feature_importance'] = 1
 
 def check_trainvar(preferences):
     BMpoints = ['SM', 'BM1', 'BM2', 'BM3', 'BM4', 'BM5', 'BM6', 'BM7', 'BM8', 'BM9', 'BM10', 'BM11', 'BM12']
@@ -382,7 +393,8 @@ if __name__ == '__main__':
         res_nonres = arguments['--res_nonres']
         era = arguments['--era']
         BM = arguments['--BM']
-        main('None', channel, mode, era, BM)
+        split_ggf_vbf = bool(int(arguments['--split_ggf_vbf']))
+        main('None', channel, mode, era, BM, split_ggf_vbf)
     except docopt.DocoptExit as e:
         print(e)
     print(datetime.now() - startTime)
