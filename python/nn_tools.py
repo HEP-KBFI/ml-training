@@ -20,12 +20,12 @@ from machineLearning.machineLearning.lbn import LBN, LBNLayer
 from machineLearning.machineLearning import multiclass_tools as mt
 from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning.visualization import hh_visualization_tools as hhvt
+from machineLearning.machineLearning.grouped_entropy_dennis import GroupedXEnt as gce
 
 PARTICLE_INFO = low_level_object = {
     'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "lep"],
     'bb2l': ["bjet1", "bjet2", "lep1", "lep2"]
 }
-
 class NNmodel(object):
     def __init__(
             self,
@@ -34,6 +34,7 @@ class NNmodel(object):
             trainvars,
             parameters,
             plot_history=True,
+            split_ggf_vbf=False,
             output_dir='',
             addition=''
     ):
@@ -48,6 +49,14 @@ class NNmodel(object):
         self.batch_size = parameters['batch_size']
         self.layer = parameters['layer']
         self.node = parameters['node']
+        self.split_ggf_vbf = split_ggf_vbf
+        self.train_target = train_data['multitarget'].values.astype(np.float)
+        self.val_target = val_data['multitarget'].values.astype(np.float)
+        if split_ggf_vbf:
+            group_ids = mt.group_id(self.train_data)
+            self.gce = gce(group_ids)
+            self.train_target = train_data[['GGF_HH', 'VBF_HH', 'TT', 'ST', 'Other', 'W', 'DY']].values.astype(float)
+            self.val_target = val_data[['GGF_HH', 'VBF_HH', 'TT', 'ST', 'Other', 'W', 'DY']].values.astype(float)
 
         self.reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
             monitor='val_loss', factor=0.1, patience=3, min_lr=0.00001, min_delta=0.01
@@ -99,9 +108,10 @@ class NNmodel(object):
         return tf.keras.layers.Dense(self.num_class, activation='softmax')(x)
 
     def compile_model(self):
+        my_loss = self.gce if self.split_ggf_vbf else 'sparse_categorical_crossentropy'
         self.model.compile(
             optimizer=tf.keras.optimizers.Adam(lr=self.lr),
-            loss='sparse_categorical_crossentropy',
+            loss=my_loss,
             weighted_metrics=["accuracy"]
         )
 
@@ -121,16 +131,16 @@ class NNmodel(object):
     def fit_model(self):
         history = self.model.fit(
             self.train_data[self.trainvars].values,
-            self.train_data['multitarget'].astype(np.int),
+            self.train_target,
             epochs=self.epoch,
             batch_size=self.batch_size,
             sample_weight=self.train_data['totalWeight'].values,
             validation_data=(
                 self.val_data[self.trainvars],
-                self.val_data['multitarget'].astype(np.int),
+                self.val_target,
                 self.val_data['totalWeight'].values
             ),
-            callbacks=[self.reduce_lr, self.early_stopping]
+            #callbacks=[self.reduce_lr, self.early_stopping]
         )
         if self.plot_history:
             hhvt.plot_loss_accuracy(history, self.output_dir, self.addition)
@@ -144,6 +154,7 @@ class LBNmodel(NNmodel):
             channel,
             parameters,
             plot_history=True,
+            split_ggf_vbf=False,
             output_dir='',
             addition=''
     ):
@@ -153,6 +164,7 @@ class LBNmodel(NNmodel):
             trainvars,
             parameters,
             plot_history,
+            split_ggf_vbf,
             output_dir,
             addition
         )
@@ -168,17 +180,17 @@ class LBNmodel(NNmodel):
         history = self.model.fit(
             [dlt.get_low_level(self.train_data, self.particles[self.channel]),
              dlt.get_high_level(self.train_data, self.particles[self.channel], self.trainvars)],
-            self.train_data['multitarget'].values,
+            self.train_target,
             epochs=self.epoch,
             batch_size=self.batch_size,
             sample_weight=self.train_data['totalWeight'].values,
             validation_data=(
                 [dlt.get_low_level(self.val_data, self.particles[self.channel]),
                  dlt.get_high_level(self.val_data, self.particles[self.channel], self.trainvars)],
-                self.val_data["multitarget"].values,
+                self.val_target,
                 self.val_data["totalWeight"].values
             ),
-            callbacks=[self.reduce_lr, self.early_stopping]
+            #callbacks=[self.reduce_lr, self.early_stopping]
         )
         if self.plot_history:
             hhvt.plot_loss_accuracy(history, self.output_dir, self.addition)

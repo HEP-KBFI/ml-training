@@ -61,7 +61,7 @@ class bbWWDataNormalizer(HHDataNormalizer):
 
 class bbWWLoader(HHDataLoader):
     def __init__(
-            self, data_normalizer, preferences, global_settings, mergeWjets=False, use_NLO=False,
+            self, data_normalizer, preferences, global_settings, split_ggf_vbf=False, mergeWjets=False, use_NLO=False,
             nr_events_per_file=-1, weight='totalWeight',
             cancelled_trainvars=['gen_mHH'], normalize=True,
             reweigh=True, remove_negative_weights=True
@@ -69,6 +69,7 @@ class bbWWLoader(HHDataLoader):
         print('Using bbWW flavor of the HHDataLoader')
         self.use_NLO = use_NLO
         self.mergeWjets = mergeWjets
+        self.split_ggf_vbf = split_ggf_vbf
         super(bbWWLoader, self).__init__(
             data_normalizer, preferences, global_settings, nr_events_per_file,
             weight, cancelled_trainvars, normalize, reweigh,
@@ -165,19 +166,23 @@ class bbWWLoader(HHDataLoader):
                     finalData = finalData.append(data.loc[data['process'] == process])
             print(process + ': ' + str(len(finalData.loc[finalData['process'] == process])))
         self.print_nr_signal_bkg(finalData)
-        finalData.loc[finalData['process'].str.contains('signal_ggf_nonresonant_hh'), "process"] = "signal_HH"
-        finalData.loc[finalData['process'].str.contains('signal_vbf'), "process"] = 'signal_HH'
+        if self.split_ggf_vbf:
+            finalData.loc[finalData['process'].str.contains('signal_ggf_nonresonant_hh'), "process"] = "GGF_HH"
+            finalData.loc[finalData['process'].str.contains('signal_vbf'), "process"] = 'VBF_HH'
+        else:
+            finalData.loc[finalData['process'].str.contains('signal_ggf_nonresonant_hh'), "process"] = "signal_HH"
+            finalData.loc[finalData['process'].str.contains('signal_vbf'), "process"] = 'signal_HH'
         return finalData
 
     def load_data_from_tfile(
             self, process, folder_name, target, path, input_tree
     ):
         if 'TT' in folder_name:
-            self.nr_events_per_file = 2000000
+            self.nr_events_per_file = 5000#2000000
         elif 'ggf' in folder_name:
-            self.nr_events_per_file = 20000#-1
+            self.nr_events_per_file = 5000#20000#-1
         else:
-            self.nr_events_per_file = -1
+            self.nr_events_per_file = 500#-1
         return dlt.load_data_from_tfile(
             self,
             process,
