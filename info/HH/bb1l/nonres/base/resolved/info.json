@@ -22,9 +22,9 @@
     },
     "tauID_training": {
         "deepVSjVVVLoose": {
-	    "inputPath16": "/hdfs/local/snandan/hhAnalysis/2016/bdt_bb1l_final/histograms/hh_bb1l/Tight/",
-        "inputPath18": "/hdfs/local/snandan/hhAnalysis/2018/bdt_bb1l_final/histograms/hh_bb1l/Tight/",
-	    "inputPath17": "/hdfs/local/snandan/hhAnalysis/2017/bdt_bb1l_final/histograms/hh_bb1l/Tight/"
+	    "inputPath16": "/hdfs/local/snandan/hhAnalysis/2016/bdt_bb1l_final_v1/histograms/hh_bb1l/Tight/",
+        "inputPath18": "/hdfs/local/snandan/hhAnalysis/2018/bdt_bb1l_final_v1/histograms/hh_bb1l/Tight/",
+	    "inputPath17": "/hdfs/local/snandan/hhAnalysis/2017/bdt_bb1l_final_v1/histograms/hh_bb1l/Tight/"
         }
     },
     "data_csv": "/path/to/data",
@@ -37,17 +37,17 @@
         "TTWW":[16, 17, 18],
         "TTZ":[16, 17, 18],
         "WW_bbWW":[16, 17, 18],
-        "ZZ": [16, 17, 18],
-        "WZ":[16, 17, 18],
+        "ZZ_bbWW": [16, 17, 18],
+        "WZ_bbWW":[16, 17, 18],
         "TTH_bbWW":[16, 17, 18],
         "TH_bbWW": [16, 17, 18],
         "ZH":[16, 17, 18],
         "WH":[16, 17, 18],
-        "qqZZ": [16, 17, 18],
+        "qqZZ_bbWW": [16, 17, 18],
         "XGamma": [16, 17, 18],
         "qqH": [16, 17, 18],
         "ggH": [16, 17, 18],
-        "Other": [16, 17, 18],
+        "Other_bbWW": [16, 17, 18],
         "signal_vbf_nonresonant_1_1_2_hh_2b2v_sl_dipoleRecoilOff": [16, 17, 18],
         "signal_vbf_nonresonant_0p5_1_1_hh_2b2v_sl_dipoleRecoilOff": [16, 17, 18],
         "signal_vbf_nonresonant_1_1_1_hh_2b2v_sl_dipoleRecoilOff": [16, 17, 18],
