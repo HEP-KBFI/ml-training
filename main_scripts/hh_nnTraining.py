@@ -3,7 +3,7 @@ Call with 'python'
 
 Usage:
     hh_nnTraining.py
-    hh_nnTraining.py [--save_model=INT --channel=STR --res_nonres=STR --mode=STR --era=INT --BM=INT --split_ggf_vbf=INT]
+    hh_nnTraining.py [--save_model=INT --channel=STR --res_nonres=STR --mode=STR --era=INT --BM=INT --split_ggf_vbf=INT --sig_weight=INT]
 
 Options:
     -s --save_model=INT             Whether or not to save the model [default: 0]
@@ -13,6 +13,7 @@ Options:
     -era --era=INT                era to be processed [default: 2016]
     -BM --BM=STR                    BM point to be considered  [default: None]
     -split --split_ggf_vbf=INT    whether want to split ggf and vbf [default: 0]
+    -sig_weight --sig_weight=INT  total signal weight to be consifered [default: 1]
 '''
 import os
 import json
@@ -54,29 +55,7 @@ def plot_confusion_matrix(data, probabilities, output_dir, addition):
     hhvt.plot_confusion_matrix(
         cm, samples, output_dir, addition)
 
-def plot_DNNScore(data, model, lbn, output_dir, trainvars, particles, addition):
-    data["max_node_pos"] = -1
-    data["max_node_val"] = -1
-    if lbn != 'lbn':
-        for process in set(data["process"]):
-            data = data.loc[data["process"] == process]
-            value = model.predict(data[trainvars].values)
-            data.loc[data["process"] == process, "max_node_pos"]\
-                = np.argmax(value, axis=1)
-            data.loc[data["process"] == process, "max_node_val"]\
-                = np.amax(value, axis=1)
-    else:
-        for process in set(data["process"]):
-            process_only_data = data.loc[data["process"] == process]
-            value = model.predict(
-                [dlt.get_low_level(process_only_data, particles),
-                 dlt.get_high_level(process_only_data, particles, trainvars)],
-                batch_size=1024)
-            data.loc[data['process'] == process, "max_node_pos"] = np.argmax(value, axis=1)
-            data.loc[data['process'] == process, "max_node_val"] = np.amax(value, axis=1)
-    hhvt.plot_DNNScore(data, output_dir, addition)
-
-def main(output_dir, channel, mode, era, BM, split_ggf_vbf, save_model=True):
+def main(output_dir, channel, mode, era, BM, split_ggf_vbf, sig_weight, save_model=True):
     settings_dir = os.path.join(
         os.path.expandvars('$CMSSW_BASE'),
         'src/machineLearning/machineLearning/settings'
@@ -85,8 +64,9 @@ def main(output_dir, channel, mode, era, BM, split_ggf_vbf, save_model=True):
     create_global_settings(global_settings, channel, res_nonres, mode)
     print('global settings ' + str(global_settings))
     if output_dir == 'None':
-        output_dir = global_settings['channel']+ '_new/' + global_settings['ml_method']+'/'+\
-                     res_nonres + '/' + mode +'/' + BM + '/' + era
+        output_dir = global_settings['channel']+ '/'+ 'split_ggf_vbf_' + str(split_ggf_vbf) + \
+                     '_sig_weight_' + str(sig_weight) + '/' +\
+                     global_settings['ml_method']+'/'+ res_nonres + '/' + mode +'/' + BM + '/' + era
                      #global_settings['channel'] + '_all_sig/'+global_settings['ml_method']+'/'+\
                      #res_nonres + '/' + mode +'/' + BM + '/' + era
         global_settings['output_dir'] = output_dir
@@ -107,6 +87,7 @@ def main(output_dir, channel, mode, era, BM, split_ggf_vbf, save_model=True):
     if not era == '0':
         preferences['included_eras'] = [era.replace('20', '')]
     print('era: ' + str(preferences['included_eras']))
+    preferences['signal_weight'] = sig_weight
     preferences = define_trainvars(global_settings, preferences, info_dir)
     if split_ggf_vbf:
         preferences['trainvars'].append('vbf_m_jj')
@@ -274,6 +255,10 @@ def nodewise_performance(odd_data, even_data,
 def evaluate_model(model, train_data, test_data, trainvars, \
                    global_settings, choose_data, particles, nodeWise=False):
 
+    train_data["max_node_pos"] = -1
+    train_data["max_node_val"] = -1
+    test_data["max_node_pos"] = -1
+    test_data["max_node_val"] = -1
     if global_settings['ml_method'] == 'lbn':
         train_predicted_probabilities = model.predict(
             [dlt.get_low_level(train_data, particles),
@@ -289,14 +274,16 @@ def evaluate_model(model, train_data, test_data, trainvars, \
         test_predicted_probabilities = model.predict(
             test_data[trainvars].values)
     if not nodeWise:
+        train_data["max_node_val"] = np.amax(train_predicted_probabilities, axis=1)
+        train_data["max_node_pos"] = np.argmax(train_predicted_probabilities, axis=1)
+        test_data["max_node_val"] = np.amax(test_predicted_probabilities, axis=1)
+        test_data["max_node_pos"] = np.argmax(test_predicted_probabilities, axis=1)
         plot_confusion_matrix(test_data, test_predicted_probabilities, \
             global_settings["output_dir"], choose_data+'_test')
         plot_confusion_matrix(train_data, train_predicted_probabilities, \
             global_settings["output_dir"], choose_data+'_train')
-        '''plot_DNNScore(train_data, model, global_settings['ml_method'], \
-             global_settings['output_dir'], trainvars, particles, choose_data+'_train')
-        plot_DNNScore(test_data, model, global_settings['ml_method'], \
-             global_settings['output_dir'], trainvars, particles, choose_data+'_test')'''
+        hhvt.plot_DNNScore(train_data, global_settings['output_dir'], choose_data+'_train')
+        hhvt.plot_DNNScore(test_data, global_settings['output_dir'], choose_data+'_test')
 
     test_fpr, test_tpr = mt.roc_curve(
         test_data['multitarget'].astype(int),
@@ -394,7 +381,8 @@ if __name__ == '__main__':
         era = arguments['--era']
         BM = arguments['--BM']
         split_ggf_vbf = bool(int(arguments['--split_ggf_vbf']))
-        main('None', channel, mode, era, BM, split_ggf_vbf)
+        sig_weight = float(arguments['--sig_weight'])
+        main('None', channel, mode, era, BM, split_ggf_vbf, sig_weight)
     except docopt.DocoptExit as e:
         print(e)
     print(datetime.now() - startTime)
