@@ -43,7 +43,8 @@ class bbWWDataNormalizer(HHDataNormalizer):
                     condition_sig = self.data['process'].astype(str) == process
                     node_sig_weight = self.data.loc[
                         condition_sig & condition_node, [self.weight]]
-                    sig_node_factor = 100000./node_sig_weight.sum()
+                    sig_node_factor = 100000./node_sig_weight.sum() if 'HH' not in process else\
+                                      100000./(node_sig_weight.sum()*self.preferences['signal_weight'])
                     self.data.loc[
                         condition_sig & condition_node,
                         [self.weight]] *= sig_node_factor
@@ -100,7 +101,7 @@ class bbWWLoader(HHDataLoader):
     def process_data_imputer(
             self, chunk_df, folder_name, target, data
     ):
-        merge_process = ["TTW", "TTWW", "WW", "WZ", "ZZ", "TTH", "TH", "ZH", "WH", "Other", "XGamma", "TTZ", "ggH", "qqH", "qqZZ", "ggZZ"]
+        merge_process = ["TTW", "TTWW", "VV", "TTH", "tHq", "tHW", "ZH", "WH", "Other", "XGamma", "TTZ", "ggH", "qqH", "VVV"]
         if self.mergeWjets:
             merge_process.append("W")
         chunk_df.loc[chunk_df["process"].isin(
@@ -178,11 +179,11 @@ class bbWWLoader(HHDataLoader):
             self, process, folder_name, target, path, input_tree
     ):
         if 'TT' in folder_name:
-            self.nr_events_per_file = 5000#2000000
+            self.nr_events_per_file = 2000000
         elif 'ggf' in folder_name:
-            self.nr_events_per_file = 5000#20000#-1
+            self.nr_events_per_file = 20000#-1
         else:
-            self.nr_events_per_file = 500#-1
+            self.nr_events_per_file = -1
         return dlt.load_data_from_tfile(
             self,
             process,
@@ -197,6 +198,8 @@ class bbWWLoader(HHDataLoader):
             return 'ST', 0
         if 'TTToHadronic' in path:
             return '', 0
+        if 'ZH' in path:
+            return 'ZH', 0
         return HHDataLoader.set_background_sample_info(self, path)
 
     def set_signal_sample_info(self, folder_name):
@@ -211,6 +214,8 @@ class bbWWLoader(HHDataLoader):
                 process = ''
         elif 'vbf_nonresonant' in folder_name:
             process = folder_name.replace('_2b2v_sl_dipoleRecoilOff', '')
+            process = process.replace('_2b2v_dipoleRecoilOff', '')
+            process = process.replace('_2b2t_dipoleRecoilOff', '')
             '''if 'dipoleRecoilOff' in folder_name:
                 process = 'signal_vbf_nonresonant_1_1_1_hh'
             else:
