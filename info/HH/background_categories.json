@@ -50,26 +50,26 @@
         "VBFHToWWToLNuQQ_M125_PSweights": "qqH",
         "VBFHToWWToLNuQQ_M125_ext1": "qqH"
     },
-    "ZZ": {
-        "ZZTo4L": "qqZZ",
-        "ZZTo4L_ext1": "qqZZ",
-        "ZZTo4L_ext2": "qqZZ",
-        "ZZTo2L2Nu": "ZZ",
-        "ZZTo2L2Q": "ZZ",
-        "ggZZTo4tau": "ggZZ",
-        "ggZZTo4tau_ext1": "ggZZ",
-        "ggZZTo4mu": "ggZZ",
-        "ggZZTo4mu_ext1": "ggZZ",
-        "ggZZTo4mu_ext2": "ggZZ",
-        "ggZZTo4e": "ggZZ",
-        "ggZZTo4e_ext1": "ggZZ",
-        "ggZZTo4e_ext2": "ggZZ",
-        "ggZZTo2e2tau": "ggZZ",
-        "ggZZTo2e2tau_ext1": "ggZZ",
-        "ggZZTo2e2mu": "ggZZ",
-        "ggZZTo2e2mu_ext1": "ggZZ",
-        "ggZZTo2mu2tau": "ggZZ",
-        "ggZZTo2mu2tau_ext1": "ggZZ"
+    "ZZ_bbWW": {
+        "ZZTo4L": "VV",
+        "ZZTo4L_ext1": "VV",
+        "ZZTo4L_ext2": "VV",
+        "ZZTo2L2Nu": "VV",
+        "ZZTo2L2Q": "VV",
+        "ggZZTo4tau": "VV",
+        "ggZZTo4tau_ext1": "VV",
+        "ggZZTo4mu": "VV",
+        "ggZZTo4mu_ext1": "VV",
+        "ggZZTo4mu_ext2": "VV",
+        "ggZZTo4e": "VV",
+        "ggZZTo4e_ext1": "VV",
+        "ggZZTo4e_ext2": "VV",
+        "ggZZTo2e2tau": "VV",
+        "ggZZTo2e2tau_ext1": "VV",
+        "ggZZTo2e2mu": "VV",
+        "ggZZTo2e2mu_ext1": "VV",
+        "ggZZTo2mu2tau": "VV",
+        "ggZZTo2mu2tau_ext1": "VV"
     },
     "WZ": {
         "WZTo3LNu_powheg": "WZ",
@@ -107,11 +107,11 @@
         "WWTo2L2Nu_PSweights_ext1": "WW"
     },
      "WW_bbWW": {
-         "WWTo2L2Nu": "WW",
-         "WWTo2L2Nu_PSweights_ext1": "WW",
-         "WWToLNuQQ": "WW",
-         "WWToLNuQQ_ext1": "WW",
-         "WWToLNuQQ_PSweights_ext1": "WW"
+         "WWTo2L2Nu": "VV",
+         "WWTo2L2Nu_PSweights_ext1": "VV",
+         "WWToLNuQQ": "VV",
+         "WWToLNuQQ_ext1": "VV",
+         "WWToLNuQQ_PSweights_ext1": "VV"
     },
     "TTZ": {
         "TTZJets_LO": "TTZ",
@@ -186,27 +186,6 @@
         "DYJetsToLL_M50_HT1200to2500_PSweights": "DY",
         "DYJetsToLL_M50_HT2500toInf": "DY",
         "DYJetsToLL_M50_HT2500toInf_PSweights": "DY"
-    },
-    "ZZ_all": {
-        "ZZTo4L": "qqZZ",
-        "ZZTo4L_ext1": "qqZZ",
-        "ZZTo4L_ext2": "qqZZ",
-        "ZZTo2L2Nu": "ZZ",
-        "ZZTo2L2Q": "ZZ",
-        "ggZZTo4tau": "ggZZ",
-        "ggZZTo4tau_ext1": "ggZZ",
-        "ggZZTo4mu": "ggZZ",
-        "ggZZTo4mu_ext1": "ggZZ",
-        "ggZZTo4mu_ext2": "ggZZ",
-        "ggZZTo4e": "ggZZ",
-        "ggZZTo4e_ext1": "ggZZ",
-        "ggZZTo4e_ext2": "ggZZ",
-        "ggZZTo2e2tau": "ggZZ",
-        "ggZZTo2e2tau_ext1": "ggZZ",
-        "ggZZTo2e2mu": "ggZZ",
-        "ggZZTo2e2mu_ext1": "ggZZ",
-        "ggZZTo2mu2tau": "ggZZ",
-        "ggZZTo2mu2tau_ext1": "ggZZ"
     },
     "WZ_all": {
         "WZTo3LNu": "WZ",
@@ -490,6 +469,32 @@
         "TTZZ": "Other",
         "TTZZ_ext1": "Other"
     },
+    "Other_bbWW": {
+        "WWW": "VVV",
+        "WWW_ext1": "VVV",
+        "WWZ": "VVV",
+        "WWZ_ext1": "VVV",
+        "WZZ": "VVV",
+        "WZZ_ext1": "VVV",
+        "ZZZ": "VVV",
+        "ZZZ_ext1": "VVV",
+        "WZG": "Other",
+        "tZq_ll_4f_ext1": "Other",
+        "tZq_ll_4f_PSweights": "Other",
+        "WpWpJJ_EWK_QCD": "Other",
+        "WWTo2L2Nu_DoubleScattering": "Other",
+        "TTTT": "Other",
+        "TTTT_PSweights": "Other",
+        "TTTT_ext1": "Other",
+        "TTTW": "Other",
+        "TTTW_ext1": "Other",
+        "TTTJ": "Other",
+        "TTTJ_ext1": "Other",
+        "TTWZ": "Other",
+        "TTWZ_ext1": "Other",
+        "TTZZ": "Other",
+        "TTZZ_ext1": "Other"
+    },
     "XGamma": {
         "TGJets": "XGamma",
         "TGJets_PSweights": "XGamma",
@@ -506,7 +511,14 @@
         "THQ_ctcvcp": "tHq"
     },
      "TH_bbWW": {
-        "THW_ctcvcp": "TH",
-        "THQ_ctcvcp": "TH"
+        "THW_ctcvcp": "tHW",
+        "THQ_ctcvcp": "tHq"
+    },
+   "WZ_bbWW": {
+        "WZTo3LNu_powheg": "VV",
+        "WZTo3LNu_powheg_ext1": "VV",
+        "WZTo3LNu_mllmin01": "VV",
+        "WZTo3LNu_mllmin01_ext1": "VV",
+        "WZTo3LNu": "VV"
     }
 }
