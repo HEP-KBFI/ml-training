@@ -160,9 +160,9 @@ class bbWWLoader(HHDataLoader):
             if (data.loc[data['process'] == process]['target'] == 1).all():
                 finalData = finalData.append(data.loc[data['process'] == process])
             else:
-                if len(data.loc[data['process'] == process]) > 100000:
+                if len(data.loc[data['process'] == process]) > 400000:
                     finalData = finalData.append(data.loc[data['process'] == process].\
-                         sample(n=100000))
+                         sample(n=400000))
                 else:
                     finalData = finalData.append(data.loc[data['process'] == process])
             print(process + ': ' + str(len(finalData.loc[finalData['process'] == process])))
@@ -179,9 +179,9 @@ class bbWWLoader(HHDataLoader):
             self, process, folder_name, target, path, input_tree
     ):
         if 'TT' in folder_name:
-            self.nr_events_per_file = 2000000
+            self.nr_events_per_file = 1200000
         elif 'ggf' in folder_name:
-            self.nr_events_per_file = 20000#-1
+            self.nr_events_per_file = 30000#-1
         else:
             self.nr_events_per_file = -1
         return dlt.load_data_from_tfile(
