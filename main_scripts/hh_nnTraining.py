@@ -34,8 +34,8 @@ from machineLearning.machineLearning import nn_tools as nt
 from machineLearning.machineLearning import multiclass_tools as mt
 from machineLearning.machineLearning.visualization import hh_visualization_tools as hhvt
 
-tf.config.threading.set_intra_op_parallelism_threads(4)
-tf.config.threading.set_inter_op_parallelism_threads(4)
+tf.config.threading.set_intra_op_parallelism_threads(2)
+tf.config.threading.set_inter_op_parallelism_threads(2)
 
 PARTICLE_INFO = low_level_object = {
     'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "lep"],
@@ -64,7 +64,7 @@ def main(output_dir, channel, mode, era, BM, split_ggf_vbf, sig_weight, save_mod
     create_global_settings(global_settings, channel, res_nonres, mode)
     print('global settings ' + str(global_settings))
     if output_dir == 'None':
-        output_dir = global_settings['channel']+ '/'+ 'split_ggf_vbf_' + str(split_ggf_vbf) + \
+        output_dir = global_settings['channel']+ '_largesample/'+ 'split_ggf_vbf_' + str(split_ggf_vbf) + \
                      '_sig_weight_' + str(sig_weight) + '/' +\
                      global_settings['ml_method']+'/'+ res_nonres + '/' + mode +'/' + BM + '/' + era
                      #global_settings['channel'] + '_all_sig/'+global_settings['ml_method']+'/'+\
@@ -83,6 +83,8 @@ def main(output_dir, channel, mode, era, BM, split_ggf_vbf, sig_weight, save_mod
     preferences = reader.parameters
     if not BM == 'None':
         preferences["nonResScenarios"] = [BM]
+    if BM == 'all':
+        preferences["nonResScenarios"] = ["SM", "BM1","BM2","BM3","BM4","BM5","BM6","BM7","BM8","BM9","BM10","BM11","BM12"]
     print('BM point to be considered: ' + str(preferences["nonResScenarios"]))
     if not era == '0':
         preferences['included_eras'] = [era.replace('20', '')]
@@ -104,26 +106,30 @@ def main(output_dir, channel, mode, era, BM, split_ggf_vbf, sig_weight, save_mod
         ))[0]
         print(str(class_) + '\t' + str(multitarget))
     even_model = create_model(
-        preferences, global_settings, data_dict, "even_data", split_ggf_vbf)
+        preferences, global_settings,\
+        data_dict['even_data_train'], data_dict['even_data_val'],\
+        "even_data", split_ggf_vbf)
     if global_settings['feature_importance'] == 1:
         trainvars = preferences['trainvars']
-        data = data_dict['odd_data']
-        LBNFeatureImportance = nt.LBNFeatureImportances(even_model, data,\
+        LBNFeatureImportance = nt.LBNFeatureImportances(even_model, data_dict['odd_data'],\
             trainvars, global_settings['channel'])
         score_dict = LBNFeatureImportance.custom_permutation_importance()
         hhvt.plot_feature_importances_from_dict(
             score_dict, global_settings['output_dir'])
     odd_model = create_model(
-        preferences, global_settings, data_dict, "odd_data", split_ggf_vbf)
+        preferences, global_settings,\
+        data_dict['odd_data_train'], data_dict['odd_data_val'],\
+        "odd_data", split_ggf_vbf)
     print(odd_model.summary())
-    '''nodewise_performance(data_dict['odd_data'], data_dict['even_data'],\
+    '''nodewise_performance(data_dict['odd_data_train'], data_dict['even_data_train'],\
+        data_dict['odd_data'], data_dict['even_data'],\
         odd_model, even_model, data_dict['trainvars'], particles, \
         global_settings, preferences)'''
     even_train_info, even_test_info = evaluate_model(
-        even_model, data_dict['even_data'], data_dict['odd_data'],\
+        even_model, data_dict['even_data_train'], data_dict['odd_data'],\
         data_dict['trainvars'], global_settings, "even_data", particles)
     odd_train_info, odd_test_info = evaluate_model(
-        odd_model, data_dict['odd_data'], data_dict['even_data'], \
+        odd_model, data_dict['odd_data_train'], data_dict['even_data'], \
         data_dict['trainvars'], global_settings, "odd_data", particles)
     hhvt.plotROC(
         [odd_train_info, odd_test_info],
@@ -151,21 +157,12 @@ def create_data_dict(preferences, global_settings, split_ggf_vbf):
         data, preferences['trainvars'],
         global_settings['output_dir']
     )
-    sumall = data.loc[data["process"] == "TT"]["totalWeight"].sum() \
-        + data.loc[data["process"] == "W"]["totalWeight"].sum() \
-        + data.loc[data["process"] == "DY"]["totalWeight"].sum() \
-        + data.loc[data["process"] == "ST"]["totalWeight"].sum() \
-        + data.loc[data["process"] == "Other"]["totalWeight"].sum() \
-        + data.loc[data["target"] == 1]["totalWeight"].sum()
-    print(
-        "TT:W:DY:ST:Other:HH \t" \
-        + str("%0.3f" %(data.loc[data["process"] == "TT"]["totalWeight"].sum()/sumall)) \
-        + ":" + str("%0.3f" %(data.loc[data["process"] == "W"]["totalWeight"].sum()/sumall)) \
-        + ":" + str("%0.3f" %(data.loc[data["process"] == "DY"]["totalWeight"].sum()/sumall)) \
-        + ":" + str("%0.3f" %(data.loc[data["process"] == 'ST']["totalWeight"].sum()/sumall)) \
-        + ":" + str("%0.3f" %(data.loc[data["process"] == 'Other']["totalWeight"].sum()/sumall)) \
-        + ":" + str("%0.3f" %(data.loc[data["target"] == 1]["totalWeight"].sum()/sumall))
-    )
+    sumall = 0
+    for process in list(set(data['process'])):
+        sumall += data.loc[data["process"] == process]["totalWeight"].sum()
+    print('totalWeight of each process:')
+    for process in list(set(data['process'])):
+        print(process + ': ' +str("%0.3f" %(data.loc[data["process"] == process]["totalWeight"].sum()/sumall)))
     use_Wjet = True
     if 'bb2l' in global_settings['channel']:
         use_Wjet = False
@@ -173,23 +170,30 @@ def create_data_dict(preferences, global_settings, split_ggf_vbf):
     hhvt.plot_correlations(data, preferences["trainvars"], global_settings)
     even_data = data.loc[(data['event'].values % 2 == 0)]
     odd_data = data.loc[~(data['event'].values % 2 == 0)]
+    even_data_train = even_data.sample(frac=0.80)
+    even_data_val = even_data.drop(even_data_train.index)
+    odd_data_train = odd_data.sample(frac=0.80)
+    odd_data_val = odd_data.drop(odd_data_train.index)
     data_dict = {
         'trainvars': preferences['trainvars'],
         'odd_data':  odd_data,
-        'even_data': even_data
+        'even_data': even_data,
+        'odd_data_train': odd_data_train,
+        'odd_data_val': odd_data_val,
+        'even_data_train': even_data_train,
+        'even_data_val': even_data_val,
     }
     return data_dict
 
 def create_model(
         preferences,
         global_settings,
-        data_dict,
+        train_data,
+        val_data,
         choose_data,
         split_ggf_vbf,
         save_model=True
 ):
-    train_data = data_dict['odd_data'] if choose_data == "odd_data" else data_dict['even_data']
-    val_data = data_dict['even_data']  if choose_data == "odd_data" else data_dict['odd_data']
     lbn = global_settings['ml_method'] == 'lbn'
     parameters = {'epoch':25, 'batch_size':601, 'lr':0.00781838825015861, 'l2':0.0, 'dropout':0, 'layer':5, 'node':212}
     if lbn:
@@ -205,12 +209,15 @@ def create_model(
             choose_data
         )
     model = modeltype.create_model()
+    BMpoint = preferences["nonResScenarios"][0] if len(preferences["nonResScenarios"]) ==1\
+              else 'all'
     if save_model:
         savemodel(model, preferences['trainvars'], global_settings, choose_data, \
-                  preferences["nonResScenarios"][0], '20%s' %preferences['included_eras'][0])
+                  BMpoint, '20%s' %preferences['included_eras'][0])
     return model
 
-def nodewise_performance(odd_data, even_data,
+def nodewise_performance(odd_data_train, even_data_train,
+                         odd_data_test, even_data_test,
                          odd_model, even_model, trainvars, particles,\
                          global_settings, preferences):
     if 'nonres' in global_settings['bdtType']:
@@ -221,14 +228,16 @@ def nodewise_performance(odd_data, even_data,
         mode = 'gen_mHH'
     roc_infos = []
     for node in nodes:
-        split_odd_data = odd_data.loc[odd_data[mode] == node]
-        split_even_data = even_data.loc[even_data[mode] == node]
+        split_odd_data_train = odd_data_train.loc[odd_data_train[mode] == node]
+        split_even_data_train = even_data_train.loc[even_data_train[mode] == node]
+        split_odd_data_test = odd_data_test.loc[odd_data_test[mode] == node]
+        split_even_data_test = even_data_test.loc[even_data_test[mode] == node]
         odd_total_infos = list(evaluate_model(
-            odd_model, split_odd_data, split_even_data, trainvars,
+            odd_model, split_odd_data_train, split_even_data_test, trainvars,
             global_settings, 'odd_data', particles, True
         ))
         even_total_infos = list(evaluate_model(
-            even_model, split_even_data, split_odd_data, trainvars,
+            even_model, split_even_data_train, split_odd_data_test, trainvars,
             global_settings, 'even_data', particles, True
         ))
         roc_info = {
@@ -361,7 +370,7 @@ def create_global_settings(global_settings, channel, res_nonres, mode):
     global_settings['ml_method'] = 'lbn'
     global_settings['scenario'] = '%s/base/%s' %(res_nonres, mode)
     global_settings['dataCuts'] = 'cuts_%s.json' %mode
-    #global_settings['feature_importance'] = 1
+    global_settings['feature_importance'] = 0
 
 def check_trainvar(preferences):
     BMpoints = ['SM', 'BM1', 'BM2', 'BM3', 'BM4', 'BM5', 'BM6', 'BM7', 'BM8', 'BM9', 'BM10', 'BM11', 'BM12']
