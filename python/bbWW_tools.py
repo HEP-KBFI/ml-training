@@ -89,8 +89,6 @@ class bbWWLoader(HHDataLoader):
                     self.to_be_loaded.append('Weight_SM')
                 else:
                     self.to_be_loaded.extend(self.nonres_weights)
-                    if 'Weight_SM' not in self.to_be_loaded:
-                        self.to_be_loaded.append('Weight_SM')
             self.to_be_dropped.extend(
                 list(self.preferences['nonResScenarios']))
             self.to_be_dropped.extend(['nodeX'])
@@ -102,11 +100,17 @@ class bbWWLoader(HHDataLoader):
             self, chunk_df, folder_name, target, data
     ):
         merge_process = ["TTW", "TTWW", "VV", "TTH", "tHq", "tHW", "ZH", "WH", "Other", "XGamma", "TTZ", "ggH", "qqH", "VVV"]
+        merge_process_Other = ["TTW", "TTWW", "VV", "tHq", "tHW", "Other", "XGamma", "TTZ", "VVV"]
+        merge_process_H = ["TTH", "ZH", "WH", "ggH", "qqH"]
         if self.mergeWjets:
             merge_process.append("W")
         chunk_df.loc[chunk_df["process"].isin(
             merge_process
         ), "process"] = "Other"
+
+        '''chunk_df.loc[chunk_df["process"].isin(
+            merge_process_H
+        ), "process"] = "H"'''
 
         if 'nonres' not in self.global_settings['scenario']:
             data = self.resonant_data_imputer(
@@ -198,8 +202,6 @@ class bbWWLoader(HHDataLoader):
             return 'ST', 0
         if 'TTToHadronic' in path:
             return '', 0
-        if 'ZH' in path:
-            return 'ZH', 0
         return HHDataLoader.set_background_sample_info(self, path)
 
     def set_signal_sample_info(self, folder_name):
@@ -235,10 +237,8 @@ class bbWWLoader(HHDataLoader):
                 for idx, node in enumerate(self.preferences['nonResScenarios']):
                     chunk_df_node[node] = 1 if idx == i else 0
                 chunk_df_node['nodeXname'] = scenario
-                if scenario is not "SM":
-                    nodeWeight = chunk_df_node['Weight_' + scenario]
-                    nodeWeight /= chunk_df_node['Weight_SM']
-                    chunk_df_node['totalWeight'] *= nodeWeight
+                nodeWeight = chunk_df_node['Weight_' + scenario]
+                chunk_df_node['totalWeight'] *= nodeWeight
                 data = data.append(chunk_df_node, ignore_index=True, sort=False)
         else:
             chunk_df_node = chunk_df.copy()
