@@ -503,8 +503,11 @@ class LBNTrainvarOptimizer(TrainvarOptimizer):
             'bb2l': ["bjet1", "bjet2", "lep1", "lep2"]
         }
         self.data = mt.multiclass_encoding(self.data)
-        self.train_data = self.data.sample(frac=0.70)
-        self.val_data = self.data.drop(self.train_data.index)
+        dummy_data = self.data.sample(frac=0.70)
+        self.train_data = dummy_data.sample(frac=0.80)
+        self.val_data = dummy_data.drop(self.train_data.index)
+        self.test_data = self.data.drop(dummy_data.index)
+        del dummy_data
         self.channel = global_settings['channel']
         self.low_level_var = ['%s_%s' %(part, var) for part in self.particles[self.channel]\
             for var in ['e', 'px', 'py', 'pz']]
@@ -540,7 +543,7 @@ class LBNTrainvarOptimizer(TrainvarOptimizer):
                             'correlations', item,
                             {}, {}
                         )
-                    else:
+                    elif trainvar not in self.low_level_var:
                         trainvars.remove(trainvar)
                         print(
                             "Removing " + str(trainvar) + ". Correlation with "
@@ -596,7 +599,7 @@ class LBNTrainvarOptimizer(TrainvarOptimizer):
             trainvars_for_fimp = [trainvar for trainvar in data_dict['trainvars'] if trainvar not in self.low_level_var]
         startTime = datetime.now()
         print(':::::model fitting is started: ' + str(startTime) + ':::::')
-        parameters = {'epoch':20, 'batch_size':1024, 'lr':0.0003, 'l2':0.0003, 'dropout':0, 'layer':3, 'node':256}
+        parameters = {'epoch':25, 'batch_size':601, 'lr':0.00781838825015861, 'l2':0.0, 'dropout':0, 'layer':5, 'node':212}
         LBNmodel = nt.LBNmodel(
             self.train_data,
             self.val_data,
@@ -609,7 +612,7 @@ class LBNTrainvarOptimizer(TrainvarOptimizer):
         print(':::::model fitting is done::::::')
         print(datetime.now() - startTime)
         importance_calculator = nt.LBNFeatureImportances(
-            model, self.val_data, data_dict['trainvars'], self.channel,
+            model, self.test_data, data_dict['trainvars'], self.channel,
         )
         importance_calculator.trainvars = trainvars_for_fimp
         startTime = datetime.now()
