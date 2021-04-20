@@ -34,8 +34,8 @@ from machineLearning.machineLearning import nn_tools as nt
 from machineLearning.machineLearning import multiclass_tools as mt
 from machineLearning.machineLearning.visualization import hh_visualization_tools as hhvt
 
-tf.config.threading.set_intra_op_parallelism_threads(2)
-tf.config.threading.set_inter_op_parallelism_threads(2)
+tf.config.threading.set_intra_op_parallelism_threads(3)
+tf.config.threading.set_inter_op_parallelism_threads(3)
 
 PARTICLE_INFO = low_level_object = {
     'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "lep"],
@@ -145,7 +145,9 @@ def create_data_dict(preferences, global_settings, split_ggf_vbf):
         preferences,
         global_settings,
         split_ggf_vbf,
-        mergeWjets
+        mergeWjets,
+        False,
+        False
     )
     data = loader.data
 
