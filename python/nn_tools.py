@@ -20,7 +20,7 @@ from machineLearning.machineLearning.lbn import LBN, LBNLayer
 from machineLearning.machineLearning import multiclass_tools as mt
 from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning.visualization import hh_visualization_tools as hhvt
-from machineLearning.machineLearning.grouped_entropy_dennis import GroupedXEnt as gce
+from machineLearning.machineLearning.grouped_entropy import GroupedXEnt as gce
 
 PARTICLE_INFO = low_level_object = {
     'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "lep"],
@@ -50,13 +50,13 @@ class NNmodel(object):
         self.layer = parameters['layer']
         self.node = parameters['node']
         self.split_ggf_vbf = split_ggf_vbf
-        self.train_target = train_data['multitarget'].values.astype(np.float)
-        self.val_target = val_data['multitarget'].values.astype(np.float)
-        if split_ggf_vbf:
+        self.train_target = self.train_data['multitarget'].values.astype(np.float)
+        self.val_target = self.val_data['multitarget'].values.astype(np.float)
+        '''if split_ggf_vbf:
             group_ids = mt.group_id(self.train_data)
             self.gce = gce(group_ids)
             self.train_target = train_data[['GGF_HH', 'VBF_HH', 'TT', 'ST', 'Other', 'W', 'DY']].values.astype(float)
-            self.val_target = val_data[['GGF_HH', 'VBF_HH', 'TT', 'ST', 'Other', 'W', 'DY']].values.astype(float)
+            self.val_target = val_data[['GGF_HH', 'VBF_HH', 'TT', 'ST', 'Other', 'W', 'DY']].values.astype(float)'''
 
         self.reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
             monitor='val_loss', factor=0.1, patience=3, min_lr=0.00001, min_delta=0.01
@@ -108,7 +108,7 @@ class NNmodel(object):
         return tf.keras.layers.Dense(self.num_class, activation='softmax')(x)
 
     def compile_model(self):
-        my_loss = self.gce if self.split_ggf_vbf else 'sparse_categorical_crossentropy'
+        my_loss = 'sparse_categorical_crossentropy'
         self.model.compile(
             optimizer=tf.keras.optimizers.Adam(lr=self.lr),
             loss=my_loss,
@@ -140,7 +140,7 @@ class NNmodel(object):
                 self.val_target,
                 self.val_data['totalWeight'].values
             ),
-            #callbacks=[self.reduce_lr, self.early_stopping]
+            callbacks=[self.reduce_lr, self.early_stopping]
         )
         if self.plot_history:
             hhvt.plot_loss_accuracy(history, self.output_dir, self.addition)
@@ -190,7 +190,7 @@ class LBNmodel(NNmodel):
                 self.val_target,
                 self.val_data["totalWeight"].values
             ),
-            #callbacks=[self.reduce_lr, self.early_stopping]
+            callbacks=[self.reduce_lr, self.early_stopping]
         )
         if self.plot_history:
             hhvt.plot_loss_accuracy(history, self.output_dir, self.addition)
