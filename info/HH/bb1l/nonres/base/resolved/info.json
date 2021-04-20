@@ -22,9 +22,9 @@
     },
     "tauID_training": {
         "deepVSjVVVLoose": {
-	    "inputPath16": "/hdfs/local/snandan/hhAnalysis/2016/bdt_bb1l_final_v1/histograms/hh_bb1l/Tight/",
-        "inputPath18": "/hdfs/local/snandan/hhAnalysis/2018/bdt_bb1l_final_v1/histograms/hh_bb1l/Tight/",
-	    "inputPath17": "/hdfs/local/snandan/hhAnalysis/2017/bdt_bb1l_final_v1/histograms/hh_bb1l/Tight/"
+	    "inputPath16": "/hdfs/local/snandan/hhAnalysis/2016/bdt_bb1l_final/histograms/hh_bb1l/Tight/",
+        "inputPath18": "/hdfs/local/snandan/hhAnalysis/2018/bdt_bb1l_final/histograms/hh_bb1l/Tight/",
+	    "inputPath17": "/hdfs/local/snandan/hhAnalysis/2017/bdt_bb1l_final/histograms/hh_bb1l/Tight/"
         }
     },
     "data_csv": "/path/to/data",
