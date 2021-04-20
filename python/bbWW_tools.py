@@ -62,15 +62,20 @@ class bbWWDataNormalizer(HHDataNormalizer):
 
 class bbWWLoader(HHDataLoader):
     def __init__(
-            self, data_normalizer, preferences, global_settings, split_ggf_vbf=False, mergeWjets=False, use_NLO=False,
+            self, data_normalizer, preferences, global_settings, split_ggf_vbf=False, mergeWjets=False,
+            use_NLO=False, use_NLOweightonly=False,
             nr_events_per_file=-1, weight='totalWeight',
             cancelled_trainvars=['gen_mHH'], normalize=True,
             reweigh=True, remove_negative_weights=True
     ):
         print('Using bbWW flavor of the HHDataLoader')
         self.use_NLO = use_NLO
+        self.use_NLOweightonly = use_NLOweightonly
         self.mergeWjets = mergeWjets
         self.split_ggf_vbf = split_ggf_vbf
+        self.bmScenario_in_sample = {'SM':'sm', 'BM1':'1', 'BM2':'2', 'BM3':'3', 'BM4':'4',
+                                     'BM5':'5', 'BM6':'6', 'BM7':'7', 'BM8':'8', 'BM9':'9',
+                                     'BM10':'10', 'BM11':'11', 'BM12':'12'}
         super(bbWWLoader, self).__init__(
             data_normalizer, preferences, global_settings, nr_events_per_file,
             weight, cancelled_trainvars, normalize, reweigh,
@@ -79,9 +84,15 @@ class bbWWLoader(HHDataLoader):
 
     def update_to_be_dropped_list(self, process):
         if 'nonres' in self.global_settings['scenario']:
-            self.nonres_weights = [
-                str('Weight_') + scenario
-                for scenario in self.preferences['nonResScenarios']
+            if self.use_NLOweightonly == False:
+                self.nonres_weights = [
+                    str('Weight_') + scenario
+                    for scenario in self.preferences['nonResScenarios']
+            ]
+            else:
+                self.nonres_weights = [
+                    str('Weight_') + scenario + str('_nloOnly')
+                    for scenario in self.preferences['nonResScenarios']
             ]
             if 'signal' in process and 'vbf' not in process and 'cHHH' not in process:
                 if 'Base' in self.preferences['nonResScenarios']:
@@ -172,10 +183,10 @@ class bbWWLoader(HHDataLoader):
             print(process + ': ' + str(len(finalData.loc[finalData['process'] == process])))
         self.print_nr_signal_bkg(finalData)
         if self.split_ggf_vbf:
-            finalData.loc[finalData['process'].str.contains('signal_ggf_nonresonant_hh'), "process"] = "GGF_HH"
+            finalData.loc[finalData['process'].str.contains('signal_ggf'), "process"] = "GGF_HH"
             finalData.loc[finalData['process'].str.contains('signal_vbf'), "process"] = 'VBF_HH'
         else:
-            finalData.loc[finalData['process'].str.contains('signal_ggf_nonresonant_hh'), "process"] = "signal_HH"
+            finalData.loc[finalData['process'].str.contains('signal_ggf'), "process"] = "signal_HH"
             finalData.loc[finalData['process'].str.contains('signal_vbf'), "process"] = 'signal_HH'
         return finalData
 
@@ -185,7 +196,10 @@ class bbWWLoader(HHDataLoader):
         if 'TT' in folder_name:
             self.nr_events_per_file = 1200000
         elif 'ggf' in folder_name:
-            self.nr_events_per_file = 30000#-1
+            if self.use_NLO == True or self.use_NLOweightonly == True:
+                self.nr_events_per_file = -1
+            else:
+                self.nr_events_per_file = 30000
         else:
             self.nr_events_per_file = -1
         return dlt.load_data_from_tfile(
@@ -207,9 +221,9 @@ class bbWWLoader(HHDataLoader):
     def set_signal_sample_info(self, folder_name):
         target = 1
         if 'ggf_nonresonant' in folder_name:
-            if 'cHHH' not in folder_name:
+            if 'cHHH' not in folder_name and not self.use_NLO:
                 process = 'signal_ggf_nonresonant_hh'
-            elif self.use_NLO:
+            elif 'cHHH' in folder_name  and self.use_NLO:
                 cHHH = re.findall('(cHHH1|cHHH0|cHHH5|cHHH2p45)', folder_name)[0]
                 process = 'signal_ggf_nonresonant_%s_hh' %cHHH
             else:
@@ -237,7 +251,12 @@ class bbWWLoader(HHDataLoader):
                 for idx, node in enumerate(self.preferences['nonResScenarios']):
                     chunk_df_node[node] = 1 if idx == i else 0
                 chunk_df_node['nodeXname'] = scenario
-                nodeWeight = chunk_df_node['Weight_' + scenario]
+                if self.use_NLOweightonly:
+                    if self.bmScenario_in_sample[self.preferences['nonResScenarios'][i]] + '_' not in folder_name:
+                        continue
+                    nodeWeight = chunk_df_node['Weight_' + scenario + '_nloOnly']
+                else:
+                    nodeWeight = chunk_df_node['Weight_' + scenario]
                 chunk_df_node['totalWeight'] *= nodeWeight
                 data = data.append(chunk_df_node, ignore_index=True, sort=False)
         else:
