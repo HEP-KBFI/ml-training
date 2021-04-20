@@ -1,5 +1,4 @@
 import numpy as np
-from sklearn.preprocessing import OneHotEncoder
 
 def roc_curve(labels, pred_vectors, weights):
     '''Calculate the ROC values using the method used in Dianas thesis.
@@ -62,36 +61,19 @@ def multiclass_encoding(data, use_Wjet=True, split_ggf_vbf=False, label_column='
         mapping[m_class] = i
     data['multitarget'] = data[label_column].map(mapping)'''
     if use_Wjet:
-        if split_ggf_vbf:
-            data.loc[data['process']=='GGF_HH', 'multitarget'] = 0
-            data.loc[data['process']=='VBF_HH', 'multitarget'] = 1
-            data.loc[data['process'] == 'TT', 'multitarget'] = 2
-            data.loc[data['process'] == 'ST', 'multitarget'] = 3
-            data.loc[data['process'] == 'Other', 'multitarget'] = 4
-            data.loc[data['process'] == 'W', 'multitarget'] = 5
-            data.loc[data['process'] == 'DY', 'multitarget'] = 6
-            data['GGF_HH'] = data['process'] == 'GGF_HH'
-            data['VBF_HH'] = data['process'] == 'VBF_HH'
-            data['TT'] = data['process'] == 'TT'
-            data['ST'] = data['process'] == 'ST'
-            data['Other'] = data['process'] == 'Other'
-            data['W'] = data['process'] == 'W'
-            data['DY'] = data['process'] == 'DY'
-            '''oe_style = OneHotEncoder()
-            oe_results = oe_style.fit_transform(data[["target"]])'''
-        else:
-            data.loc[data['target']==1, 'multitarget'] = 0
-            data.loc[data['process'] == 'TT', 'multitarget'] = 1
-            data.loc[data['process'] == 'ST', 'multitarget'] = 2
-            data.loc[data['process'] == 'Other', 'multitarget'] = 3
-            data.loc[data['process'] == 'W', 'multitarget'] = 4
-            data.loc[data['process'] == 'DY', 'multitarget'] = 5
+        data.loc[data['target']==1, 'multitarget'] = 0
+        data.loc[data['process'] == 'TT', 'multitarget'] = 1
+        data.loc[data['process'] == 'ST', 'multitarget'] = 2
+        data.loc[data['process'] == 'Other', 'multitarget'] = 3
+        data.loc[data['process'] == 'W', 'multitarget'] = 4
+        data.loc[data['process'] == 'DY', 'multitarget'] = 5
     else:
         data.loc[data['target']==1, 'multitarget'] = 0
         data.loc[data['process'] == 'TT', 'multitarget'] = 1
         data.loc[data['process'] == 'ST', 'multitarget'] = 2
         data.loc[data['process'] == 'Other', 'multitarget'] = 3
         data.loc[data['process'] == 'DY', 'multitarget'] = 4
+        #data.loc[data['process'] == 'H', 'multitarget'] = 5
 
     return data
 
