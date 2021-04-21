@@ -3,7 +3,7 @@ Call with 'python'
 
 Usage:
     gen_mHH_profiling.py
-    gen_mHH_profiling.py [--fit=BOOL --create_info=BOOL --create_profile=BOOL --weight_dir=DIR --masses_type=STR]
+    gen_mHH_profiling.py [--fit=BOOL --create_info=BOOL --create_profile=BOOL --weight_dir=DIR --masses_type=STR --analysis=STR]
 
 Options:
     -f --fit=BOOL                     Fit the TProfile [default: 0]
@@ -11,12 +11,14 @@ Options:
     -p --create_profile=BOOL          Creates the TProfile without the fit. [default: 0]
     -w --weight_dir=DIR               Directory where the weights will be saved [default: $HOME/gen_mHH_weight_dir]
     -m --masses_type=STR              'low', 'high' or 'all' [default: all]
+    -a --analysis=STR                 Options: 'hh-bbWW', 'hh-multilepton' [default: HHmultilepton]
 """
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import data_loader as dl
 from machineLearning.machineLearning import hh_parameter_reader as hpr
 from machineLearning.machineLearning import data_loading_tools as dlt
+from machineLearning.machineLearning import bbWW_tools as bbwwt
 from ROOT import TCanvas, TProfile, TF1
 from ROOT import TFitResultPtr
 import os
@@ -505,18 +507,29 @@ def main():
     else:
         scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
-    normalizer = hht.HHDataNormalizer
     preferences = reader.parameters
     preferences['trainvars'] = preferences['all_trainvar_info'].keys()
     if create_info:
         create_histo_dict(info_dir, preferences)
+    if analysis == 'HHmultilepton':
+        normalizer = hht.HHDataNormalizer
+        if create_profile or fit:
+            loader = hht.HHDataLoader(
+                normalizer,
+                preferences,
+                global_settings,
+                normalize=False
+            )
+    elif analysis == 'HHbbWW':
+        normalizer = bbwwt.bbWWDataNormalizer
+        if create_profile or fit:
+            loader = bbwwt.bbWWLoader(
+                normalizer,
+                preferences,
+                global_settings,
+                normalize=False
+            )
     if create_profile or fit:
-        loader = hht.HHDataLoader(
-            normalizer,
-            preferences,
-            global_settings,
-            normalize=False
-        )
         data = loader.data
         if not os.path.exists(weight_dir):
             os.makedirs(weight_dir)
@@ -548,6 +561,7 @@ if __name__ == '__main__':
         weight_dir = os.path.expandvars(arguments['--weight_dir'])
         masses_type = arguments['--masses_type']
         create_profile = bool(int(arguments['--create_profile']))
+        analysis = arguments['--analysis']
         main()
     except docopt.DocoptExit as e:
         print(e)
