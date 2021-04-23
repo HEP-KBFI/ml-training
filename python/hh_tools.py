@@ -216,8 +216,8 @@ class HHDataLoader(DataLoader):
             data = data.append(chunk_df, ignore_index=True, sort=False)
         else:
             if self.global_settings['bkg_mass_rand'] == "default":
-                chunk_df["gen_mHH"] = float(np.random.choice(
-                    self.preferences['masses'], size=len(chunk_df)))
+                chunk_df["gen_mHH"] = np.random.choice(
+                    self.preferences['masses'], size=len(chunk_df))
                 data = data.append(chunk_df, ignore_index=True, sort=False)
             elif self.global_settings['bkg_mass_rand'] == "oversampling":
                 for mass in self.preferences['masses']:
