@@ -450,6 +450,10 @@ def plotting_init(data, trainvar, histo_dict, masses, weights='totalWeight'):
     xhigh = (masses[(len(masses) - 1)] + 100.0)
     ylow = histo_dict["min"]
     yhigh = histo_dict["max"]
+    if ylow > min(trainvar_values):
+        ylow = min(trainvar_values)
+    if yhigh < max(trainvar_values):
+        yhigh = max(trainvar_values)
     profile = TProfile(
         'profile', title, num_bins,
         xlow, xhigh, ylow, yhigh
@@ -517,7 +521,7 @@ def create_all_fitFunc_file(global_settings):
         scenario
     ])
     resulting_file = os.path.join(weight_dir, res_fileName + '.root')
-    subprocess.call('hadd ' + resulting_file + ' ' + all_paths_str, shell=True)
+    subprocess.call('hadd -f ' + resulting_file + ' ' + all_paths_str, shell=True)
 
 
 def main():
