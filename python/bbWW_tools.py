@@ -50,10 +50,24 @@ class bbWWDataNormalizer(HHDataNormalizer):
                         [self.weight]] *= sig_node_factor
         self.print_background_yield()
 
+    def flatten_resonant_distributions(self):
+        for mass in set(self.data['gen_mHH']):
+            for process in set(self.data["process"]):
+                condition_mass = self.data['gen_mHH'].astype(int) == int(mass)
+                condition_sig = self.data['process'].astype(str) == process
+                mass_sig_weight = self.data.loc[
+                    condition_sig & condition_mass, [self.weight]]
+                sig_mass_factor = 100000./mass_sig_weight.sum() if 'HH' not in process else\
+                                  100000./(mass_sig_weight.sum()*1)#self.preferences['signal_weight'])
+                self.data.loc[
+                    condition_sig & condition_mass,
+                    [self.weight]] *= sig_mass_factor
+        self.print_background_yield()
+
     def print_background_yield(self):
         print('Fraction of each Background process')
         sumall = 0
-        data = self.data.loc[self.data["target"] == 0]
+        data = self.data#.loc[self.data["target"] == 0]
         for process in set(data['process']):
             sumall += data.loc[(data["process"] == process)]["totalWeight"].sum()
         for process in set(data['process']):
@@ -66,7 +80,8 @@ class bbWWLoader(HHDataLoader):
             use_NLO=False, use_NLOweightonly=False,
             nr_events_per_file=-1, weight='totalWeight',
             cancelled_trainvars=['gen_mHH'], normalize=True,
-            reweigh=True, remove_negative_weights=True
+            reweigh=True, remove_negative_weights=True,
+            load_bkg=True
     ):
         print('Using bbWW flavor of the HHDataLoader')
         self.use_NLO = use_NLO
@@ -76,6 +91,7 @@ class bbWWLoader(HHDataLoader):
         self.bmScenario_in_sample = {'SM':'sm', 'BM1':'1', 'BM2':'2', 'BM3':'3', 'BM4':'4',
                                      'BM5':'5', 'BM6':'6', 'BM7':'7', 'BM8':'8', 'BM9':'9',
                                      'BM10':'10', 'BM11':'11', 'BM12':'12'}
+        self.load_bkg = load_bkg
         super(bbWWLoader, self).__init__(
             data_normalizer, preferences, global_settings, nr_events_per_file,
             weight, cancelled_trainvars, normalize, reweigh,
@@ -111,17 +127,17 @@ class bbWWLoader(HHDataLoader):
             self, chunk_df, folder_name, target, data
     ):
         merge_process = ["TTW", "TTWW", "VV", "TTH", "tHq", "tHW", "ZH", "WH", "Other", "XGamma", "TTZ", "ggH", "qqH", "VVV"]
-        merge_process_Other = ["TTW", "TTWW", "VV", "tHq", "tHW", "Other", "XGamma", "TTZ", "VVV"]
-        merge_process_H = ["TTH", "ZH", "WH", "ggH", "qqH"]
+        merge_process_Other = ["TTW", "TTWW", "VV", "Other", "XGamma", "TTZ", "VVV", "DY"]
+        merge_process_H = ["TTH", "ZH", "WH", "ggH", "qqH", "tHq", "tHW", "TTWH", "TTZH"]
         if self.mergeWjets:
             merge_process.append("W")
         chunk_df.loc[chunk_df["process"].isin(
-            merge_process
+            merge_process_Other
         ), "process"] = "Other"
 
-        '''chunk_df.loc[chunk_df["process"].isin(
+        chunk_df.loc[chunk_df["process"].isin(
             merge_process_H
-        ), "process"] = "H"'''
+        ), "process"] = "H"
 
         if 'nonres' not in self.global_settings['scenario']:
             data = self.resonant_data_imputer(
@@ -175,9 +191,9 @@ class bbWWLoader(HHDataLoader):
             if (data.loc[data['process'] == process]['target'] == 1).all():
                 finalData = finalData.append(data.loc[data['process'] == process])
             else:
-                if len(data.loc[data['process'] == process]) > 400000:
+                if len(data.loc[data['process'] == process]) > 200000:
                     finalData = finalData.append(data.loc[data['process'] == process].\
-                         sample(n=400000))
+                         sample(n=200000))
                 else:
                     finalData = finalData.append(data.loc[data['process'] == process])
             print(process + ': ' + str(len(finalData.loc[finalData['process'] == process])))
@@ -193,15 +209,21 @@ class bbWWLoader(HHDataLoader):
     def load_data_from_tfile(
             self, process, folder_name, target, path, input_tree
     ):
-        if 'TT' in folder_name:
-            self.nr_events_per_file = 1200000
+        if 'TT' in folder_name and self.load_bkg:
+            self.nr_events_per_file = 100#1200000
+        elif 'spin' in folder_name:
+            self.nr_events_per_file = 100#-1
         elif 'ggf' in folder_name:
             if self.use_NLO == True or self.use_NLOweightonly == True:
                 self.nr_events_per_file = -1
             else:
                 self.nr_events_per_file = 30000
         else:
-            self.nr_events_per_file = -1
+            if not self.load_bkg:
+                self.nr_events_per_file = 0
+            else:
+                self.nr_events_per_file = 100#-1
+
         return dlt.load_data_from_tfile(
             self,
             process,
@@ -270,3 +292,12 @@ class bbWWLoader(HHDataLoader):
                     chunk_df_node.loc[chunk_df_node['nodeXname'] == node, 'nodeX'] = idx
             data = data.append(chunk_df_node, ignore_index=True, sort=False)
         return data
+
+    def data_reweighing(
+        self,
+        data,
+        skip_int_vars=True,
+        skip_vars=[]
+    ):
+        skip_vars = ['tau21_Hbb', 'm_Hbb_regCorr']
+        HHDataLoader.data_reweighing(self, data, skip_vars=skip_vars)
