@@ -229,14 +229,14 @@ def plot_nodeWise_roc(global_settings, roc_infos, mode):
             roc_info['odd_tpr_test'],
             lw=2, ls='--', color=color[1],
             label='node_' + str(node) + '_oddTrain_oddTest_' + \
-            str('%0.3f' %roc_info['odd_auc_test'])
+            str('%0.3f' %roc_info['odd_auc_train'])
         )
         plt.plot(
             roc_info['odd_fpr_train'],
             roc_info['odd_tpr_train'],
             lw=2, ls='-', color=color[1],
             label='node_' + str(node) + '_oddTrain_evenTest_' + \
-            str('%0.3f' %roc_info['odd_auc_train'])
+            str('%0.3f' %roc_info['odd_auc_test'])
         )
     plot_out = os.path.join(output_dir, 'nodeWiseROC_performance.png')
     plt.grid()
@@ -281,6 +281,7 @@ def plot_single_distrib(trainvar_distribs, weight_distribs, output_dir, trainvar
         plt.hist(trainvar_distribs[key],  weights=weight_distribs[key], histtype='step', \
             label=key, bins=bins)
     plt.legend(loc='best', title=trainvar)
+    plt.ylim([pow(10,1), pow(10,6)])
     plt.yscale('log')
     out_file = os.path.join(output_dir, trainvar + '_distribution.png')
     plt.savefig(out_file, bbox_inches='tight')
