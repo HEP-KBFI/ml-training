@@ -253,7 +253,8 @@ class HHDataLoader(DataLoader):
     def data_reweighing(
             self,
             data,
-            skip_int_vars=True
+            skip_int_vars=True,
+            skip_vars=[]
     ):
         """Reweighs the dataframe in order to reduce the importance of gen_mHH
 
@@ -277,6 +278,10 @@ class HHDataLoader(DataLoader):
                 self.preferences['weight_dir'], filename
             )))
             tfile = ROOT.TFile.Open(file_path)
+            if not tfile and trainvar in skip_vars:
+                continue
+            else:
+                assert tfile, 'fitfunction not found for %s' %trainvar
             fit_function_name = str('_'.join(['fitFunction', trainvar]))
             function = tfile.Get(fit_function_name)
             if bool(self.preferences['all_trainvar_info'][trainvar]) and skip_int_vars:
