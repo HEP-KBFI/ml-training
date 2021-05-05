@@ -58,7 +58,7 @@ class bbWWDataNormalizer(HHDataNormalizer):
                 mass_sig_weight = self.data.loc[
                     condition_sig & condition_mass, [self.weight]]
                 sig_mass_factor = 100000./mass_sig_weight.sum() if 'HH' not in process else\
-                                  100000./(mass_sig_weight.sum()*1)#self.preferences['signal_weight'])
+                                  100000./(mass_sig_weight.sum()*self.preferences['signal_weight'])
                 self.data.loc[
                     condition_sig & condition_mass,
                     [self.weight]] *= sig_mass_factor
@@ -67,7 +67,7 @@ class bbWWDataNormalizer(HHDataNormalizer):
     def print_background_yield(self):
         print('Fraction of each Background process')
         sumall = 0
-        data = self.data#.loc[self.data["target"] == 0]
+        data = self.data
         for process in set(data['process']):
             sumall += data.loc[(data["process"] == process)]["totalWeight"].sum()
         for process in set(data['process']):
@@ -80,7 +80,7 @@ class bbWWLoader(HHDataLoader):
             use_NLO=False, use_NLOweightonly=False,
             nr_events_per_file=-1, weight='totalWeight',
             cancelled_trainvars=['gen_mHH'], normalize=True,
-            reweigh=True, remove_negative_weights=True,
+            reweigh=False, remove_negative_weights=True,
             load_bkg=True
     ):
         print('Using bbWW flavor of the HHDataLoader')
@@ -191,9 +191,9 @@ class bbWWLoader(HHDataLoader):
             if (data.loc[data['process'] == process]['target'] == 1).all():
                 finalData = finalData.append(data.loc[data['process'] == process])
             else:
-                if len(data.loc[data['process'] == process]) > 200000:
+                if len(data.loc[data['process'] == process]) > 400000:
                     finalData = finalData.append(data.loc[data['process'] == process].\
-                         sample(n=200000))
+                         sample(n=400000))
                 else:
                     finalData = finalData.append(data.loc[data['process'] == process])
             print(process + ': ' + str(len(finalData.loc[finalData['process'] == process])))
@@ -210,9 +210,13 @@ class bbWWLoader(HHDataLoader):
             self, process, folder_name, target, path, input_tree
     ):
         if 'TT' in folder_name and self.load_bkg:
-            self.nr_events_per_file = 100#1200000
+            self.nr_events_per_file = 1200000
         elif 'spin' in folder_name:
-            self.nr_events_per_file = 100#-1
+            self.nr_events_per_file = 0
+            for mass in self.preferences['masses']:
+                if str(mass) in folder_name:
+                    self.nr_events_per_file = -1
+                    break
         elif 'ggf' in folder_name:
             if self.use_NLO == True or self.use_NLOweightonly == True:
                 self.nr_events_per_file = -1
@@ -222,7 +226,7 @@ class bbWWLoader(HHDataLoader):
             if not self.load_bkg:
                 self.nr_events_per_file = 0
             else:
-                self.nr_events_per_file = 100#-1
+                self.nr_events_per_file = -1
 
         return dlt.load_data_from_tfile(
             self,
