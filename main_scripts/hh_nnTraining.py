@@ -3,10 +3,9 @@ Call with 'python'
 
 Usage:
     hh_nnTraining.py
-    hh_nnTraining.py [--save_model=INT --channel=STR --res_nonres=STR --mode=STR --era=INT --BM=INT --split_ggf_vbf=INT --sig_weight=INT]
+    hh_nnTraining.py [--channel=STR --res_nonres=STR --mode=STR --era=INT --BM=INT --split_ggf_vbf=INT --sig_weight=INT --spin=INT --mass_region=STR]
 
 Options:
-    -s --save_model=INT             Whether or not to save the model [default: 0]
     -channel --channel=INT          which channel to be considered [default: bb1l]
     -res_nonres --res_nonres=STR        res or nonres to be considered [default: nonres]
     -m --mode=INT                   whhether resolved or boosted catgory to be considered [default: resolved]
@@ -14,6 +13,8 @@ Options:
     -BM --BM=STR                    BM point to be considered  [default: None]
     -split --split_ggf_vbf=INT    whether want to split ggf and vbf [default: 0]
     -sig_weight --sig_weight=INT  total signal weight to be consifered [default: 1]
+    -sp --spin=STR              wgich spin to be used [default: None]
+    -mr --mass_region=STR       which mass region to be considered [default: None]
 '''
 import os
 import json
@@ -22,6 +23,7 @@ import docopt
 import numpy as np
 import tensorflow as tf
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import roc_curve as roc
 from sklearn.metrics import auc
 import matplotlib
 matplotlib.use('agg')
@@ -55,7 +57,7 @@ def plot_confusion_matrix(data, probabilities, output_dir, addition):
     hhvt.plot_confusion_matrix(
         cm, samples, output_dir, addition)
 
-def main(output_dir, channel, mode, era, BM, split_ggf_vbf, sig_weight, save_model=True):
+def main(output_dir, channel, mode, era, BM, split_ggf_vbf, sig_weight, mass_region):
     settings_dir = os.path.join(
         os.path.expandvars('$CMSSW_BASE'),
         'src/machineLearning/machineLearning/settings'
@@ -64,11 +66,15 @@ def main(output_dir, channel, mode, era, BM, split_ggf_vbf, sig_weight, save_mod
     create_global_settings(global_settings, channel, res_nonres, mode)
     print('global settings ' + str(global_settings))
     if output_dir == 'None':
-        output_dir = global_settings['channel']+ '_largesample/'+ 'split_ggf_vbf_' + str(split_ggf_vbf) + \
-                     '_sig_weight_' + str(sig_weight) + '/' +\
-                     global_settings['ml_method']+'/'+ res_nonres + '/' + mode +'/' + BM + '/' + era
-                     #global_settings['channel'] + '_all_sig/'+global_settings['ml_method']+'/'+\
-                     #res_nonres + '/' + mode +'/' + BM + '/' + era
+        mode_BM = mode
+        if spin != 'None':
+            assert(mass_region != 'None')
+            mode_BM += '/' + spin + '_' + mass_region
+        else:
+            mode_BM += '/' + BM
+        output_dir = global_settings['channel'] + '/split_ggf_vbf_' + str(split_ggf_vbf) + \
+                '_sig_weight_' + str(sig_weight) + '/' + global_settings['ml_method'] \
+                +'/'+ res_nonres + '/' + mode_BM + '/' + era
         global_settings['output_dir'] = output_dir
     else:
         global_settings['output_dir'] = output_dir
@@ -90,6 +96,7 @@ def main(output_dir, channel, mode, era, BM, split_ggf_vbf, sig_weight, save_mod
         preferences['included_eras'] = [era.replace('20', '')]
     print('era: ' + str(preferences['included_eras']))
     preferences['signal_weight'] = sig_weight
+    preferences['masses'] = preferences['masses_%s' %mass_region]
     preferences = define_trainvars(global_settings, preferences, info_dir)
     if split_ggf_vbf:
         preferences['trainvars'].append('vbf_m_jj')
@@ -109,22 +116,15 @@ def main(output_dir, channel, mode, era, BM, split_ggf_vbf, sig_weight, save_mod
         preferences, global_settings,\
         data_dict['even_data_train'], data_dict['even_data_val'],\
         "even_data", split_ggf_vbf)
-    if global_settings['feature_importance'] == 1:
-        trainvars = preferences['trainvars']
-        LBNFeatureImportance = nt.LBNFeatureImportances(even_model, data_dict['odd_data'],\
-            trainvars, global_settings['channel'])
-        score_dict = LBNFeatureImportance.custom_permutation_importance()
-        hhvt.plot_feature_importances_from_dict(
-            score_dict, global_settings['output_dir'])
     odd_model = create_model(
         preferences, global_settings,\
         data_dict['odd_data_train'], data_dict['odd_data_val'],\
         "odd_data", split_ggf_vbf)
     print(odd_model.summary())
-    '''nodewise_performance(data_dict['odd_data_train'], data_dict['even_data_train'],\
+    nodewise_performance(data_dict['odd_data_train'], data_dict['even_data_train'],\
         data_dict['odd_data'], data_dict['even_data'],\
         odd_model, even_model, data_dict['trainvars'], particles, \
-        global_settings, preferences)'''
+        global_settings, preferences)
     even_train_info, even_test_info = evaluate_model(
         even_model, data_dict['even_data_train'], data_dict['odd_data'],\
         data_dict['trainvars'], global_settings, "even_data", particles)
@@ -136,6 +136,13 @@ def main(output_dir, channel, mode, era, BM, split_ggf_vbf, sig_weight, save_mod
         [even_train_info, even_test_info],
         global_settings
     )
+    if global_settings['feature_importance'] == 1:
+        trainvars = preferences['trainvars']
+        LBNFeatureImportance = nt.LBNFeatureImportances(even_model, data_dict['odd_data'],\
+            trainvars, global_settings['channel'])
+        score_dict = LBNFeatureImportance.custom_permutation_importance()
+        hhvt.plot_feature_importances_from_dict(
+            score_dict, global_settings['output_dir'])
 
 def create_data_dict(preferences, global_settings, split_ggf_vbf):
     normalizer = bbwwt.bbWWDataNormalizer
@@ -150,7 +157,6 @@ def create_data_dict(preferences, global_settings, split_ggf_vbf):
         False
     )
     data = loader.data
-
     hhvt.plot_single_mode_correlation(
         data, preferences['trainvars'],
         global_settings['output_dir'], 'trainvar'
@@ -222,11 +228,11 @@ def nodewise_performance(odd_data_train, even_data_train,
                          odd_data_test, even_data_test,
                          odd_model, even_model, trainvars, particles,\
                          global_settings, preferences):
-    if 'nonres' in global_settings['bdtType']:
+    if 'nonres' in global_settings['scenario']:
         nodes = preferences['nonResScenarios_test']
         mode = 'nodeXname'
     else:
-        nodes = preferences['masses_test']
+        nodes = preferences['masses_test_%s' %mass_region]
         mode = 'gen_mHH'
     roc_infos = []
     for node in nodes:
@@ -260,7 +266,7 @@ def nodewise_performance(odd_data_train, even_data_train,
         #nodeWise_performances.append(nodeWise_histo_dict)
         roc_infos.append(roc_info)
     #hhvt.plot_nodeWise_performance(
-    #global_settings, nodeWise_performances, mode)
+     #   global_settings, nodeWise_performances, mode)
     hhvt.plot_nodeWise_roc(global_settings, roc_infos, mode)
 
 def evaluate_model(model, train_data, test_data, trainvars, \
@@ -296,15 +302,27 @@ def evaluate_model(model, train_data, test_data, trainvars, \
         hhvt.plot_DNNScore(train_data, global_settings['output_dir'], choose_data+'_train')
         hhvt.plot_DNNScore(test_data, global_settings['output_dir'], choose_data+'_test')
 
-    test_fpr, test_tpr = mt.roc_curve(
+    '''test_fpr, test_tpr = mt.roc_curve(
         test_data['multitarget'].astype(int),
         test_predicted_probabilities,
-        test_data['evtWeight'].astype(float)
+        test_data['totalWeight'].astype(float)
     )
     train_fpr, train_tpr = mt.roc_curve(
         train_data['multitarget'].astype(int),
         train_predicted_probabilities,
-        train_data['evtWeight'].astype(float)
+        train_data['totalWeight'].astype(float)
+    )'''
+    test_fpr, test_tpr, _ = roc(
+        test_data['multitarget'].astype(int),
+        test_predicted_probabilities[:,0],
+        sample_weight=(test_data['totalWeight'].astype(float)),
+        pos_label=0
+    )
+    train_fpr, train_tpr, _ = roc(
+        train_data['multitarget'].astype(int),
+        train_predicted_probabilities[:,0],
+        sample_weight=(train_data['totalWeight'].astype(float)),
+        pos_label=0
     )
     train_auc = auc(train_fpr, train_tpr, reorder=True)
     test_auc = auc(test_fpr, test_tpr, reorder=True)
@@ -325,18 +343,20 @@ def evaluate_model(model, train_data, test_data, trainvars, \
     return train_info, test_info
 
 def savemodel(model_structure, trainvars, global_settings, addition, BM, era):
-    if 'nonres' in global_settings["bdtType"]:
-        res_nonres = 'nonres'
+    if 'spin' not in global_settings["scenario"]:
+        res_nonres = 'nonres_' + BM
         mode = global_settings['scenario'].split('/')[2]
     else:
-        res_nonres = 'res_%s' %global_settings['spinCase']
-    pb_filename = os.path.join(global_settings["output_dir"], "multiclass_DNN_w%s_for_%s_%s_%s_%s_%s_%s.pb"\
-        %(global_settings["ml_method"], global_settings["channel"], \
-          mode, addition, res_nonres, BM, era))
-          #mode, addition, res_nonres, 'all', era))
-    log_filename = os.path.join(global_settings["output_dir"], "multiclass_DNN_w%s_for_%s_%s_%s_%s.log"\
-        %(global_settings["ml_method"], global_settings["channel"], \
-          mode, addition, res_nonres))
+        res_nonres = 'res_%s_%s' %(global_settings['scenario'].split('/')[0], mass_region)
+        mode = global_settings['scenario'].split('/')[1]
+    pb_filename = os.path.join(global_settings["output_dir"], \
+         "multiclass_DNN_w%s_for_%s_%s_%s_%s_%s.pb"\
+         %(global_settings["ml_method"], global_settings["channel"], \
+          mode, addition, res_nonres, era))
+    log_filename = os.path.join(global_settings["output_dir"],\
+          "multiclass_DNN_w%s_for_%s_%s_%s_%s.log"\
+           %(global_settings["ml_method"], global_settings["channel"], \
+           mode, addition, res_nonres))
     cmsml.tensorflow.save_graph(pb_filename, model_structure, variables_to_constants=True)
     ll_var = ['%s_%s' %(part, var) for part in PARTICLE_INFO[global_settings['channel']]\
               for var in ['e', 'px', 'py', 'pz']
@@ -370,9 +390,12 @@ def create_global_settings(global_settings, channel, res_nonres, mode):
     channel = channel.replace('_bdt', '')
     global_settings['channel'] = channel
     global_settings['ml_method'] = 'lbn'
-    global_settings['scenario'] = '%s/base/%s' %(res_nonres, mode)
+    if 'nonres' in res_nonres:
+        global_settings['scenario'] = '%s/base/%s' %(res_nonres, mode)
+    else:
+        global_settings['scenario'] = '%s/%s' %(spin, mode)
     global_settings['dataCuts'] = 'cuts_%s.json' %mode
-    global_settings['feature_importance'] = 0
+    global_settings['feature_importance'] = 1
 
 def check_trainvar(preferences):
     BMpoints = ['SM', 'BM1', 'BM2', 'BM3', 'BM4', 'BM5', 'BM6', 'BM7', 'BM8', 'BM9', 'BM10', 'BM11', 'BM12']
@@ -385,7 +408,6 @@ if __name__ == '__main__':
     try:
         arguments = docopt.docopt(__doc__)
         print arguments
-        save_model = bool(int(arguments['--save_model']))
         channel = arguments['--channel']
         mode = arguments['--mode']
         res_nonres = arguments['--res_nonres']
@@ -393,7 +415,9 @@ if __name__ == '__main__':
         BM = arguments['--BM']
         split_ggf_vbf = bool(int(arguments['--split_ggf_vbf']))
         sig_weight = float(arguments['--sig_weight'])
-        main('None', channel, mode, era, BM, split_ggf_vbf, sig_weight)
+        spin = arguments['--spin']
+        mass_region = arguments['--mass_region']
+        main('None', channel, mode, era, BM, split_ggf_vbf, sig_weight, mass_region)
     except docopt.DocoptExit as e:
         print(e)
     print(datetime.now() - startTime)
