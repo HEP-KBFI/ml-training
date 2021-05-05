@@ -48,7 +48,7 @@ def roc_curve(labels, pred_vectors, weights):
                 total_false_positives += sum(
                     signal_vector[:, bkg_label] * weights)
         true_positive_rate = total_true_positives / sum(weights)
-        false_positive_rate = total_false_positives / (len(unique_labels) * total_bkg_weights)
+        false_positive_rate = total_false_positives / ((len(unique_labels)-1) * total_bkg_weights)
         true_positive_rates.append(true_positive_rate)
         false_positive_rates.append(false_positive_rate)
     return false_positive_rates, true_positive_rates
@@ -64,9 +64,9 @@ def multiclass_encoding(data, use_Wjet=True, split_ggf_vbf=False, label_column='
         data.loc[data['target']==1, 'multitarget'] = 0
         data.loc[data['process'] == 'TT', 'multitarget'] = 1
         data.loc[data['process'] == 'ST', 'multitarget'] = 2
-        data.loc[data['process'] == 'Other', 'multitarget'] = 3
-        data.loc[data['process'] == 'W', 'multitarget'] = 4
-        data.loc[data['process'] == 'DY', 'multitarget'] = 5
+        data.loc[data['process'] == 'W', 'multitarget'] = 3
+        data.loc[data['process'] == 'H', 'multitarget'] = 4
+        data.loc[data['process'] == 'Other', 'multitarget'] = 5
     else:
         data.loc[data['target']==1, 'multitarget'] = 0
         data.loc[data['process'] == 'TT', 'multitarget'] = 1
