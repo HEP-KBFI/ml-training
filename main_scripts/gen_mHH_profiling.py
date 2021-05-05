@@ -156,8 +156,8 @@ def create_renewed_histo_dict(
     for missing_trainvar in missing_trainvars:
         histo_info = template.copy()
         histo_info['Variable'] = missing_trainvar
-        histo_info['min'] = min(data[trainvar])
-        histo_info['max'] = max(data[trainvar])
+        histo_info['min'] = min(data[missing_trainvar])
+        histo_info['max'] = max(data[missing_trainvar])
         new_histo_infos.append(histo_info)
     return new_histo_infos
 
@@ -347,7 +347,7 @@ def do_fit(info_dir, data, preferences):
             best_fit_function = get_profile_best_fit_function(
                 profile, mass_min, mass_max, str(trainvar)
             )
-            print('best fit function for ' + str(trainvar) + str(best_fit_function))
+            print('best fit function for ' + str(trainvar) + ' ' + str(best_fit_function))
             function_TF1 = TF1(
                 fit_function, best_fit_function, float(mass_min), float(mass_max)
             )
