@@ -507,15 +507,16 @@ class NNFeatureImportances(object):
         true_positives = 0
         true_negatives = 0
         total_positive = sum(self.weights)
-        total_negative = sum(self.weights)
+        #total_negative = sum(self.weights)
         for pred, true, weight in zip(pred_labels, self.labels, self.weights):
             if pred == true:
                 true_positives += weight
-                true_negatives += num_classes * weight
+                '''true_negatives += num_classes * weight
             else:
                 true_negatives += (num_classes - 1) * weight
-        true_negatives /= num_classes
-        accuracy = (true_positives + true_negatives) / (total_positive + total_negative)
+        true_negatives /= num_classes'''
+        #accuracy = (true_positives + true_negatives) / (total_positive + total_negative)
+        accuracy = (true_positives) / (total_positive)
         return accuracy
 
     def predict_from_model(self, data_):
@@ -556,15 +557,19 @@ class LBNFeatureImportances(NNFeatureImportances):
         print('Reference score: ' + str(original_score))
         for trainvar in self.trainvars:
             print(trainvar)
-            data_copy = self.data.copy()
+            #data_copy = self.data.copy()
+            trainvar_copy = np.copy(self.data[trainvar])
             t_score = 0
             for i in range(self.permutations):
                 print("Permutation nr: " + str(i))
-                data_copy[trainvar] = np.random.permutation(data_copy[trainvar])
-                prediction = self.predict_from_model(data_copy)
+                #data_copy[trainvar] = np.random.permutation(data_copy[trainvar])
+                self.data[trainvar] = np.random.permutation(self.data[trainvar])
+                #prediction = self.predict_from_model(data_copy)
+                prediction = self.predict_from_model(self.data)
                 score = self.calculate_acc_with_weights(prediction, self.labels, self.weights)
                 print(score)
                 t_score += score
+            self.data[trainvar] = trainvar_copy
             score_dict[trainvar] = abs(original_score - (t_score/self.permutations))
         sorted_sd = sorted(score_dict.items(), key=lambda kv: kv[1], reverse=True)
         print(sorted_sd)
