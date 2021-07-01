@@ -8,7 +8,7 @@
     "masses_test_high": [400, 500, 800],
     "channelInTree": "hh_bb1l_Tight",
     "default_tauID_application": "deepVSjMedium",
-    "included_eras": ["16"],
+    "included_eras": ["16", "17", "18"],
     "weight_dir": "/home/snandan/MVA_fit_funcs/Run2/bb1l/Resonant_Spin0_final_resolved",
     "nonResScenarios": ["SM"],
     "nonResScenarios_test": [],
