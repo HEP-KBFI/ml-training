@@ -61,12 +61,21 @@ def multiclass_encoding(data, use_Wjet=True, split_ggf_vbf=False, label_column='
         mapping[m_class] = i
     data['multitarget'] = data[label_column].map(mapping)'''
     if use_Wjet:
-        data.loc[data['target']==1, 'multitarget'] = 0
-        data.loc[data['process'] == 'TT', 'multitarget'] = 1
-        data.loc[data['process'] == 'ST', 'multitarget'] = 2
-        data.loc[data['process'] == 'W', 'multitarget'] = 3
-        data.loc[data['process'] == 'H', 'multitarget'] = 4
-        data.loc[data['process'] == 'Other', 'multitarget'] = 5
+        if not split_ggf_vbf:
+            data.loc[data['target']==1, 'multitarget'] = 0
+            data.loc[data['process'] == 'TT', 'multitarget'] = 1
+            data.loc[data['process'] == 'ST', 'multitarget'] = 2
+            data.loc[data['process'] == 'W', 'multitarget'] = 3
+            data.loc[data['process'] == 'H', 'multitarget'] = 4
+            data.loc[data['process'] == 'Other', 'multitarget'] = 5
+        else:
+            data.loc[data['process'] == 'GGF_HH', 'multitarget'] = 0
+            data.loc[data['process'] == 'VBF_HH', 'multitarget'] = 1
+            data.loc[data['process'] == 'TT', 'multitarget'] = 2
+            data.loc[data['process'] == 'ST', 'multitarget'] = 3
+            data.loc[data['process'] == 'W', 'multitarget'] = 4
+            data.loc[data['process'] == 'H', 'multitarget'] = 5
+            data.loc[data['process'] == 'Other', 'multitarget'] = 6
     else:
         data.loc[data['target']==1, 'multitarget'] = 0
         data.loc[data['process'] == 'TT', 'multitarget'] = 1
