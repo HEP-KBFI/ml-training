@@ -298,8 +298,8 @@
         "ttHToNonbb_M125_powheg_ext1": "TTH"
     },
     "TTH_bbWW": {
-        "ttHJetTobb_M125": "TTH",
-        "ttHJetToNonbb_M125_amcatnlo": "TTH"
+        "ttHJetTobb_M125_ext3": "TTH",
+        "ttHJetToNonbb_M125_amcatnlo_ext1": "TTH"
     },
     "tHq": {
         "THQ_ctcvcp": "tHq"
@@ -308,10 +308,10 @@
         "TTH_4f_ctcvcp": "TTH"
     },
     "TTZH": {
-        "TTZH": "TTZ"
+        "TTZH_ext1": "TTZH"
     },
     "TTWH": {
-        "TTWH": "TTW"
+        "TTWH_ext1": "TTWH"
     },
     "EWK": {
         "DYJetsToLL_M-10to50": "DY",
@@ -511,8 +511,8 @@
         "THQ_ctcvcp": "tHq"
     },
      "TH_bbWW": {
-        "THW_ctcvcp": "tHW",
-        "THQ_ctcvcp": "tHq"
+        "THW_ctcvcp_CP5": "tHW",
+        "THQ_ctcvcp_CP5": "tHq"
     },
    "WZ_bbWW": {
         "WZTo3LNu_powheg": "VV",
