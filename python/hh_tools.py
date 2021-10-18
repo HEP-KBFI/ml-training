@@ -30,6 +30,12 @@ class HHDataNormalizer(object):
 
     def flatten_distributions(self):
         if 'SUM_HH' in self.global_settings['bdtType']:
+            sample_normalizations = self.preferences['tauID_application']
+            for sample in sample_normalizations.keys():
+                sample_name = sample.replace('datacard', '')
+                sample_weights = data.loc[self.data['process'] == sample_name, [self.weight]]
+                sample_factor = sample_normalizations[sample]/sample_weights.sum()
+                self.data.loc[self.data['process'] == sample, [self.weight]] *= sample_factor
             if 'nonres' in self.global_settings['scenario']:
                 self.flatten_nonres_distributions()
             else:
