@@ -2,8 +2,8 @@ import os
 import glob
 import numpy as np
 import ROOT
-from machineLearning.machineLearning import universal_tools as ut
-from machineLearning.machineLearning.data_loader import DataLoader
+import universal_tools as ut
+from data_loader import DataLoader
 
 
 class HHDataNormalizer(object):
