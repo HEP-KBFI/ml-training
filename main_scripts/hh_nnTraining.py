@@ -3,7 +3,7 @@ Call with 'python'
 
 Usage:
     hh_nnTraining.py
-    hh_nnTraining.py [--channel=STR --res_nonres=STR --mode=STR --era=INT --BM=INT --split_ggf_vbf=INT --sig_weight=INT --mass_region=STR]
+    hh_nnTraining.py [--channel=STR --res_nonres=STR --mode=STR --era=INT --BM=INT --split_ggf_vbf=INT --sig_weight=INT --mass_region=STR --csv=INT]
 
 Options:
     -channel --channel=INT          which channel to be considered [default: bb1l]
@@ -14,6 +14,7 @@ Options:
     -split --split_ggf_vbf=INT    whether want to split ggf and vbf [default: 0]
     -sig_weight --sig_weight=INT  total signal weight to be consifered [default: 1]
     -mr --mass_region=STR       which mass region to be considered [default: None]
+    -c  --csv=INT               want to load csv [default: 0]
 '''
 import os
 import json
@@ -24,14 +25,16 @@ import tensorflow as tf
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import roc_curve as roc
 from sklearn.metrics import auc
+from sklearn.model_selection import StratifiedShuffleSplit
+import pandas
 import matplotlib
 matplotlib.use('agg')
 import cmsml
 from machineLearning.machineLearning import data_loading_tools as dlt
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_parameter_reader as hpr
-from machineLearning.machineLearning import bbWW_tools as bbwwt
-from machineLearning.machineLearning import nn_tools as nt
+from machineLearning.machineLearning import bbWW_tools_1 as bbwwt
+from machineLearning.machineLearning import nn_tools_1 as nt
 from machineLearning.machineLearning import multiclass_tools as mt
 from machineLearning.machineLearning.visualization import hh_visualization_tools as hhvt
 
@@ -39,9 +42,32 @@ tf.config.threading.set_intra_op_parallelism_threads(3)
 tf.config.threading.set_inter_op_parallelism_threads(3)
 
 PARTICLE_INFO = low_level_object = {
-    'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "lep"],
+    'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "jet1", "jet2", "lep", "met"],
     'bb2l': ["bjet1", "bjet2", "lep1", "lep2"]
 }
+
+def flatten_resonant_distributions(data):
+    for mass in set(data['gen_mHH']):
+        for process in set(data["process"]):
+            condition_mass = data['gen_mHH'].astype(int) == int(mass)
+            condition_sig = data['process'].astype(str) == process
+            mass_sig_weight = data.loc[
+                    condition_sig & condition_mass, ['totalWeight']]
+            sig_mass_factor = 100000./(1*mass_sig_weight.sum()) if 'HH' in process\
+                              else 100000./(mass_sig_weight.sum())
+            data.loc[
+                condition_sig & condition_mass,
+                ['totalWeight']] *= sig_mass_factor
+    print_background_yield(data)
+
+def print_background_yield(data):
+    print('Fraction of each Background process')
+    sumall = 0
+    for process in set(data['process']):
+        sumall += data.loc[(data["process"] == process)]["totalWeight"].sum()
+    for process in set(data['process']):
+        print(process + ': ' + str('%0.3f' %(data.loc[(data["process"] == process)]\
+         ["totalWeight"].sum()/sumall)))
 
 def plot_confusion_matrix(data, probabilities, output_dir, addition):
     cm = confusion_matrix(
@@ -70,7 +96,7 @@ def main(output_dir, channel, mode, era, BM, split_ggf_vbf, sig_weight, mass_reg
         mode_BM += '/' + BM
         if mass_region !='None':
             mode_BM += '_' + mass_region
-        output_dir = global_settings['channel'] + '_oldtraining/split_ggf_vbf_' + str(split_ggf_vbf) + \
+        output_dir = global_settings['channel'] + '_ResNet_smallstat/split_ggf_vbf_' + str(split_ggf_vbf) + \
                 '_sig_weight_' + str(sig_weight) + '/' + global_settings['ml_method'] \
                 +'/'+ res_nonres + '/' + mode_BM + '/' + era
         global_settings['output_dir'] = output_dir
@@ -130,8 +156,8 @@ def main(output_dir, channel, mode, era, BM, split_ggf_vbf, sig_weight, mass_reg
         odd_model, data_dict['odd_data_train'], data_dict['even_data'], \
         data_dict['trainvars'], global_settings, "odd_data", particles)
     hhvt.plotROC(
-        [odd_train_info, odd_test_info],
-        [even_train_info, even_test_info],
+        [[odd_train_info, odd_test_info],
+        [even_train_info, even_test_info]],
         global_settings
     )
     if global_settings['feature_importance'] == 1:
@@ -145,16 +171,20 @@ def main(output_dir, channel, mode, era, BM, split_ggf_vbf, sig_weight, mass_reg
 def create_data_dict(preferences, global_settings, split_ggf_vbf):
     normalizer = bbwwt.bbWWDataNormalizer
     mergeWjets = 'bb2l' in global_settings["channel"]
-    loader = bbwwt.bbWWLoader(
-        normalizer,
-        preferences,
-        global_settings,
-        split_ggf_vbf,
-        mergeWjets,
-        False,
-        False
-    )
-    data = loader.data
+    if csv ==0:
+        loader = bbwwt.bbWWLoader(
+            normalizer,
+            preferences,
+            global_settings,
+            split_ggf_vbf,
+            mergeWjets,
+            False,
+            False
+        )
+        data = loader.data
+        #loader.save_to_csv()
+    else:
+        data = pandas.read_csv(preferences['data_csv'])
     hhvt.plot_single_mode_correlation(
         data, preferences['trainvars'],
         global_settings['output_dir'], 'trainvar'
@@ -176,10 +206,23 @@ def create_data_dict(preferences, global_settings, split_ggf_vbf):
     hhvt.plot_correlations(data, preferences["trainvars"], global_settings)
     even_data = data.loc[(data['event'].values % 2 == 0)]
     odd_data = data.loc[~(data['event'].values % 2 == 0)]
-    even_data_train = even_data.sample(frac=0.80)
+    '''even_data_train = even_data.sample(frac=0.80)
     even_data_val = even_data.drop(even_data_train.index)
     odd_data_train = odd_data.sample(frac=0.80)
-    odd_data_val = odd_data.drop(odd_data_train.index)
+    odd_data_val = odd_data.drop(odd_data_train.index)'''
+    sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=0)
+    eventnumbers = np.array(odd_data['event'])
+    for train_index, val_index in sss.split(odd_data, odd_data['multitarget']):
+        #evtTrain = (odd_data['event'].isin(eventnumbers[train_index]))
+        #evtVal = (odd_data['event'].isin(eventnumbers[val_index]))
+        odd_data_train = odd_data.iloc[train_index]
+        odd_data_val = odd_data.iloc[val_index]
+    eventnumbers = np.array(even_data['event'])
+    for train_index, val_index in sss.split(even_data, even_data['multitarget']):
+        #evtTrain = (even_data['event'].isin(eventnumbers[train_index]))
+        #evtVal = (even_data['event'].isin(eventnumbers[val_index]))
+        even_data_train = even_data.iloc[train_index]
+        even_data_val = even_data.iloc[val_index]
     data_dict = {
         'trainvars': preferences['trainvars'],
         'odd_data':  odd_data,
@@ -189,6 +232,12 @@ def create_data_dict(preferences, global_settings, split_ggf_vbf):
         'even_data_train': even_data_train,
         'even_data_val': even_data_val,
     }
+    flatten_resonant_distributions(data_dict['odd_data'])
+    flatten_resonant_distributions(data_dict['even_data'])
+    flatten_resonant_distributions(data_dict['odd_data_train'])
+    flatten_resonant_distributions(data_dict['even_data_train'])
+    flatten_resonant_distributions(data_dict['odd_data_val'])
+    flatten_resonant_distributions(data_dict['even_data_val'])
     return data_dict
 
 def create_model(
@@ -201,7 +250,8 @@ def create_model(
         save_model=True
 ):
     lbn = global_settings['ml_method'] == 'lbn'
-    parameters = {'epoch':25, 'batch_size':601, 'lr':0.00781838825015861, 'l2':0.0, 'dropout':0, 'layer':5, 'node':212}
+    parameters = {'batch_size':601, 'lr':0.00781838825015861, 'l2':0.0, 'dropout':0, 'layer':3, 'node':212, 'resNetBlock': 2}
+    #parameters = {'batch_size':200, 'lr':0.006737946999085467, 'l2':0.030023938671891574, 'dropout':0, 'layer':3, 'node':42, 'nparticle':13, 'signal_weight':1, "resNetBlock": 6}
     if lbn:
         modeltype = nt.LBNmodel(
             train_data,
@@ -213,6 +263,18 @@ def create_model(
             split_ggf_vbf,
             global_settings['output_dir'],
             choose_data
+        )
+    else:
+        modeltype = nt.NNmodel(
+            train_data,
+            val_data,
+            preferences['trainvars'],
+            parameters,
+            True,
+            split_ggf_vbf,
+            global_settings['output_dir'],
+            choose_data,
+            ResNet=True
         )
     model = modeltype.create_model()
     BMpoint = preferences["nonResScenarios"][0] if len(preferences["nonResScenarios"]) ==1\
@@ -285,9 +347,13 @@ def evaluate_model(model, train_data, test_data, trainvars, \
             batch_size=1024)
     else:
         train_predicted_probabilities = model.predict(
-            train_data[trainvars].values)
+            train_data[trainvars].values,
+             batch_size=1024
+        )
         test_predicted_probabilities = model.predict(
-            test_data[trainvars].values)
+            test_data[trainvars].values,
+             batch_size=1024
+        )
     if not nodeWise:
         train_data["max_node_val"] = np.amax(train_predicted_probabilities, axis=1)
         train_data["max_node_pos"] = np.argmax(train_predicted_probabilities, axis=1)
@@ -328,14 +394,14 @@ def evaluate_model(model, train_data, test_data, trainvars, \
         'fpr': test_fpr,
         'tpr': test_tpr,
         'auc': test_auc,
-        'type': 'test',
+        'type': '%s_test' %choose_data,
         'prediction': test_predicted_probabilities
     }
     train_info = {
         'fpr': train_fpr,
         'tpr': train_tpr,
         'auc': train_auc,
-        'type': 'train',
+        'type': '%s_train' %choose_data,
         'prediction': train_predicted_probabilities
     }
     return train_info, test_info
@@ -361,7 +427,10 @@ def savemodel(model_structure, trainvars, global_settings, addition, BM, era):
     ll_var = ['%s_%s' %(part, var) for part in PARTICLE_INFO[global_settings['channel']]\
               for var in ['e', 'px', 'py', 'pz']
               ]
-    hl_var = [trainvar for trainvar in trainvars if trainvar not in ll_var]
+    if global_settings["ml_method"] == 'lbn':
+        hl_var = [trainvar for trainvar in trainvars]# if trainvar not in ll_var]
+    else:
+        hl_var = [trainvar for trainvar in trainvars]
     file = open(log_filename, "w")
     file.write(str(hl_var))
     file.close()
@@ -407,7 +476,7 @@ if __name__ == '__main__':
     startTime = datetime.now()
     try:
         arguments = docopt.docopt(__doc__)
-        print arguments
+        print(arguments)
         channel = arguments['--channel']
         mode = arguments['--mode']
         res_nonres = arguments['--res_nonres']
@@ -416,6 +485,7 @@ if __name__ == '__main__':
         split_ggf_vbf = bool(int(arguments['--split_ggf_vbf']))
         sig_weight = float(arguments['--sig_weight'])
         mass_region = arguments['--mass_region']
+        csv = int(arguments['--csv'])
         main('None', channel, mode, era, BM, split_ggf_vbf, sig_weight, mass_region)
     except docopt.DocoptExit as e:
         print(e)
