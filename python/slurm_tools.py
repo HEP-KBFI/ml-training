@@ -130,8 +130,9 @@ def prepare_job_file(
                 #!/bin/bash
                 #SBATCH --job-name=optimization
                 #SBATCH --ntasks=1
-                #SBATCH --time=12:00:00
+                #SBATCH --time=40:00:00
                 #SBATCH --cpus-per-task=8
+                #SBATCH --partition=io
                 #SBATCH -e %s
                 #SBATCH -o %s
                 env
