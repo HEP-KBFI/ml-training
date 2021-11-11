@@ -1,6 +1,6 @@
 
 {
-    "masses": [250, 260, 270, 280, 300, 350, 400, 450, 500, 550, 600, 650, 700, 800, 900, 1000],
+    "masses": [250, 260, 270, 280, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 1000],
     "masses_test": [300, 500, 800],
     "masses_low": [250, 260, 270, 280, 300, 350, 400, 450],
     "masses_test_low": [260, 300, 400],
@@ -24,9 +24,9 @@
     },
     "tauID_training": {
         "deepVSjVVVLoose": {
-	        "inputPath16": "/hdfs/local/snandan/hhAnalysis/2016/bdt_bb1l_final/histograms/hh_bb1l/Tight/",
-            "inputPath18": "/hdfs/local/snandan/hhAnalysis/2018/bdt_bb1l_final/histograms/hh_bb1l/Tight/",
-	        "inputPath17": "/hdfs/local/snandan/hhAnalysis/2017/bdt_bb1l_final/histograms/hh_bb1l/Tight/"
+	        "inputPath16": "/hdfs/local/snandan/hhAnalysis/2016/bdt_bb1l_with_additional_jets/histograms/hh_bb1l/Tight/",
+            "inputPath18": "/scratch/histograms/hh_bb1l/Tight/",
+	        "inputPath17": "/hdfs/local/snandan/hhAnalysis/2017/bdt_bb1l_with_additional_jets/histograms/hh_bb1l/Tight/"
         }
     },
     "data_csv": "/path/to/data",
@@ -77,8 +77,12 @@
         "signal_ggf_spin0_650_hh_2b2t": [16, 17, 18],
         "signal_ggf_spin0_700_hh_2b2v": [16, 17, 18],
         "signal_ggf_spin0_700_hh_2b2t": [16, 17, 18],
+        "signal_ggf_spin0_750_hh_2b2v": [16, 17, 18],
+        "signal_ggf_spin0_750_hh_2b2t": [16, 17, 18],
         "signal_ggf_spin0_800_hh_2b2v": [16, 17, 18],
         "signal_ggf_spin0_800_hh_2b2t": [16, 17, 18],
+        "signal_ggf_spin0_850_hh_2b2v": [16, 17, 18],
+        "signal_ggf_spin0_850_hh_2b2t": [16, 17, 18],
         "signal_ggf_spin0_900_hh_2b2v": [16, 17, 18],
         "signal_ggf_spin0_900_hh_2b2t": [16, 17, 18],
         "signal_ggf_spin0_1000_hh_2b2v": [16, 17, 18],
