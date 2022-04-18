@@ -25,7 +25,7 @@
     "tauID_training": {
         "deepVSjVVVLoose": {
 	        "inputPath16": "/hdfs/local/snandan/hhAnalysis/2016/bdt_bb1l_with_additional_jets/histograms/hh_bb1l/Tight/",
-            "inputPath18": "/scratch/histograms/hh_bb1l/Tight/",
+            "inputPath18": "/hdfs/local/snandan/hhAnalysis/2018/bdt_bb1l_with_additional_jets/histograms/hh_bb1l/Tight/",
 	        "inputPath17": "/hdfs/local/snandan/hhAnalysis/2017/bdt_bb1l_with_additional_jets/histograms/hh_bb1l/Tight/"
         }
     },
