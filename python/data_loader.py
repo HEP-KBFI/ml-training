@@ -3,6 +3,8 @@ import pandas
 import ROOT
 import uproot
 import universal_tools as ut
+import sys
+from root_numpy import tree2array
 
 class DataLoader(object):
     def __init__(
@@ -77,15 +79,29 @@ class DataLoader(object):
             path,
             input_tree
     ):
-        tfile = uproot.open(path)
+        tfile = ROOT.TFile(path)#uproot.open(path)
         try:
+            tree = tfile.Get(input_tree)
             self.set_variables_to_be_loaded(process)
-            chunk_df = tfile[input_tree].arrays(self.to_be_loaded, library='pd', entry_start=0, entry_stop=5000)
+            chunk_arr = tree2array(
+                tree, branches=self.to_be_loaded,
+                stop=self.nr_events_per_file
+            )
+            chunk_df = pandas.DataFrame(chunk_arr)
+            tfile.Close()
+            data = self.data_imputer(
+                chunk_df, process, folder_name, target)
+            return data
+        except TypeError:
+            print('Incorrect input_tree: ' + str(input_tree))
+        '''try:
+            self.set_variables_to_be_loaded(process)
+            chunk_df = tfile[input_tree].arrays(self.to_be_loaded, library='pd')#, entry_start=0, entry_stop=5000)
             data = self.data_imputer(
                 chunk_df, process, folder_name, target)
             return data
         except uproot.exceptions.KeyInFileError:#TypeError:
-            print('Incorrect input_tree: ' + str(input_tree))
+            print('Incorrect input_tree: ' + str(input_tree))'''
 
     def signal_background_calc(self, data, folder_name):
         """Calculates the signal and background
@@ -220,15 +236,20 @@ class DataLoader(object):
                     try:
                         min_value = cut_dict[key]['min']
                         data = data.loc[(data[key] >= min_value)]
+                        print('Minimum value of %s: %s' %(key, min_value))
                     except KeyError:
                         print('Minimum condition for %s not implemented' % key)
+                        sys.exit()
                     try:
                         max_value = cut_dict[key]['max']
                         data = data.loc[(data[key] <= max_value)]
+                        print('Maximum value of %s: %s' %(key, max_value))
                     except KeyError:
                         print('Maximum condition for %s not implemented' % key)
+                        sys.exit()
         else:
             print('Cut file %s does not exist' % cut_file)
+            sys.exit()
         return data
 
     def print_info(self):

@@ -1,6 +1,6 @@
 import os
 import json
-import universal_tools as ut
+from machineLearning.machineLearning import universal_tools as ut
 
 class HHParameterReader:
     def __init__(self, channel_dir, scenario):
