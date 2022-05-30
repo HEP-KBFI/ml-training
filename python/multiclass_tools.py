@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def roc_curve(labels, pred_vectors, weights):
     '''Calculate the ROC values using the method used in Dianas thesis.
 
@@ -49,30 +48,48 @@ def roc_curve(labels, pred_vectors, weights):
                 total_false_positives += sum(
                     signal_vector[:, bkg_label] * weights)
         true_positive_rate = total_true_positives / sum(weights)
-        false_positive_rate = total_false_positives / (len(unique_labels) * total_bkg_weights)
+        false_positive_rate = total_false_positives / ((len(unique_labels)-1) * total_bkg_weights)
         true_positive_rates.append(true_positive_rate)
         false_positive_rates.append(false_positive_rate)
     return false_positive_rates, true_positive_rates
 
 
-def multiclass_encoding(data, use_Wjet=True, label_column='process'):
+def multiclass_encoding(data, use_Wjet=True, split_ggf_vbf=False, label_column='process'):
     classes = set(data[label_column])
     mapping = {}
     '''for i, m_class in enumerate(classes):
         mapping[m_class] = i
     data['multitarget'] = data[label_column].map(mapping)'''
     if use_Wjet:
-        data.loc[data['target']==1, 'multitarget'] = 0
-        data.loc[data['process'] == 'TT', 'multitarget'] = 1
-        data.loc[data['process'] == 'ST', 'multitarget'] = 2
-        data.loc[data['process'] == 'Other', 'multitarget'] = 3
-        data.loc[data['process'] == 'W', 'multitarget'] = 4
-        data.loc[data['process'] == 'DY', 'multitarget'] = 5
+        if not split_ggf_vbf:
+            data.loc[data['target']==1, 'multitarget'] = 0
+            data.loc[data['process'] == 'TT', 'multitarget'] = 1
+            data.loc[data['process'] == 'ST', 'multitarget'] = 2
+            data.loc[data['process'] == 'W', 'multitarget'] = 3
+            data.loc[data['process'] == 'H', 'multitarget'] = 4
+            data.loc[data['process'] == 'Other', 'multitarget'] = 5
+        else:
+            data.loc[data['process'] == 'GGF_HH', 'multitarget'] = 0
+            data.loc[data['process'] == 'VBF_HH', 'multitarget'] = 1
+            data.loc[data['process'] == 'TT', 'multitarget'] = 2
+            data.loc[data['process'] == 'ST', 'multitarget'] = 3
+            data.loc[data['process'] == 'W', 'multitarget'] = 4
+            data.loc[data['process'] == 'H', 'multitarget'] = 5
+            data.loc[data['process'] == 'Other', 'multitarget'] = 6
     else:
         data.loc[data['target']==1, 'multitarget'] = 0
         data.loc[data['process'] == 'TT', 'multitarget'] = 1
         data.loc[data['process'] == 'ST', 'multitarget'] = 2
         data.loc[data['process'] == 'Other', 'multitarget'] = 3
         data.loc[data['process'] == 'DY', 'multitarget'] = 4
+        #data.loc[data['process'] == 'H', 'multitarget'] = 5
 
     return data
+
+def group_id(data):
+    group_ids = []
+    group_ids.append( (1.0, list(set(data.loc[data['target']==1]['multitarget'].astype(int)))) )
+    group_ids.append( (1.0, list(set(data.loc[data['target']==0]['multitarget'].astype(int)))) )
+    '''for process in list(set(data['process'])):
+        group_ids.append( (1.0, list(set(data.loc[data['process']==process]['multitarget'].astype(int))))  )'''
+    return group_ids

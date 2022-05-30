@@ -4,8 +4,32 @@ import pandas
 from sklearn.model_selection import KFold
 from sklearn.model_selection import train_test_split
 import sklearn.metrics as skm
-from machineLearning.machineLearning import multiclass_tools as mt
+from sklearn.model_selection import StratifiedShuffleSplit
+import multiclass_tools as mt
 
+
+def flatten_resonant_distributions(data):
+    for mass in set(data['gen_mHH']):
+        for process in set(data["process"]):
+            condition_mass = data['gen_mHH'].astype(int) == int(mass)
+            condition_sig = data['process'].astype(str) == process
+            mass_sig_weight = data.loc[
+                    condition_sig & condition_mass, ['totalWeight']]
+            sig_mass_factor = 100000./(1*mass_sig_weight.sum()) if 'HH' in process\
+                              else 100000./(mass_sig_weight.sum())
+            data.loc[
+                condition_sig & condition_mass,
+                ['totalWeight']] *= sig_mass_factor
+    print_background_yield(data)
+
+def print_background_yield(data):
+    print('Fraction of each Background process')
+    sumall = 0
+    for process in set(data['process']):
+        sumall += data.loc[(data["process"] == process)]["totalWeight"].sum()
+    for process in set(data['process']):
+        print(process + ': ' + str('%0.3f' %(data.loc[(data["process"] == process)]\
+         ["totalWeight"].sum()/sumall)))
 
 def kfold_cv(
         evaluation,
@@ -14,7 +38,8 @@ def kfold_cv(
         global_settings,
         hyperparameters,
         weight='totalWeight',
-        n_folds=2
+        n_folds=2,
+        model='classifier'
 ):
     """ Splits the dataset into 5 parts that are to be used in all combinations
     as training and testing sets
@@ -41,25 +66,33 @@ def kfold_cv(
     """
 
     kfold = KFold(n_splits=n_folds, shuffle=True, random_state=1)
+    eventnumbers = np.array(list(set(list(prepared_data['event']))))
+    sfold = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=0)
     scores = []
     tests = []
     trains = []
-    eventnumbers = np.array(list(set(list(prepared_data['event']))))
     for train_index, test_index in kfold.split(eventnumbers):
         evtTrain = (prepared_data['event'].isin(eventnumbers[train_index])) 
         evtTest = (prepared_data['event'].isin(eventnumbers[test_index]))
         train_set = prepared_data.loc[evtTrain]
         test_set = prepared_data.loc[evtTest]
-        data_dict = {
-            'trainvars': trainvars,
-            'train': train_set,
-            'test': test_set
-        }
-        score, test, train = evaluation(hyperparameters, data_dict, global_settings)
-        del train_set, test_set, data_dict
+        for train_train_index, train_test_index in sfold.split(train_set, train_set['multitarget']):
+            train_train_set = train_set.iloc[train_train_index]
+            val_set = train_set.iloc[train_test_index]
+            data_dict = {
+                'trainvars': trainvars,
+                'train': train_train_set,
+                'val'  : val_set,
+                'test': test_set
+            }
+            for d in ['train', 'val', 'test']:
+                flatten_resonant_distributions(data_dict[d])
+        score, test, train = evaluation(hyperparameters, data_dict, global_settings, model=model)
+        del train_set, train_train_set, test_set, val_set, evtTrain, evtTest
         scores.append(score)
         tests.append(test)
         trains.append(train)
+    del data_dict
     avg_score = np.mean(scores)
     stdev_scores = np.std(scores)
     final_score = avg_score - stdev_scores
@@ -132,6 +165,7 @@ def calculate_d_score(train_score, test_score, kappa=1.5):
     """
     difference = max(0, train_score - test_score)
     fr_difference = difference / (1 - test_score)
+    if train_score*test_score <0 : return 0
     d_score = test_score - kappa * fr_difference
     return d_score
 
@@ -156,10 +190,11 @@ def calculate_auc(data_dict, prediction, data_class, weights, multiclass):
         labels = np.array(data_dict[data_class]['target']).astype(int)
     weights = np.array(data_dict[data_class]['totalWeight']).astype(float)
     if multiclass:
-        fpr, tpr = mt.roc_curve(
+        fpr, tpr, _ = skm.roc_curve(
             labels,
-            prediction,
-            weights
+            prediction[:,0],
+            sample_weight=weights,
+            pos_label=0
         )
     else:
         fpr, tpr, thresholds_train = skm.roc_curve(
@@ -168,6 +203,7 @@ def calculate_auc(data_dict, prediction, data_class, weights, multiclass):
             sample_weight=weights
         )
     auc_score = skm.auc(fpr, tpr, reorder=True)
+    del labels, weights, fpr, tpr
     return auc_score
 
 

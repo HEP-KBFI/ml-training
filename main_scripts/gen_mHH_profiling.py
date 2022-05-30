@@ -3,7 +3,7 @@ Call with 'python'
 
 Usage:
     gen_mHH_profiling.py
-    gen_mHH_profiling.py [--fit=BOOL --create_info=BOOL --create_profile=BOOL --weight_dir=DIR --masses_type=STR]
+    gen_mHH_profiling.py [--fit=BOOL --create_info=BOOL --create_profile=BOOL --weight_dir=DIR --masses_type=STR --analysis=STR --find_best_fit_func=BOOL]
 
 Options:
     -f --fit=BOOL                     Fit the TProfile [default: 0]
@@ -11,12 +11,15 @@ Options:
     -p --create_profile=BOOL          Creates the TProfile without the fit. [default: 0]
     -w --weight_dir=DIR               Directory where the weights will be saved [default: $HOME/gen_mHH_weight_dir]
     -m --masses_type=STR              'low', 'high' or 'all' [default: all]
+    -a --analysis=STR                 Options: 'hh-bbWW', 'hh-multilepton' [default: HHmultilepton]
+    -b --find_best_fit_func=BOOL         want to use default fit function or not [default: 0]
 """
 from machineLearning.machineLearning import universal_tools as ut
 from machineLearning.machineLearning import hh_tools as hht
 from machineLearning.machineLearning import data_loader as dl
 from machineLearning.machineLearning import hh_parameter_reader as hpr
 from machineLearning.machineLearning import data_loading_tools as dlt
+from machineLearning.machineLearning import bbWW_tools as bbwwt
 from ROOT import TCanvas, TProfile, TF1
 from ROOT import TFitResultPtr
 import os
@@ -28,7 +31,7 @@ import glob
 import subprocess
 
 
-def create_histo_info(trainvars):
+def create_histo_info(trainvars, data):
     """Creates the histogram info for each trainvar
 
     Parameters:
@@ -56,11 +59,13 @@ def create_histo_info(trainvars):
     for trainvar in trainvars:
         histo_info = template.copy()
         histo_info['Variable'] = trainvar
+        histo_info['min'] = min(data[trainvar])
+        histo_info['max'] = max(data[trainvar])
         histo_infos.append(histo_info)
     return histo_infos
 
 
-def create_histo_dict(info_dir, preferences):
+def create_histo_dict(info_dir, preferences, data):
     """ Creates the histo_dict.json. WARNING: Will overwrite the existing one
     in the info_dir
 
@@ -76,16 +81,16 @@ def create_histo_dict(info_dir, preferences):
     histo_dict_path = os.path.join(info_dir, 'histo_dict.json')
     trainvars = preferences['trainvars']
     if os.path.exists(histo_dict_path):
-        histo_infos = update_histo_dict(trainvars, histo_dict_path)
+        histo_infos = update_histo_dict(trainvars, histo_dict_path, data)
     else:
-        histo_infos = create_histo_info(trainvars)
+        histo_infos = create_histo_info(trainvars, data)
     with open(histo_dict_path, 'wt') as out_file:
         for histo_info in histo_infos:
             json.dump(histo_info, out_file)
             out_file.write('\n')
 
 
-def update_histo_dict(trainvars, histo_dict_path):
+def update_histo_dict(trainvars, histo_dict_path, data):
     """Updates the current histo_dict.json according to the new trainvars
 
     Parameters:
@@ -104,7 +109,7 @@ def update_histo_dict(trainvars, histo_dict_path):
     missing_trainvars = list(set(trainvars) - set(old_trainvars))
     redundant_trainvars = list(set(old_trainvars) - set(trainvars))
     histo_infos = create_renewed_histo_dict(
-        missing_trainvars, redundant_trainvars, histo_dict_path
+        missing_trainvars, redundant_trainvars, histo_dict_path, data
     )
     return histo_infos
 
@@ -112,7 +117,8 @@ def update_histo_dict(trainvars, histo_dict_path):
 def create_renewed_histo_dict(
         missing_trainvars,
         redundant_trainvars,
-        histo_dict_path
+        histo_dict_path,
+        data
 ):
     """ Creates renewed list of histogram infos.
 
@@ -150,6 +156,8 @@ def create_renewed_histo_dict(
     for missing_trainvar in missing_trainvars:
         histo_info = template.copy()
         histo_info['Variable'] = missing_trainvar
+        histo_info['min'] = min(data[missing_trainvar])
+        histo_info['max'] = max(data[missing_trainvar])
         new_histo_infos.append(histo_info)
     return new_histo_infos
 
@@ -204,9 +212,10 @@ def create_TProfiles(info_dir, data, preferences, label):
         trainvars.remove('gen_mHH')
     for dtype in [0, 1]:
         type_data = data.loc[data['target'] == dtype]
-        single_dtype_TProfile(
-            type_data, trainvars, dtype, label, info_dir
-        )
+        if len(type_data):
+            single_dtype_TProfile(
+                type_data, trainvars, dtype, label, info_dir
+            )
 
 
 def single_dtype_TProfile(type_data, trainvars, dtype, label, info_dir):
@@ -272,6 +281,29 @@ def choose_file_name(dtype, label, trainvar):
 
 ##################################################################
 
+def get_profile_best_fit_function(profile, mass_min, mass_max, trainvar_str):
+    print('find best fit function')
+    fit_function_list = ["pol1", "pol2", "pol3", "pol4", "pol5", "pol6", "pol7", "pol8", "pol9"]
+    min_chi2_per_Ndf = 99999.0
+    best_fit_function = None
+    for fit_function_toUse in fit_function_list:
+        profile_checkBestFit = profile.Clone('%s_checkBestFit' % profile.GetName())
+        fit_function_checkBestFit = 'fitFunction_%s_checkBestFit_%s' %\
+            (str(trainvar_str), fit_function_toUse)
+        function_checkBestFit_TF1 = TF1(
+            fit_function_checkBestFit, fit_function_toUse,\
+            float(mass_min), float(mass_max)
+        )
+        result_ptr = TFitResultPtr()
+        result_ptr = profile_checkBestFit.Fit(function_checkBestFit_TF1, 'SFN')
+        # Fit with Minuit, N: do not store fitted function, Q: minimum printing
+        if function_checkBestFit_TF1.GetNDF() > 0:
+            chi2_per_NDF = function_checkBestFit_TF1.GetChisquare()/function_checkBestFit_TF1.GetNDF()
+            if chi2_per_NDF < min_chi2_per_Ndf and result_ptr.Status() ==0:
+                min_chi2_per_Ndf = chi2_per_NDF
+                best_fit_function = fit_function_toUse
+                print('best_fit_function: ', best_fit_function, ' chi2_per_Ndf: ', str(chi2_per_NDF))
+    return best_fit_function
 
 def do_fit(info_dir, data, preferences):
     """ Fits the Data with a given order of polynomial
@@ -307,9 +339,18 @@ def do_fit(info_dir, data, preferences):
         mass_max = max(masses)
         print('Fitfunction: ' + fit_function)
         print('Range: ' + '[' + str(mass_min) + ',' + str(mass_max) + ']')
-        function_TF1 = TF1(
-            fit_function, fit_poly_order, float(mass_min), float(mass_max)
-        )
+        if not find_best_fit_func:
+            function_TF1 = TF1(
+                fit_function, fit_poly_order, float(mass_min), float(mass_max)
+            )
+        else:
+            best_fit_function = get_profile_best_fit_function(
+                profile, mass_min, mass_max, str(trainvar)
+            )
+            print('best fit function for ' + str(trainvar) + ' ' + str(best_fit_function))
+            function_TF1 = TF1(
+                fit_function, best_fit_function, float(mass_min), float(mass_max)
+            )
         result_ptr = TFitResultPtr()
         result_ptr = profile.Fit(function_TF1, 'SF')  # Fit with Minuit
         function_TF1.Draw('same')
@@ -409,6 +450,10 @@ def plotting_init(data, trainvar, histo_dict, masses, weights='totalWeight'):
     xhigh = (masses[(len(masses) - 1)] + 100.0)
     ylow = histo_dict["min"]
     yhigh = histo_dict["max"]
+    if ylow > min(trainvar_values):
+        ylow = min(trainvar_values)
+    if yhigh < max(trainvar_values):
+        yhigh = max(trainvar_values)
     profile = TProfile(
         'profile', title, num_bins,
         xlow, xhigh, ylow, yhigh
@@ -417,6 +462,7 @@ def plotting_init(data, trainvar, histo_dict, masses, weights='totalWeight'):
     profile.SetBins((len(mass_bins) - 1), mass_bins)
     profile.GetXaxis().SetTitle("gen_mHH (GeV)")
     profile.GetYaxis().SetTitle(str(trainvar))
+    profile.GetYaxis().SetTitleOffset(1.0)
     for x, y, w in zip(gen_mHH_values, trainvar_values, weights):
         profile.Fill(x, y, w)
     profile.Draw()
@@ -468,14 +514,14 @@ def create_all_fitFunc_file(global_settings):
     if 'nonres' in global_settings['scenario']:
         scenario = 'nonres'
     else:
-        scenario = global_settings['scenario']
+        scenario = global_settings['scenario'].split('/')[0]
     res_fileName = '_'.join([
         global_settings['channel'],
         'TProfile_signal_fit_func',
         scenario
     ])
     resulting_file = os.path.join(weight_dir, res_fileName + '.root')
-    subprocess.call('hadd ' + resulting_file + ' ' + all_paths_str, shell=True)
+    subprocess.call('hadd -f ' + resulting_file + ' ' + all_paths_str, shell=True)
 
 
 def main():
@@ -505,19 +551,32 @@ def main():
     else:
         scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
-    normalizer = hht.HHDataNormalizer
     preferences = reader.parameters
     preferences['trainvars'] = preferences['all_trainvar_info'].keys()
+    if analysis == 'HHmultilepton':
+        normalizer = hht.HHDataNormalizer
+        if create_profile or fit:
+            loader = hht.HHDataLoader(
+                normalizer,
+                preferences,
+                global_settings,
+                normalize=False
+            )
+            data = loader.data
+    elif analysis == 'HHbbWW':
+        normalizer = bbwwt.bbWWDataNormalizer
+        if create_profile or fit:
+            loader = bbwwt.bbWWLoader(
+                normalizer,
+                preferences,
+                global_settings,
+                normalize=False,
+                load_bkg=False
+            )
+            data = loader.data
     if create_info:
-        create_histo_dict(info_dir, preferences)
+        create_histo_dict(info_dir, preferences, data)
     if create_profile or fit:
-        loader = hht.HHDataLoader(
-            normalizer,
-            preferences,
-            global_settings,
-            normalize=False
-        )
-        data = loader.data
         if not os.path.exists(weight_dir):
             os.makedirs(weight_dir)
         if fit:
@@ -548,6 +607,8 @@ if __name__ == '__main__':
         weight_dir = os.path.expandvars(arguments['--weight_dir'])
         masses_type = arguments['--masses_type']
         create_profile = bool(int(arguments['--create_profile']))
+        analysis = arguments['--analysis']
+        find_best_fit_func = bool(int(arguments['--find_best_fit_func']))
         main()
     except docopt.DocoptExit as e:
         print(e)

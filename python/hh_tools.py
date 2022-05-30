@@ -222,8 +222,8 @@ class HHDataLoader(DataLoader):
             data = data.append(chunk_df, ignore_index=True, sort=False)
         else:
             if self.global_settings['bkg_mass_rand'] == "default":
-                chunk_df["gen_mHH"] = float(np.random.choice(
-                    self.preferences['masses'], size=len(chunk_df)))
+                chunk_df["gen_mHH"] = np.random.choice(
+                    self.preferences['masses'], size=len(chunk_df))
                 data = data.append(chunk_df, ignore_index=True, sort=False)
             elif self.global_settings['bkg_mass_rand'] == "oversampling":
                 for mass in self.preferences['masses']:
@@ -259,7 +259,8 @@ class HHDataLoader(DataLoader):
     def data_reweighing(
             self,
             data,
-            skip_int_vars=True
+            skip_int_vars=True,
+            skip_vars=[]
     ):
         """Reweighs the dataframe in order to reduce the importance of gen_mHH
 
@@ -283,6 +284,10 @@ class HHDataLoader(DataLoader):
                 self.preferences['weight_dir'], filename
             )))
             tfile = ROOT.TFile.Open(file_path)
+            if not tfile and trainvar in skip_vars:
+                continue
+            else:
+                assert tfile, 'fitfunction not found for %s' %trainvar
             fit_function_name = str('_'.join(['fitFunction', trainvar]))
             function = tfile.Get(fit_function_name)
             if bool(self.preferences['all_trainvar_info'][trainvar]) and skip_int_vars:

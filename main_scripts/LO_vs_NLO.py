@@ -89,10 +89,10 @@ def split_data(global_settings, preferences, addition):
              global_settings, True
          )
         data = loader.data
-    '''hhvt.plot_trainvar_multi_distributions(
+    hhvt.plot_trainvar_multi_distributions(
         data, preferences['trainvars'],
         global_settings['output_dir']
-    )'''
+    )
     keysNotToSplit = []
     if '3l_1tau' in global_settings['channel']:
         keysNotToSplit = ['WZ', 'DY', 'TTTo']

@@ -262,8 +262,8 @@ class BDT(object):
             for itgt, tgtname in enumerate(self.target_names):
                 target_string += '<Target Name="{0}" TargetIndex="{1}" '.format(tgtname, itgt)\
                     + 'Expression="{0}" Label="{0}" Title="{0}" Unit="" '.format(tgtname)\
-                    + 'Internal="{0}" Type="F" Min="{2:.64E}" '.format(tgtname, 0.0)\
-                    + 'Max="{3:.64E}"/>\n'.format(0.0)
+                    + 'Internal="{0}" Type="F" Min="{1:.64E}" '.format(tgtname, 0.0)\
+                    + 'Max="{0:.64E}"/>\n'.format(0.0)
         elif self.kind == "binary" or self.kind == "multiclass":
             class_string = ""
             num_classes = len(self.target_names)

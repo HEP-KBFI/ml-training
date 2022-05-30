@@ -43,13 +43,13 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
             os.path.expandvars('$CMSSW_BASE'),
             'src/machineLearning/machineLearning/settings'
         )
-    global_settings = settings_dir+'/'+'global_%s_%s_%s_settings.json' %(channel, mode, res_nonres)
-    command = 'rsync %s ~/machineLearning/CMSSW_11_2_0_pre1/src/machineLearning/machineLearning/settings/global_settings.json' %global_settings
-    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     global_settings = ut.read_settings(settings_dir, 'global')
+    create_global_settings(global_settings, channel, res_nonres, mode)
+    print('global settings ' + str(global_settings))
     if output_dir == 'None':
         output_dir = global_settings['channel']+'/'+global_settings['ml_method']+'/'+\
-                     res_nonres + '/' + mode +'/' + era
+                     res_nonres + '/' + mode + '/' + BM + '/' + era
+                     #res_nonres + '/' + mode + '/' + 'all' + '/' + era
         global_settings['output_dir'] = output_dir
     else:
         global_settings['output_dir'] = output_dir
@@ -57,7 +57,7 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
         global_settings['output_dir'])
     if not os.path.exists(global_settings['output_dir']):
         os.makedirs(global_settings['output_dir'])
-    channel_dir, info_dir, _ = ut.find_settings()
+    channel_dir, info_dir, _ = ut.find_settings(global_settings)
     scenario = global_settings['scenario']
     reader = hpr.HHParameterReader(channel_dir, scenario)
     preferences = reader.parameters
@@ -68,9 +68,12 @@ def main(output_dir, settings_dir, hyperparameter_file, debug):
         preferences['included_eras'] = [era.replace('20', '')]
     print('era: ' + str(preferences['included_eras']))
     preferences = define_trainvars(global_settings, preferences, info_dir)
+    check_trainvar(preferences)
     if hyperparameter_file == 'None':
         hyperparameter_file = os.path.join(info_dir, 'hyperparameters.json')
     hyperparameters = ut.read_json_cfg(hyperparameter_file)
+    if 'bb1l' in global_settings['channel']:
+        update_hyperparameters(hyperparameters, preferences["nonResScenarios"][0], mode)
     print('hyperparametrs ' + str(hyperparameters))
     evaluation_main(global_settings, preferences, hyperparameters, debug)
 
@@ -140,22 +143,27 @@ def model_creation(
     )
     bst = model.get_booster()
     bst.feature_names = [f.encode('ascii') for f in bst.feature_names]
-    save_xmlFile(global_settings, model, addition)
-    save_pklFile(global_settings, model, addition)
+    save_xmlFile(global_settings, model, addition, preferences)
+    save_pklFile(global_settings, model, addition, preferences)
     hhvt.plot_feature_importances(model, global_settings, addition)
     return model
 
 
-def save_xmlFile(global_settings, model, addition):
+def save_xmlFile(global_settings, model, addition, preferences):
     if 'nonres' in global_settings['scenario']:
-        mode = global_settings['scenario'].replace('/', '_')
+        res_nonres = global_settings['scenario'].split('/')[0]
+        mode = global_settings['scenario'].split('/')[2]
     else:
         mode = global_settings['scenario']
     model_name = '_'.join([
         global_settings['channel'],
         addition,
         'model',
-        mode
+        mode,
+        res_nonres,
+        #'all',
+        preferences['nonResScenarios'][0],
+        '20%s' %preferences['included_eras'][0]
     ])
     xmlFile = os.path.join(global_settings['output_dir'], model_name + '.xml')
     bst = model.get_booster()
@@ -235,17 +243,22 @@ def nodeWise_modelPredictions(
     hhvt.plot_nodeWise_roc(global_settings, roc_infos, mode)
 
 
-def save_pklFile(global_settings, model, addition):
+def save_pklFile(global_settings, model, addition, preferences):
     output_dir = global_settings['output_dir']
     if 'nonres' in global_settings['scenario']:
-        mode = global_settings['scenario'].replace('/', '_')
+        res_nonres = global_settings['scenario'].split('/')[0]
+        mode = global_settings['scenario'].split('/')[2]
     else:
         mode = global_settings['scenario']
     model_name = '_'.join([
         global_settings['channel'],
         addition,
         'model',
-        mode
+        mode,
+        res_nonres,
+        #'all',
+        preferences['nonResScenarios'][0],
+        '20%s' %preferences['included_eras'][0]
     ])
     pklFile_path = os.path.join(output_dir, model_name + '.pkl')
     with open(pklFile_path, 'wb') as pklFile:
@@ -354,6 +367,34 @@ def define_trainvars(global_settings, preferences, info_dir):
     except:
         print("Using trainvars from trainvars.json")
     return preferences
+
+def create_global_settings(global_settings, channel, res_nonres, mode):
+    global_settings['channel'] = channel
+    global_settings['ml_method'] = 'xgb'
+    global_settings['scenario'] = '%s/base/%s' %(res_nonres, mode)
+    global_settings['dataCuts'] = 'cuts_%s.json' %mode
+
+def update_hyperparameters(hyperparameters, BM, mode):
+    if mode == 'boosted':
+        if BM in ['BM6', 'BM7', 'BM10', 'BM12']:
+            hyperparameters["learning_rate"] = 0.01
+            hyperparameters["n_estimators"] = 400
+            hyperparameters["max_depth"] = 2
+    else:
+        if BM in ['BM1', 'BM4', 'BM5', 'BM6', 'BM7', 'BM8', 'BM10', 'BM11', 'BM12']:
+            hyperparameters["learning_rate"] = 0.038463619996291
+            hyperparameters["n_estimators"] = 484
+            hyperparameters["max_depth"] = 4
+            hyperparameters["min_child_weight"] = 248.69131766668443
+            hyperparameters["gamma"] = 1.6739580021241958
+            hyperparameters["subsample"] = 0.8004373456691399
+            hyperparameters["colsample_bytree"] = 0.6654673688434554
+
+def check_trainvar(preferences):
+    BMpoints = ['SM', 'BM1', 'BM2', 'BM3', 'BM4', 'BM5', 'BM6', 'BM7', 'BM8', 'BM9', 'BM10', 'BM11', 'BM12']
+    for BMpoint in BMpoints:
+        if BMpoint in preferences['trainvars']:
+            preferences['trainvars'].remove(BMpoint)
 
 if __name__ == '__main__':
     start_time = datetime.now()

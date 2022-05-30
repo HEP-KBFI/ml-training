@@ -99,6 +99,10 @@ class Particle:
                 self.speed[key] = 0
             if self.hyperparameter_info[key]['int'] == 1:
                 self.hyperparameters[key] = int(np.ceil(self.hyperparameters[key]))
+            if 'batch' in key:
+                self.hyperparameters[key] = int(self.hyperparameters[key])
+            if 'node' in key:
+                self.hyperparameters[key] = int(self.hyperparameters[key])
 
     def gather_intelligence(self, locations, fitnesses):
         index = np.argmax(fitnesses)

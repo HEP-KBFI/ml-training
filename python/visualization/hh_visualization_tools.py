@@ -229,14 +229,14 @@ def plot_nodeWise_roc(global_settings, roc_infos, mode):
             roc_info['odd_tpr_test'],
             lw=2, ls='--', color=color[1],
             label='node_' + str(node) + '_oddTrain_oddTest_' + \
-            str('%0.3f' %roc_info['odd_auc_test'])
+            str('%0.3f' %roc_info['odd_auc_train'])
         )
         plt.plot(
             roc_info['odd_fpr_train'],
             roc_info['odd_tpr_train'],
             lw=2, ls='-', color=color[1],
             label='node_' + str(node) + '_oddTrain_evenTest_' + \
-            str('%0.3f' %roc_info['odd_auc_train'])
+            str('%0.3f' %roc_info['odd_auc_test'])
         )
     plot_out = os.path.join(output_dir, 'nodeWiseROC_performance.png')
     plt.grid()
@@ -281,6 +281,7 @@ def plot_single_distrib(trainvar_distribs, weight_distribs, output_dir, trainvar
         plt.hist(trainvar_distribs[key],  weights=weight_distribs[key], histtype='step', \
             label=key, bins=bins)
     plt.legend(loc='best', title=trainvar)
+    plt.ylim([pow(10,1), pow(10,6)])
     plt.yscale('log')
     out_file = os.path.join(output_dir, trainvar + '_distribution.png')
     plt.savefig(out_file, bbox_inches='tight')
@@ -374,9 +375,9 @@ def  plot_loss_accuracy(fitted_model, output_dir, addition):
     plt.savefig(loss_vs_epoch)
     plt.close('all')
 
-def plot_confusion_matrix(cm, class_names, output_dir, addition):
+def plot_confusion_matrix(cm_original, class_names, output_dir, addition):
     figure = plt.figure(figsize=(4, 4))
-    plt.imshow(cm, interpolation='nearest', cmap="summer")
+    plt.imshow(cm_original, interpolation='nearest', cmap="summer")
     plt.title("Confusion matrix")
     plt.colorbar()
     tick_marks = np.arange(len(class_names))
@@ -384,18 +385,39 @@ def plot_confusion_matrix(cm, class_names, output_dir, addition):
     plt.yticks(tick_marks, class_names, fontsize=5)
     cm = np.moveaxis(
         np.around(
-            cm.astype('float') / cm.sum(axis=1)[:, np.newaxis],
+            cm_original.astype('float') / cm_original.sum(axis=1)[:, np.newaxis],
             decimals=2),
         0, 1
     )
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
         plt.text(i, j, cm[i, j], horizontalalignment="center", size=5)
     plt.tight_layout()
-    plt.ylabel('True label')
+    plt.ylabel('True label (normed)')
     plt.xlabel('Predicted label')
-    outfile = os.path.join(output_dir, 'confusion_matrix_%s.png' %addition)
+    outfile = os.path.join(output_dir, 'confusion_matrix_rownorm_%s.pdf' %addition)
     plt.savefig(outfile, bbox_inches='tight')
     plt.close('all')
+
+    figure = plt.figure(figsize=(4, 4))
+    plt.imshow(cm_original, interpolation='nearest', cmap="summer")
+    plt.title("Confusion matrix")
+    plt.colorbar()
+    tick_marks = np.arange(len(class_names))
+    plt.xticks(tick_marks, class_names, fontsize=5, rotation=70)
+    plt.yticks(tick_marks, class_names, fontsize=5)
+    cm = np.moveaxis(cm_original, 0, 1)
+    cm = np.around(
+            cm.astype('float') / cm.sum(axis=1)[:, np.newaxis],
+            decimals=2)
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(i, j, cm[i, j], horizontalalignment="center", size=5)
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label (normed)')
+    outfile = os.path.join(output_dir, 'confusion_matrix_columnnorm_%s.pdf' %addition)
+    plt.savefig(outfile, bbox_inches='tight')
+    plt.close('all')
+
 
 def plot_DNNScore(data, output_dir, addition):
     color = ['b', 'g', 'y', 'r', 'magenta', 'orange', 'c']

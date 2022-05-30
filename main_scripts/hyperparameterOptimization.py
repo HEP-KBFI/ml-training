@@ -68,7 +68,7 @@ def main(to_continue, opt_dir, bbww):
     preferences = reader.parameters
     normalizer = hht.HHDataNormalizer if not bbww else bbwwt.bbWWDataNormalizer
     if os.path.exists(preferences['data_csv']):
-        print(':::::::: Loading data from .csv file ::::::::')
+        print(':::::::: Loading data from .csv file ::::::::' + preferences['data_csv'])
         data = pandas.read_csv(preferences['data_csv'])
     else:
         print('::::::: Loading data to be saved to pandas.DataFrame :::::::')

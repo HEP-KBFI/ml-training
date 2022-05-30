@@ -24,7 +24,7 @@ def get_low_level(data, particles):
 def get_high_level(tree, particles, variables):
     low_level_var = ["%s_%s" %(part, var) for part in particles
                     for var in ["e", "px", "py", "pz"]]
-    output = np.array([np.array(tree[variable].astype(np.float32)) for variable in variables if variable not in low_level_var])
+    output = np.array([np.array(tree[variable].astype(np.float32)) for variable in variables ])#if variable not in low_level_var])
     output = np.moveaxis(output, 0, 1)
     return output
 
