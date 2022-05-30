@@ -5,17 +5,17 @@ from sklearn.utils.multiclass import type_of_target
 from sklearn.metrics import r2_score
 import numpy as np
 import tensorflow as tf
-import universal_tools as ut
-import evaluation_tools as et
-from lbn import LBN, LBNLayer
-import multiclass_tools as mt
-import data_loading_tools as dlt
-from visualization import hh_visualization_tools as hhvt
-from grouped_entropy import GroupedXEnt as gce
+from machineLearning.machineLearning import universal_tools as ut
+from machineLearning.machineLearning import evaluation_tools as et
+from machineLearning.machineLearning.lbn import LBN, LBNLayer
+from machineLearning.machineLearning import multiclass_tools as mt
+from machineLearning.machineLearning import data_loading_tools as dlt
+from machineLearning.machineLearning.visualization import hh_visualization_tools as hhvt
+from machineLearning.machineLearning.grouped_entropy import GroupedXEnt as gce
 
 PARTICLE_INFO = low_level_object = {
     'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", 'jet1', 'jet2', "lep", "met"],
-    'bb2l': ["bjet1", "bjet2", "lep1", "lep2"]
+    'bb2l': ["bjet1", "bjet2", 'jet1', 'jet2', "lep1", "lep2", "met"]
 }
 tf.config.threading.set_intra_op_parallelism_threads(3)
 tf.config.threading.set_inter_op_parallelism_threads(3)
@@ -170,7 +170,7 @@ class NNmodel(object):
         self.normalize_inputs(self.trainvars, self.inputs)
         x = tf.keras.layers.Layer()(self.normalized_vars)
         if self.ResNet:
-            outputs = self.makeResNet(self.normalized_vars)
+            outputs = self.makeResNet(x)
         else:
             outputs = self.make_hidden_layer(x)
         self.model = tf.keras.Model(
@@ -221,10 +221,7 @@ class LBNmodel(NNmodel):
             output_dir,
             addition
         )
-        self.particles = {
-            'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", 'jet1', 'jet2', "lep", "met"],
-            'bb2l': ["bjet1", "bjet2", "lep1", "lep2"]
-        }
+        self.particles = PARTICLE_INFO
         self.channel = channel
         assert self.channel in self.particles.keys(), 'channel %s is absent in self.particles %s'\
             %(self.channel, self.particles)
@@ -615,10 +612,7 @@ class LBNFeatureImportances(NNFeatureImportances):
         super(LBNFeatureImportances, self).__init__(
             model, data, trainvars, weight, target, permutations
         )
-        self.particles = {
-            'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "jet1", "jet2", "lep", "met"],
-            'bb2l': ["bjet1", "bjet2", "lep1", "lep2"]
-        }
+        self.particles = PARTICLE_INFO
         self.channel = channel
         assert self.channel in self.particles.keys(), 'channel %s is absent in self.particles %s'\
             %(self.channel, self.particles)
