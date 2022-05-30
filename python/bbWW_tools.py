@@ -2,9 +2,9 @@ import os
 import numpy as np
 import pandas
 import re
-from hh_tools import HHDataLoader, HHDataNormalizer
-import universal_tools as ut
-from data_loader import DataLoader as dlt
+from machineLearning.machineLearning.hh_tools import HHDataLoader, HHDataNormalizer
+from machineLearning.machineLearning import universal_tools as ut
+from machineLearning.machineLearning.data_loader import DataLoader as dlt
 
 class bbWWDataNormalizer(HHDataNormalizer):
     def __init__(self, data, preferences, global_settings):

@@ -30,13 +30,13 @@ import pandas
 import matplotlib
 matplotlib.use('agg')
 import cmsml
-import data_loading_tools as dlt
-import universal_tools as ut
-import hh_parameter_reader as hpr
-import bbWW_tools as bbwwt
-import nn_tools as nt
-import multiclass_tools as mt
-from visualization import hh_visualization_tools as hhvt
+from machineLearning.machineLearning import data_loading_tools as dlt
+from machineLearning.machineLearning import universal_tools as ut
+from machineLearning.machineLearning import hh_parameter_reader as hpr
+from machineLearning.machineLearning import bbWW_tools_1 as bbwwt
+from machineLearning.machineLearning import nn_tools_1 as nt
+from machineLearning.machineLearning import multiclass_tools as mt
+from machineLearning.machineLearning.visualization import hh_visualization_tools as hhvt
 
 tf.config.threading.set_intra_op_parallelism_threads(3)
 tf.config.threading.set_inter_op_parallelism_threads(3)
@@ -388,8 +388,8 @@ def evaluate_model(model, train_data, test_data, trainvars, \
         sample_weight=(train_data['totalWeight'].astype(float)),
         pos_label=0
     )
-    train_auc = auc(train_fpr, train_tpr)
-    test_auc = auc(test_fpr, test_tpr)
+    train_auc = auc(train_fpr, train_tpr, reorder=True)
+    test_auc = auc(test_fpr, test_tpr, reorder=True)
     test_info = {
         'fpr': test_fpr,
         'tpr': test_tpr,
@@ -486,7 +486,7 @@ if __name__ == '__main__':
         sig_weight = float(arguments['--sig_weight'])
         mass_region = arguments['--mass_region']
         csv = int(arguments['--csv'])
-        main('Test', channel, mode, era, BM, split_ggf_vbf, sig_weight, mass_region)
+        main('None', channel, mode, era, BM, split_ggf_vbf, sig_weight, mass_region)
     except docopt.DocoptExit as e:
         print(e)
     print(datetime.now() - startTime)

@@ -3,15 +3,25 @@
 from sklearn.model_selection import train_test_split
 from sklearn.utils.multiclass import type_of_target
 from sklearn.metrics import r2_score
+import keras
+from keras import backend as K
+from keras.wrappers.scikit_learn import KerasClassifier
+from keras.layers import Dense
+from keras.layers import Dropout
+from keras.layers import BatchNormalization
+from keras.optimizers import Nadam
 import numpy as np
 import tensorflow as tf
-import universal_tools as ut
-import evaluation_tools as et
-from lbn import LBN, LBNLayer
-import multiclass_tools as mt
-import data_loading_tools as dlt
-from visualization import hh_visualization_tools as hhvt
-from grouped_entropy import GroupedXEnt as gce
+import eli5
+from eli5.formatters.as_dataframe import format_as_dataframe
+from eli5.sklearn import PermutationImportance
+from machineLearning.machineLearning import universal_tools as ut
+from machineLearning.machineLearning import evaluation_tools as et
+from machineLearning.machineLearning.lbn import LBN, LBNLayer
+from machineLearning.machineLearning import multiclass_tools as mt
+from machineLearning.machineLearning import data_loading_tools as dlt
+from machineLearning.machineLearning.visualization import hh_visualization_tools as hhvt
+from machineLearning.machineLearning.grouped_entropy import GroupedXEnt as gce
 
 PARTICLE_INFO = low_level_object = {
     'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", 'jet1', 'jet2', "lep", "met"],

@@ -1,8 +1,8 @@
 import os
 import pandas
 import ROOT
-import uproot
-import universal_tools as ut
+from root_numpy import tree2array
+from machineLearning.machineLearning import universal_tools as ut
 
 class DataLoader(object):
     def __init__(
@@ -77,14 +77,20 @@ class DataLoader(object):
             path,
             input_tree
     ):
-        tfile = uproot.open(path)
+        tfile = ROOT.TFile(path)
         try:
+            tree = tfile.Get(input_tree)
             self.set_variables_to_be_loaded(process)
-            chunk_df = tfile[input_tree].arrays(self.to_be_loaded, library='pd', entry_start=0, entry_stop=5000)
+            chunk_arr = tree2array(
+                tree, branches=self.to_be_loaded,
+                stop=self.nr_events_per_file
+            )
+            chunk_df = pandas.DataFrame(chunk_arr)
+            tfile.Close()
             data = self.data_imputer(
                 chunk_df, process, folder_name, target)
             return data
-        except uproot.exceptions.KeyInFileError:#TypeError:
+        except TypeError:
             print('Incorrect input_tree: ' + str(input_tree))
 
     def signal_background_calc(self, data, folder_name):
@@ -151,8 +157,8 @@ class DataLoader(object):
             process, folder_name, target, path, input_tree)
 
     def print_nr_signal_bkg(self, data):
-        n_signal = len(data.iloc[data.target.values == 1])
-        n_background = len(data.iloc[data.target.values == 0])
+        n_signal = len(data.ix[data.target.values == 1])
+        n_background = len(data.ix[data.target.values == 0])
         print('For ' + self.preferences['channelInTree'] + ':')
         print('\t Signal: ' + str(n_signal))
         print('\t Background: ' + str(n_background))

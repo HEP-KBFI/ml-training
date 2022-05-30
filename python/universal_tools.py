@@ -171,10 +171,10 @@ def _decode_dict(data):
     is unicode. See https://stackoverflow.com/questions/956867/how-to-get-string-objects-instead-of-unicode-from-json
     """
     rv = {}
-    for key, value in data.items():
-        if isinstance(key, str):
-            key = key#.encode('utf-8')
-        if isinstance(value, str):
+    for key, value in data.iteritems():
+        if isinstance(key, unicode):
+            key = key.encode('utf-8')
+        if isinstance(value, unicode):
             value = value.encode('utf-8')
         elif isinstance(value, list):
             value = _decode_list(value)
