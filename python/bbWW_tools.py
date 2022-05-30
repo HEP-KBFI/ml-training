@@ -2,9 +2,9 @@ import os
 import numpy as np
 import pandas
 import re
-from hh_tools import HHDataLoader, HHDataNormalizer
-import universal_tools as ut
-from data_loader import DataLoader as dlt
+from machineLearning.machineLearning.hh_tools import HHDataLoader, HHDataNormalizer
+from machineLearning.machineLearning import universal_tools as ut
+from machineLearning.machineLearning.data_loader import DataLoader as dlt
 
 class bbWWDataNormalizer(HHDataNormalizer):
     def __init__(self, data, preferences, global_settings):
@@ -21,7 +21,8 @@ class bbWWDataNormalizer(HHDataNormalizer):
         if not self.multiclass:
             HHDataNormalizer.flatten_nonres_distributions(self)
         else:
-            signal_weight = self.preferences['signal_weight'] if 'signal_weight' in self.preferences.keys()\
+            pass
+            '''signal_weight = self.preferences['signal_weight'] if 'signal_weight' in self.preferences.keys()\
                             else 1
             for node in set(self.data['nodeXname'].astype(str)):
                 for process in set(self.data["process"]):
@@ -34,7 +35,7 @@ class bbWWDataNormalizer(HHDataNormalizer):
                     self.data.loc[
                         condition_sig & condition_node,
                         [self.weight]] *= sig_node_factor
-        self.print_background_yield()
+        self.print_background_yield()'''
 
     def flatten_resonant_distributions(self):
         pass
@@ -97,6 +98,7 @@ class bbWWLoader(HHDataLoader):
         else:
             self.to_be_dropped.extend(['gen_mHH'])
         self.to_be_loaded.append('isHbb_boosted')
+        self.to_be_loaded.append('numBJets_medium')
 
     def process_data_imputer(
             self, chunk_df, folder_name, target, data
@@ -106,13 +108,18 @@ class bbWWLoader(HHDataLoader):
         merge_process_H = ["TTH", "ZH", "WH", "ggH", "qqH", "tHq", "tHW", "TTWH", "TTZH"]
         if self.mergeWjets:
             merge_process.append("W")
-        chunk_df.loc[chunk_df["process"].isin(
-            merge_process_Other
-        ), "process"] = "Other"
+        if self.global_settings['channel'] == 'bb1l':
+            chunk_df.loc[chunk_df["process"].isin(
+              merge_process_Other
+            ), "process"] = "Other"
 
-        chunk_df.loc[chunk_df["process"].isin(
-            merge_process_H
-        ), "process"] = "H"
+            chunk_df.loc[chunk_df["process"].isin(
+              merge_process_H
+            ), "process"] = "H"
+        else:
+             chunk_df.loc[chunk_df["process"].isin(
+              merge_process
+             ), "process"] = "Other"
 
         if 'nonres' not in self.global_settings['scenario']:
             data = self.resonant_data_imputer(
@@ -161,8 +168,16 @@ class bbWWLoader(HHDataLoader):
         return self.final_data(total_data)
 
     def final_data(self, data):
-        finalData = data
+        finalData = data#pandas.DataFrame({})
         for process in set(data['process']):
+            '''if (data.loc[data['process'] == process]['target'] == 1).all():
+                finalData = finalData.append(data.loc[data['process'] == process])
+            else:
+                if len(data.loc[data['process'] == process]) > 400000:
+                    finalData = finalData.append(data.loc[data['process'] == process].\
+                         sample(n=400000))
+                else:
+                    finalData = finalData.append(data.loc[data['process'] == process])'''
             print(process + ': ' + str(len(finalData.loc[finalData['process'] == process])))
         self.print_nr_signal_bkg(finalData)
         if self.split_ggf_vbf:
@@ -188,7 +203,7 @@ class bbWWLoader(HHDataLoader):
             if self.use_NLO == True or self.use_NLOweightonly == True:
                 self.nr_events_per_file = -1
             else:
-                self.nr_events_per_file = 30000
+                self.nr_events_per_file = -1#30000
         else:
             if not self.load_bkg:
                 self.nr_events_per_file = 0

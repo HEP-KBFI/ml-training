@@ -30,20 +30,20 @@ import pandas
 import matplotlib
 matplotlib.use('agg')
 import cmsml
-import data_loading_tools as dlt
-import universal_tools as ut
-import hh_parameter_reader as hpr
-import bbWW_tools as bbwwt
-import nn_tools as nt
-import multiclass_tools as mt
-from visualization import hh_visualization_tools as hhvt
+from machineLearning.machineLearning import data_loading_tools as dlt
+from machineLearning.machineLearning import universal_tools as ut
+from machineLearning.machineLearning import hh_parameter_reader as hpr
+from machineLearning.machineLearning import bbWW_tools as bbwwt
+from machineLearning.machineLearning import nn_tools as nt
+from machineLearning.machineLearning import multiclass_tools as mt
+from machineLearning.machineLearning.visualization import hh_visualization_tools as hhvt
 
 tf.config.threading.set_intra_op_parallelism_threads(3)
 tf.config.threading.set_inter_op_parallelism_threads(3)
 
 PARTICLE_INFO = low_level_object = {
     'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "jet1", "jet2", "lep", "met"],
-    'bb2l': ["bjet1", "bjet2", "lep1", "lep2"]
+    'bb2l': ["bjet1", "bjet2", "jet1", "jet2", "lep1", "lep2", "met"]
 }
 
 def flatten_resonant_distributions(data):
@@ -58,6 +58,21 @@ def flatten_resonant_distributions(data):
             data.loc[
                 condition_sig & condition_mass,
                 ['totalWeight']] *= sig_mass_factor
+    print_background_yield(data)
+
+def flatten_nonresonant_distributions(data):
+    signal_weight = sig_weight
+    for node in set(data['nodeXname'].astype(str)):
+        for process in set(data["process"]):
+            condition_node = data['nodeXname'].astype(str) == str(node)
+            condition_sig = data['process'].astype(str) == process
+            node_sig_weight = data.loc[
+                condition_sig & condition_node, ["totalWeight"]]
+            sig_node_factor = 100000./node_sig_weight.sum() if 'HH' not in process else\
+                              100000./(node_sig_weight.sum()*signal_weight)
+            data.loc[
+                condition_sig & condition_node,
+                ["totalWeight"]] *= sig_node_factor
     print_background_yield(data)
 
 def print_background_yield(data):
@@ -96,7 +111,7 @@ def main(output_dir, channel, mode, era, BM, split_ggf_vbf, sig_weight, mass_reg
         mode_BM += '/' + BM
         if mass_region !='None':
             mode_BM += '_' + mass_region
-        output_dir = global_settings['channel'] + '_ResNet_smallstat/split_ggf_vbf_' + str(split_ggf_vbf) + \
+        output_dir = global_settings['channel'] + '_ResNet_wmem_v1/split_ggf_vbf_' + str(split_ggf_vbf) + \
                 '_sig_weight_' + str(sig_weight) + '/' + global_settings['ml_method'] \
                 +'/'+ res_nonres + '/' + mode_BM + '/' + era
         global_settings['output_dir'] = output_dir
@@ -232,12 +247,22 @@ def create_data_dict(preferences, global_settings, split_ggf_vbf):
         'even_data_train': even_data_train,
         'even_data_val': even_data_val,
     }
-    flatten_resonant_distributions(data_dict['odd_data'])
-    flatten_resonant_distributions(data_dict['even_data'])
-    flatten_resonant_distributions(data_dict['odd_data_train'])
-    flatten_resonant_distributions(data_dict['even_data_train'])
-    flatten_resonant_distributions(data_dict['odd_data_val'])
-    flatten_resonant_distributions(data_dict['even_data_val'])
+
+    if res_nonres == 'res':
+        flatten_resonant_distributions(data_dict['odd_data'])
+        flatten_resonant_distributions(data_dict['even_data'])
+        flatten_resonant_distributions(data_dict['odd_data_train'])
+        flatten_resonant_distributions(data_dict['even_data_train'])
+        flatten_resonant_distributions(data_dict['odd_data_val'])
+        flatten_resonant_distributions(data_dict['even_data_val'])
+    else:
+        flatten_nonresonant_distributions(data_dict['odd_data'])
+        flatten_nonresonant_distributions(data_dict['even_data'])
+        flatten_nonresonant_distributions(data_dict['odd_data_train'])
+        flatten_nonresonant_distributions(data_dict['even_data_train'])
+        flatten_nonresonant_distributions(data_dict['odd_data_val'])
+        flatten_nonresonant_distributions(data_dict['even_data_val'])
+    
     return data_dict
 
 def create_model(
@@ -251,7 +276,6 @@ def create_model(
 ):
     lbn = global_settings['ml_method'] == 'lbn'
     parameters = {'batch_size':601, 'lr':0.00781838825015861, 'l2':0.0, 'dropout':0, 'layer':3, 'node':212, 'resNetBlock': 2}
-    #parameters = {'batch_size':200, 'lr':0.006737946999085467, 'l2':0.030023938671891574, 'dropout':0, 'layer':3, 'node':42, 'nparticle':13, 'signal_weight':1, "resNetBlock": 6}
     if lbn:
         modeltype = nt.LBNmodel(
             train_data,
@@ -464,7 +488,7 @@ def create_global_settings(global_settings, channel, res_nonres, mode):
     else:
         global_settings['scenario'] = '%s/%s' %(BM, mode)
     global_settings['dataCuts'] = 'cuts_%s.json' %mode
-    global_settings['feature_importance'] = 0
+    global_settings['feature_importance'] = 1
 
 def check_trainvar(preferences):
     BMpoints = ['SM', 'BM1', 'BM2', 'BM3', 'BM4', 'BM5', 'BM6', 'BM7', 'BM8', 'BM9', 'BM10', 'BM11', 'BM12']
@@ -486,7 +510,7 @@ if __name__ == '__main__':
         sig_weight = float(arguments['--sig_weight'])
         mass_region = arguments['--mass_region']
         csv = int(arguments['--csv'])
-        main('Test', channel, mode, era, BM, split_ggf_vbf, sig_weight, mass_region)
+        main('None', channel, mode, era, BM, split_ggf_vbf, sig_weight, mass_region)
     except docopt.DocoptExit as e:
         print(e)
     print(datetime.now() - startTime)
