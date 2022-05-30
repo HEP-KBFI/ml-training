@@ -34,7 +34,7 @@ tf, tf1, tf_version = cmsml.tensorflow.import_tf()
 np.printoptions(threshold=np.inf)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-m ", dest="method", help="type of training", default='nn', choices=['nn', 'bdt'])
+parser.add_argument("-m ", dest="method", help="type of training", default='bdt', choices=['nn', 'bdt'])
 parser.add_argument("-t ", dest="target", help="type of target", default='memProbS', choices=['memProbB', 'memProbS', 'z'])
 parser.add_argument("-nbjet ", dest="nbjet", type=int, help="number of bjet", default=2, choices=[1,2])
 parser.add_argument("-nwjet ", dest="nwjet", type=int, help="number of wjet", default=2, choices=[1,2])
@@ -254,17 +254,24 @@ def evaluate_npl(mem_s, mem_b):
     return mem_s/(mem_sb) if mem_sb !=0 else 0
 
 def model_performance(model, data, data_type):
+    train = 'even_data' if data_type == 'odd_data' else 'odd_data'
     for sig in [2]:
         if sig==2:
-            sig_sample = data[data_type]
+            test_sample = data[data_type]
+            train_sample = data[train]
         else:
-            sig_sample = data[data_type].loc[data[data_type]['isSignal']==sig]
-        print('len of validation sample, sig: ', str(sig), '\t', len(sig_sample))
-        true = sig_sample['logtarget'].values.astype(np.float)
-        pred = model.predict(sig_sample[data['trainvars']])
-        hhvtre.correlation_true_vs_pred(true, pred.flatten(), output_dir, addition='%s_sig_%s' %(target, str(sig)))
+            test_sample = data[data_type].loc[data[data_type]['isSignal']==sig]
+        print('len of validation sample, sig: ', str(sig), '\t', len(test_sample))
+        true = test_sample['logtarget'].values.astype(np.float)
+        pred = model.predict(test_sample[data['trainvars']])
+        hhvtre.correlation_true_vs_pred(true, pred.flatten(), output_dir, addition='%s_test_%s_sig_%s' %(target, data_type, str(sig)))
         hhvtre.hist_true_vs_pred(true, pred.flatten(), data[data_type]['genWeight'],\
-                                 output_dir, target, addition='log_%s_sig_%s' %(data_type, str(sig)))
+            output_dir, target, addition='log_test_%s_sig_%s' %(data_type, str(sig)))
+        true = train_sample['logtarget'].values.astype(np.float)
+        pred = model.predict(train_sample[data['trainvars']])
+        hhvtre.correlation_true_vs_pred(true, pred.flatten(), output_dir, addition='%s_train_%s_sig_%s' %(target, train, str(sig)))
+        #hhvtre.hist_true_vs_pred(true, pred.flatten(), data[train]['genWeight'],\
+            #  output_dir, target, addition='log_train_%s_sig_%s' %(train, str(sig)))
 
 def main():
     dataloader = ra.DataLoader(channel, target, nbjets, nwjets, nbjets_medium)
@@ -285,12 +292,12 @@ def main():
             sum_reg_prob = {}
             sum_true_prob = {}
             issignal = {}
-            inputdir = os.path.join("/home", getpass.getuser(), input_dir, method, channel, target, 'nbjet_'+ str(nbjets),\
+            inputdir = os.path.join("/home", getpass.getuser(), input_dir, method, channel, 'memProbS', 'nbjet_'+ str(nbjets),\
                               'nbjet_medium_'+str(nbjets_medium))#"/home/" + getpass.getuser() + '/' + input_dir + '/' + method + '/'\
                            #+ channel + '/memProbS' + '/nbjets_'+str(nbjets)
-            model_s = pickle.load(open('%s/%s_train.pkl' %(inputdir,choose_data),"rb"))
+            model_s = pickle.load(open('%s/%s_train_on_memProbS.pkl' %(inputdir,choose_data),"rb"))
             inputdir = inputdir.replace('memProbS', 'memProbB')
-            model_b =  pickle.load(open('%s/%s_train.pkl' %(inputdir,choose_data), 'rb'))
+            model_b =  pickle.load(open('%s/%s_train_on_memProbB.pkl' %(inputdir,choose_data), 'rb'))
             data = data_dict['even_data'] if choose_data == 'odd_data'\
                    else data_dict['odd_data']
             print 'len========== ', len(data)
