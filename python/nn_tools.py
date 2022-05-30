@@ -2,7 +2,6 @@
 """
 from sklearn.model_selection import train_test_split
 from sklearn.utils.multiclass import type_of_target
-from sklearn.metrics import r2_score
 import keras
 from keras import backend as K
 from keras.wrappers.scikit_learn import KerasClassifier
@@ -24,11 +23,9 @@ from machineLearning.machineLearning.visualization import hh_visualization_tools
 from machineLearning.machineLearning.grouped_entropy import GroupedXEnt as gce
 
 PARTICLE_INFO = low_level_object = {
-    'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", 'jet1', 'jet2', "lep", "met"],
+    'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "lep"],
     'bb2l': ["bjet1", "bjet2", "lep1", "lep2"]
 }
-tf.config.threading.set_intra_op_parallelism_threads(3)
-tf.config.threading.set_inter_op_parallelism_threads(3)
 class NNmodel(object):
     def __init__(
             self,
@@ -39,11 +36,7 @@ class NNmodel(object):
             plot_history=True,
             split_ggf_vbf=False,
             output_dir='',
-            addition='',
-            model='classifier',
-            weight='totalWeight',
-            ResNet=True,
-            ResNetLayer=2
+            addition=''
     ):
         self.train_data = train_data
         self.val_data = val_data
@@ -52,43 +45,13 @@ class NNmodel(object):
         self.dropout = 0#parameters['dropout']
         self.lr = parameters['lr']
         self.l2 = parameters['l2']
-        self.epoch = 200 if 'epoch' not in parameters.keys() else parameters['epoch']
+        self.epoch = 25#parameters['epoch']
         self.batch_size = parameters['batch_size']
         self.layer = parameters['layer']
         self.node = parameters['node']
-        self.nparticle = 12#parameters['nparticle']
         self.split_ggf_vbf = split_ggf_vbf
-        self.weight = weight
-        self.ResNet = ResNet
-        self.ResNetLayer = ResNetLayer if 'resNetBlock' not in parameters.keys() else parameters['resNetBlock']
-        if model == 'classifier':
-            self.train_target = self.train_data['multitarget'].values.astype(np.float)
-            self.val_target = self.val_data['multitarget'].values.astype(np.float)
-            self.num_class = max((self.train_data['multitarget'])) + 1
-            self.activation = 'relu'
-            self.output_activation = 'softmax'
-            self.loss = 'sparse_categorical_crossentropy'
-            self.metrics = 'accuracy'
-            print('layer: '+ str(self.layer))
-        elif model == 'binary_classifier':
-            self.train_target = self.train_data['target'].values.astype(np.float)
-            self.val_target = self.val_data['target'].values.astype(np.float)
-            self.num_class = 1
-            self.loss = 'binary_crossentropy'
-            self.activation = 'relu'
-            self.output_activation = 'sigmoid'
-            self.metrics = 'accuracy'
-        else:
-            self.train_target = self.train_data['logtarget'].values.astype(np.float)
-            self.val_target = self.val_data['logtarget'].values.astype(np.float)
-            self.num_class = 1
-            #self.dropout = parameters['drop_out']
-            self.activation = 'relu'
-            self.output_activation = 'selu'
-            self.loss = 'mean_squared_error'
-            self.epoch = parameters["epoch"]
-            self.metrics = 'mean_squared_error'
-
+        self.train_target = self.train_data['multitarget'].values.astype(np.float)
+        self.val_target = self.val_data['multitarget'].values.astype(np.float)
         '''if split_ggf_vbf:
             group_ids = mt.group_id(self.train_data)
             self.gce = gce(group_ids)
@@ -96,12 +59,14 @@ class NNmodel(object):
             self.val_target = val_data[['GGF_HH', 'VBF_HH', 'TT', 'ST', 'Other', 'W', 'DY']].values.astype(float)'''
 
         self.reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
-            monitor='val_loss', factor=0.1, patience=5, min_lr=0.00001, min_delta=0.01
+            monitor='val_loss', factor=0.1, patience=3, min_lr=0.00001, min_delta=0.01
         )
         self.early_stopping = tf.keras.callbacks.EarlyStopping(
-            monitor='val_loss', patience=10, min_delta=0.01,
+            monitor='val_loss', patience=5, min_delta=0.01,
             restore_best_weights=True
         )
+        self.num_class = max((self.train_data['multitarget'])) + 1
+        self.nr_trainvars = len(self.trainvars)
         self.categorical_var_index = None
         self.categorical_vars = ["SM", "BM1", "BM2", "BM3", "BM4", "BM5", "BM6",\
              "BM7", "BM8", "BM9", "BM10", "BM11", "BM12"]
@@ -132,60 +97,32 @@ class NNmodel(object):
         input_var = np.array([self.train_data[var] for var in trainvars])
         categorical_var_index = [trainvars.index(categorical_var) for categorical_var in self.categorical_vars \
             if categorical_var in trainvars]
-        self.normalized_vars = self.Normal(ref=input_var, const=None, axis=1)(inputs)
+        self.normalized_vars = self.Normal(ref=input_var, const=categorical_var_index, axis=1)(inputs)
 
     def make_hidden_layer(self, x):
         for layer in range(0, self.layer):
-            x = tf.keras.layers.Dense(self.node, activation=self.activation,
+            x = tf.keras.layers.Dense(self.node, activation="softplus",
                      kernel_regularizer=tf.keras.regularizers.l2(self.l2))(x)
             x = tf.keras.layers.BatchNormalization()(x)
             x = tf.keras.layers.Dropout(self.dropout)(x)
-        return tf.keras.layers.Dense(self.num_class, activation=self.output_activation)(x)
-
-    def res_net_block(self, inputs):
-        x = inputs
-        for layer in range(0, self.layer-1):
-            print('layer: '+ str(layer))
-            x = tf.keras.layers.Dense(self.node, activation=self.activation,
-                                      kernel_regularizer=tf.keras.regularizers.l2(self.l2))(x)
-            x = tf.keras.layers.BatchNormalization()(x)
-            x = tf.keras.layers.Dropout(self.dropout)(x)
-        x = tf.keras.layers.Dense(inputs.shape[-1],
-                     kernel_regularizer=tf.keras.regularizers.l2(self.l2))(x)
-        x = tf.keras.layers.BatchNormalization()(x)
-        x = tf.keras.layers.Dropout(self.dropout)(x)
-        x = tf.keras.layers.add([x, inputs])
-        res_inputs = tf.keras.layers.Activation('relu')(x)
-        return res_inputs
-
-    def makeResNet(self, inputs):
-        res_inputs = inputs
-        for reslayer in range(0, self.ResNetLayer):
-            print('resnet : '+ str(reslayer))
-            res_inputs = self.res_net_block(res_inputs)
-        x = tf.keras.layers.BatchNormalization()(res_inputs)
-        x = tf.keras.layers.Dropout(self.dropout)(x)
-        return tf.keras.layers.Dense(self.num_class, activation=self.output_activation)(x)
+        return tf.keras.layers.Dense(self.num_class, activation='softmax')(x)
 
     def compile_model(self):
-        my_loss = self.loss
+        my_loss = 'sparse_categorical_crossentropy'
         self.model.compile(
             optimizer=tf.keras.optimizers.Adam(lr=self.lr),
             loss=my_loss,
-            weighted_metrics=[self.metrics]
+            weighted_metrics=["accuracy"]
         )
 
     def create_model(self):
         self.inputs = tf.keras.Input(shape=(self.nr_trainvars,), name="input_var")
         self.normalize_inputs(self.trainvars, self.inputs)
         x = tf.keras.layers.Layer()(self.normalized_vars)
-        if self.ResNet:
-            outputs = self.makeResNet(self.normalized_vars)
-        else:
-            outputs = self.make_hidden_layer(x)
+        self.make_hidden_layer(x)
         self.model = tf.keras.Model(
             inputs=[self.inputs],
-            outputs=outputs
+            outputs=self.outputs
         )
         self.compile_model()
         self.fit_model()
@@ -197,11 +134,11 @@ class NNmodel(object):
             self.train_target,
             epochs=self.epoch,
             batch_size=self.batch_size,
-            sample_weight=self.train_data[self.weight].values,
+            sample_weight=self.train_data['totalWeight'].values,
             validation_data=(
                 self.val_data[self.trainvars],
                 self.val_target,
-                self.val_data[self.weight].values
+                self.val_data['totalWeight'].values
             ),
             callbacks=[self.reduce_lr, self.early_stopping]
         )
@@ -232,7 +169,7 @@ class LBNmodel(NNmodel):
             addition
         )
         self.particles = {
-            'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", 'jet1', 'jet2', "lep", "met"],
+            'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "lep"],
             'bb2l': ["bjet1", "bjet2", "lep1", "lep2"]
         }
         self.channel = channel
@@ -246,13 +183,12 @@ class LBNmodel(NNmodel):
             self.train_target,
             epochs=self.epoch,
             batch_size=self.batch_size,
-            #class_weight={0:1/2, 1:1, 2:1, 3:1, 4:1, 5:1},
-            sample_weight=self.train_data[self.weight].values,
+            sample_weight=self.train_data['totalWeight'].values,
             validation_data=(
                 [dlt.get_low_level(self.val_data, self.particles[self.channel]),
                  dlt.get_high_level(self.val_data, self.particles[self.channel], self.trainvars)],
                 self.val_target,
-                self.val_data[self.weight].values
+                self.val_data["totalWeight"].values
             ),
             callbacks=[self.reduce_lr, self.early_stopping]
         )
@@ -262,23 +198,20 @@ class LBNmodel(NNmodel):
     def create_model(self):
         self.low_level_var = ["%s_%s" %(part, var) for part in self.particles[self.channel] \
              for var in ["e", "px", "py", "pz"]]
-        self.nr_trainvars = len(self.trainvars)
+        self.nr_trainvars -= len(self.low_level_var)
         ll_inputs = tf.keras.Input(shape=(len(self.particles[self.channel]), 4), name="LL")
         hl_inputs = tf.keras.Input(shape=(self.nr_trainvars,), name="HL")
         lbn_layer = LBNLayer(
-            ll_inputs.shape, self.nparticle,
+            ll_inputs.shape, 16,
             boost_mode=LBN.PAIRS,
-            features=["E", "px", "py", "pz", "pt", "p", "m", "pair_cos"]
+            features=["E", "pt", "eta", "phi", "m", "pair_cos"]
         )
         lbn_features = lbn_layer(ll_inputs)
         self.normalized_lbn_features = tf.keras.layers.BatchNormalization()(lbn_features)
-        hl_var = [var for var in self.trainvars]# if var not in self.low_level_var]
+        hl_var = [var for var in self.trainvars if var not in self.low_level_var]
         self.normalize_inputs(hl_var, hl_inputs)
         x = tf.keras.layers.concatenate([self.normalized_lbn_features, self.normalized_vars])
-        if self.ResNet:
-            outputs = self.makeResNet(x)
-        else:
-            outputs = self.make_hidden_layer(x)
+        outputs = self.make_hidden_layer(x)
         self.model = tf.keras.Model(
             inputs=[ll_inputs, hl_inputs],
             outputs=outputs,
@@ -335,7 +268,7 @@ def parameter_evaluation(
     )
     return k_model
 
-def evaluate_model(data_dict, global_settings, model, lbn=True):
+def evaluate_model(data_dict, global_settings, model):
     """Evaluates the model for the XGBoost method
     Parameters:
     ----------
@@ -353,24 +286,15 @@ def evaluate_model(data_dict, global_settings, model, lbn=True):
     trainvars = data_dict['trainvars']
     train_data = data_dict['train']
     test_data = data_dict['test']
-    if lbn:
-        particles = PARTICLE_INFO[global_settings['channel']]
-        pred_train = model.predict(
-            [dlt.get_low_level(train_data, particles),
-             dlt.get_high_level(train_data, particles, trainvars)],
-          batch_size=1024)
-        pred_test = model.predict(
-            [dlt.get_low_level(test_data, particles),
-          dlt.get_high_level(test_data, particles, trainvars)],
-          batch_size=1024)
-    else:
-        pred_train = model.predict(
-          train_data[trainvars].values,
-          batch_size=1024)
-        pred_test = model.predict(
-          test_data[trainvars].values,
-          batch_size=1024)
-    del train_data, test_data
+    particles = PARTICLE_INFO[global_settings['channel']]
+    pred_train = model.predict(
+        [dlt.get_low_level(train_data, particles),
+          dlt.get_high_level(train_data, particles, trainvars)],
+        batch_size=1024)
+    pred_test = model.predict(
+        [dlt.get_low_level(test_data, particles),
+         dlt.get_high_level(test_data, particles, trainvars)],
+        batch_size=1024)
     kappa = global_settings['kappa']
     if global_settings['fitness_fn'] == 'd_roc':
         return et.calculate_d_roc(
@@ -383,22 +307,6 @@ def evaluate_model(data_dict, global_settings, model, lbn=True):
             'The' + str(global_settings['fitness_fn'])
             + ' fitness_fn is not implemented'
         )
-
-def evaluate_model_regression(data_dict, global_settings, model):
-    trainvars = data_dict['trainvars']
-    train_data = data_dict['train']
-    test_data = data_dict['test']
-    pred_train = model.predict(
-        train_data[trainvars],
-        batch_size=1024)
-    pred_test = model.predict(
-        test_data[trainvars],
-        batch_size=1024)
-    kappa = global_settings['kappa']
-    train_score = r2_score(train_data['logtarget'], pred_train, sample_weight=train_data['genWeight'])
-    test_score = r2_score(test_data['logtarget'], pred_test, sample_weight=test_data['genWeight'])
-    return et.calculate_d_score(train_score, test_score, kappa=kappa), test_score, train_score
-
 
 def evaluate(k_model, data_dict, global_settings):
     """Evaluates the nn k_model
@@ -626,7 +534,7 @@ class LBNFeatureImportances(NNFeatureImportances):
             model, data, trainvars, weight, target, permutations
         )
         self.particles = {
-            'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "jet1", "jet2", "lep", "met"],
+            'bb1l': ["bjet1", "bjet2", "wjet1", "wjet2", "lep"],
             'bb2l': ["bjet1", "bjet2", "lep1", "lep2"]
         }
         self.channel = channel
@@ -698,7 +606,7 @@ class LBNFeatureImportances(NNFeatureImportances):
         low_level_[:, i] = shuffled_elements
         return low_level_
 
-def model_evaluation_main(hyperparameters, data_dict, global_settings, model='lbn_classifier'):
+def model_evaluation_main(hyperparameters, data_dict, global_settings):
     """ Collected functions for CGB model evaluation
     Parameters:
     ----------
@@ -723,44 +631,15 @@ def model_evaluation_main(hyperparameters, data_dict, global_settings, model='lb
         k_model, data_dict, global_settings
     )
     return score, pred_train, pred_test'''
-    if model == 'lbn_classifier':
-        LBNmodel_ = LBNmodel(
-            data_dict['train'],
-            data_dict['val'],
-            data_dict['trainvars'],
-            global_settings['channel'],
-            hyperparameters,
-            False
-        )
-        model = LBNmodel_.create_model()
-        score, test, train = evaluate_model(
-            data_dict, global_settings, model)
-        return score, test, train
-    elif model == 'nn_classifier':
-        NNmodel_ = NNmodel(
-            data_dict['train'],
-            data_dict['val'],
-            data_dict['trainvars'],
-            hyperparameters,
-            False,
-            model='classifier',
-            ResNet=True
-        )
-        model = NNmodel_.create_model()
-        score, train, test = evaluate_model(
-            data_dict, global_settings, model, lbn=False)
-        return score, train, test
-    else:
-        NNmodel_ = NNmodel(
-            data_dict['train'],
-            data_dict['test'],
-            data_dict['trainvars'],
-            hyperparameters,
-            False,
-            model='regression',
-            weight='genWeight'
-        )
-        model = NNmodel_.create_model()
-        score, train, test = evaluate_model_regression(
-            data_dict, global_settings, model)
-        return score, train, test
+    LBNmodel_ = LBNmodel(
+        data_dict['train'],
+        data_dict['test'],
+        data_dict['trainvars'],
+        global_settings['channel'],
+        hyperparameters,
+        False
+    )
+    model = LBNmodel_.create_model()
+    score, train, test = evaluate_model(
+        data_dict, global_settings, model)
+    return score, train, test
