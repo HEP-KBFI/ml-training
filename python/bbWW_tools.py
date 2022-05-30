@@ -15,14 +15,28 @@ class bbWWDataNormalizer(HHDataNormalizer):
         )
 
     def normalization_step1(self):
-        pass
+        if 'nonres' in self.global_settings['scenario']:
+            self.data.loc[(self.data['target'] == 1), [self.weight]] *= 1./float(
+                len(self.preferences['nonResScenarios']))
+            self.data.loc[(self.data['target'] == 0), [self.weight]] *= 1./float(
+                len(self.preferences['nonResScenarios']))
+        elif 'oversampling' in self.global_settings['bkg_mass_rand']:
+            self.data.loc[(self.data['target'] == 1), [self.weight]] *= 1./float(
+                len(self.preferences['masses']))
+            self.data.loc[(self.data['target'] == 0), [self.weight]] *= 1./float(
+                len(self.preferences['masses']))
+        if 'SUM_HH' in self.global_settings['bdtType']:
+            sample_normalizations = self.preferences['tauID_application']
+            for sample in sample_normalizations.keys():
+                sample_name = sample.replace('datacard', '')
+                sample_weights = self.data.loc[self.data['process'] == sample_name, [self.weight]]
+                sample_factor = sample_normalizations[sample]/sample_weights.sum()
+                self.data.loc[self.data['process'] == sample_name, [self.weight]] *= sample_factor
 
     def flatten_nonres_distributions(self):
         if not self.multiclass:
             HHDataNormalizer.flatten_nonres_distributions(self)
         else:
-            signal_weight = self.preferences['signal_weight'] if 'signal_weight' in self.preferences.keys()\
-                            else 1
             for node in set(self.data['nodeXname'].astype(str)):
                 for process in set(self.data["process"]):
                     condition_node = self.data['nodeXname'].astype(str) == str(node)
@@ -30,14 +44,25 @@ class bbWWDataNormalizer(HHDataNormalizer):
                     node_sig_weight = self.data.loc[
                         condition_sig & condition_node, [self.weight]]
                     sig_node_factor = 100000./node_sig_weight.sum() if 'HH' not in process else\
-                                      100000./(node_sig_weight.sum()*signal_weight)
+                                      100000./(node_sig_weight.sum()*self.preferences['signal_weight'])
                     self.data.loc[
                         condition_sig & condition_node,
                         [self.weight]] *= sig_node_factor
         self.print_background_yield()
 
     def flatten_resonant_distributions(self):
-        pass
+        for mass in set(self.data['gen_mHH']):
+            for process in set(self.data["process"]):
+                condition_mass = self.data['gen_mHH'].astype(int) == int(mass)
+                condition_sig = self.data['process'].astype(str) == process
+                mass_sig_weight = self.data.loc[
+                    condition_sig & condition_mass, [self.weight]]
+                sig_mass_factor = 100000./mass_sig_weight.sum() if 'HH' not in process else\
+                                  100000./(mass_sig_weight.sum()*self.preferences['signal_weight'])
+                self.data.loc[
+                    condition_sig & condition_mass,
+                    [self.weight]] *= sig_mass_factor
+        self.print_background_yield()
 
     def print_background_yield(self):
         print('Fraction of each Background process')
@@ -101,7 +126,7 @@ class bbWWLoader(HHDataLoader):
     def process_data_imputer(
             self, chunk_df, folder_name, target, data
     ):
-        merge_process = ["TTW", "TTWW", "VV", "TTH", "tHq", "tHW", "ZH", "WH", "Other", "XGamma", "TTZ", "ggH", "qqH", "VVV", "TTWH", "TTZH"]
+        merge_process = ["TTW", "TTWW", "VV", "TTH", "tHq", "tHW", "ZH", "WH", "Other", "XGamma", "TTZ", "ggH", "qqH", "VVV"]
         merge_process_Other = ["TTW", "TTWW", "VV", "Other", "XGamma", "TTZ", "VVV", "DY"]
         merge_process_H = ["TTH", "ZH", "WH", "ggH", "qqH", "tHq", "tHW", "TTWH", "TTZH"]
         if self.mergeWjets:
@@ -161,8 +186,16 @@ class bbWWLoader(HHDataLoader):
         return self.final_data(total_data)
 
     def final_data(self, data):
-        finalData = data
+        finalData = pandas.DataFrame({})
         for process in set(data['process']):
+            if (data.loc[data['process'] == process]['target'] == 1).all():
+                finalData = finalData.append(data.loc[data['process'] == process])
+            else:
+                if len(data.loc[data['process'] == process]) > 400000:
+                    finalData = finalData.append(data.loc[data['process'] == process].\
+                         sample(n=400000))
+                else:
+                    finalData = finalData.append(data.loc[data['process'] == process])
             print(process + ': ' + str(len(finalData.loc[finalData['process'] == process])))
         self.print_nr_signal_bkg(finalData)
         if self.split_ggf_vbf:
@@ -177,7 +210,7 @@ class bbWWLoader(HHDataLoader):
             self, process, folder_name, target, path, input_tree
     ):
         if 'TT' in folder_name and self.load_bkg:
-            self.nr_events_per_file = -1
+            self.nr_events_per_file = 1200000
         elif 'spin' in folder_name:
             self.nr_events_per_file = 0
             for mass in self.preferences['masses']:
